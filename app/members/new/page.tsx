@@ -55,7 +55,7 @@ export default function NewMemberPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Phone</Label>
-                      <Input id="phone" type="tel" placeholder="(555) 123-4567" />
+                      <Input id="phone" type="tel" placeholder="+61 412 345 678" />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -64,11 +64,11 @@ export default function NewMemberPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="address">Address</Label>
-                    <Textarea id="address" placeholder="123 Main St, New York, NY 10001" />
+                    <Textarea id="address" placeholder="123 Collins Street, Melbourne VIC 3000, Australia" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="emergencyContact">Emergency Contact</Label>
-                    <Input id="emergencyContact" placeholder="Jane Doe - (555) 987-6543" />
+                    <Input id="emergencyContact" placeholder="Jane Doe - +61 498 765 432" />
                   </div>
                 </CardContent>
               </Card>

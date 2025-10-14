@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DollarSign, AlertCircle, Clock, TrendingUp } from "lucide-react"
 import { BillingOverview } from "@/components/billing/billing-overview"
 import { InvoicesTable } from "@/components/billing/invoices-table"
-import { PaymentHistory } from "@/components/billing/payment-history"
 import { AutoBillingSettings } from "@/components/billing/auto-billing-settings"
 
 const stats = [
@@ -73,7 +72,6 @@ export default function BillingPage() {
               <TabsList>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="invoices">Invoices</TabsTrigger>
-                <TabsTrigger value="history">Payment History</TabsTrigger>
                 <TabsTrigger value="auto-billing">Auto-Billing</TabsTrigger>
               </TabsList>
               <TabsContent value="overview">
@@ -81,9 +79,6 @@ export default function BillingPage() {
               </TabsContent>
               <TabsContent value="invoices">
                 <InvoicesTable />
-              </TabsContent>
-              <TabsContent value="history">
-                <PaymentHistory />
               </TabsContent>
               <TabsContent value="auto-billing">
                 <AutoBillingSettings />

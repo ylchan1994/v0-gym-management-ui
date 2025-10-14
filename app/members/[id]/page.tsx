@@ -1,3 +1,5 @@
+"use client"
+
 import { AppSidebar } from "@/components/app-sidebar"
 import { TopBar } from "@/components/top-bar"
 import { Button } from "@/components/ui/button"
@@ -7,23 +9,59 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Edit, Mail, Phone, Calendar, CreditCard } from "lucide-react"
 import Link from "next/link"
+import { AddPaymentMethodDialog } from "@/components/billing/add-payment-method-dialog"
+import { InvoiceDetailDialog } from "@/components/billing/invoice-detail-dialog"
+import { useState } from "react"
 
 const memberData = {
   id: "1",
   name: "John Doe",
   email: "john.doe@example.com",
-  phone: "(555) 123-4567",
-  address: "123 Main St, New York, NY 10001",
+  phone: "+61 412 345 678",
+  address: "123 Collins Street, Melbourne VIC 3000, Australia",
   dateOfBirth: "1990-05-15",
-  emergencyContact: "Jane Doe - (555) 987-6543",
+  emergencyContact: "Jane Doe - +61 498 765 432",
   status: "active",
   plan: "Premium",
   joinDate: "2024-01-15",
   expiryDate: "2025-01-15",
-  paymentHistory: [
-    { id: "1", date: "2024-10-01", amount: "$99.00", status: "paid", method: "Credit Card" },
-    { id: "2", date: "2024-09-01", amount: "$99.00", status: "paid", method: "Credit Card" },
-    { id: "3", date: "2024-08-01", amount: "$99.00", status: "paid", method: "Credit Card" },
+  invoices: [
+    {
+      id: "INV-001",
+      member: "John Doe",
+      date: "2024-10-01",
+      amount: "$99.00",
+      status: "paid" as const,
+      dueDate: "2024-10-15",
+      paymentMethod: "Visa ****4242",
+      paymentAttempts: [
+        { id: "1", date: "2024-10-01", amount: "$99.00", status: "success" as const, method: "Visa ****4242" },
+      ],
+    },
+    {
+      id: "INV-002",
+      member: "John Doe",
+      date: "2024-09-01",
+      amount: "$99.00",
+      status: "paid" as const,
+      dueDate: "2024-09-15",
+      paymentMethod: "Visa ****4242",
+      paymentAttempts: [
+        { id: "1", date: "2024-09-01", amount: "$99.00", status: "success" as const, method: "Visa ****4242" },
+      ],
+    },
+    {
+      id: "INV-003",
+      member: "John Doe",
+      date: "2024-08-01",
+      amount: "$99.00",
+      status: "paid" as const,
+      dueDate: "2024-08-15",
+      paymentMethod: "Visa ****4242",
+      paymentAttempts: [
+        { id: "1", date: "2024-08-01", amount: "$99.00", status: "success" as const, method: "Visa ****4242" },
+      ],
+    },
   ],
   attendanceLogs: [
     { id: "1", date: "2024-10-14", time: "06:30 AM", class: "Yoga" },
@@ -38,6 +76,14 @@ const memberData = {
 }
 
 export default function MemberProfilePage() {
+  const [selectedInvoice, setSelectedInvoice] = useState<(typeof memberData.invoices)[0] | null>(null)
+  const [isInvoiceDetailOpen, setIsInvoiceDetailOpen] = useState(false)
+
+  const handleInvoiceClick = (invoice: (typeof memberData.invoices)[0]) => {
+    setSelectedInvoice(invoice)
+    setIsInvoiceDetailOpen(true)
+  }
+
   return (
     <div className="flex h-screen">
       <AppSidebar />
@@ -151,43 +197,57 @@ export default function MemberProfilePage() {
                       )}
                     </div>
                   ))}
-                  <Button className="w-full bg-transparent" variant="outline" size="sm">
-                    Add Payment Method
-                  </Button>
+                  <AddPaymentMethodDialog
+                    customerId={memberData.id}
+                    onSuccess={() => {
+                      console.log("[v0] Payment method added successfully")
+                      // Refresh payment methods list
+                    }}
+                  >
+                    <Button className="w-full bg-transparent" variant="outline" size="sm">
+                      Add Payment Method
+                    </Button>
+                  </AddPaymentMethodDialog>
                 </CardContent>
               </Card>
             </div>
 
-            <Tabs defaultValue="payments" className="space-y-4">
+            <Tabs defaultValue="invoices" className="space-y-4">
               <TabsList>
-                <TabsTrigger value="payments">Payment History</TabsTrigger>
+                <TabsTrigger value="invoices">Invoices</TabsTrigger>
                 <TabsTrigger value="attendance">Attendance Logs</TabsTrigger>
               </TabsList>
-              <TabsContent value="payments">
+              <TabsContent value="invoices">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Payment History</CardTitle>
-                    <CardDescription>Complete payment transaction history</CardDescription>
+                    <CardTitle>Invoices</CardTitle>
+                    <CardDescription>Complete invoice and payment history</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead>Invoice ID</TableHead>
                           <TableHead>Date</TableHead>
                           <TableHead>Amount</TableHead>
+                          <TableHead>Payment Method</TableHead>
                           <TableHead>Status</TableHead>
-                          <TableHead>Method</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {memberData.paymentHistory.map((payment) => (
-                          <TableRow key={payment.id}>
-                            <TableCell>{payment.date}</TableCell>
-                            <TableCell className="font-medium">{payment.amount}</TableCell>
+                        {memberData.invoices.map((invoice) => (
+                          <TableRow
+                            key={invoice.id}
+                            className="cursor-pointer hover:bg-muted/50"
+                            onClick={() => handleInvoiceClick(invoice)}
+                          >
+                            <TableCell className="font-medium">{invoice.id}</TableCell>
+                            <TableCell>{invoice.date}</TableCell>
+                            <TableCell className="font-medium">{invoice.amount}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{invoice.paymentMethod}</TableCell>
                             <TableCell>
-                              <Badge variant="default">{payment.status}</Badge>
+                              <Badge variant="default">{invoice.status}</Badge>
                             </TableCell>
-                            <TableCell>{payment.method}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -229,6 +289,15 @@ export default function MemberProfilePage() {
           </div>
         </main>
       </div>
+
+      <InvoiceDetailDialog
+        invoice={selectedInvoice}
+        open={isInvoiceDetailOpen}
+        onOpenChange={setIsInvoiceDetailOpen}
+        onUpdate={() => {
+          console.log("[v0] Invoice updated, refreshing list")
+        }}
+      />
     </div>
   )
 }
