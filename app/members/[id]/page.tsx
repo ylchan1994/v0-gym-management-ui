@@ -11,9 +11,573 @@ import { Edit, Mail, Phone, Calendar, CreditCard } from "lucide-react"
 import Link from "next/link"
 import { AddPaymentMethodDialog } from "@/components/billing/add-payment-method-dialog"
 import { InvoiceDetailDialog } from "@/components/billing/invoice-detail-dialog"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { Spinner } from "@/components/ui/spinner"
+import { getCustomerIdFromPath } from "@/lib/utils"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
-const memberData = {
+// fullMemberData is the source of truth for mocked members in this file.
+const fullMemberData = [
+  {
+    id: "4dc71f12-2484-443e-85b0-eea29a3bd600",
+    name: "John Doe",
+    email: "john.doe@example.com",
+    phone: "(555) 123-4567",
+    status: "active",
+    plan: "Premium",
+    joinDate: "2024-01-15",
+    expiryDate: "2025-01-15",
+    address: "208 Example Street, Cityville, ST 4359, Country",
+    dateOfBirth: "1980-11-07",
+    emergencyContact: "Jane Doe - +61 456 307 903",
+    invoices: [
+      {
+        id: "INV-100",
+        member: "John Doe",
+        date: "2025-10-16",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-10-30",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-10-16",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      },
+      {
+        id: "INV-101",
+        member: "John Doe",
+        date: "2025-09-16",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-09-30",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-09-16",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      },
+      {
+        id: "INV-102",
+        member: "John Doe",
+        date: "2025-08-17",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-08-31",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-08-17",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      }
+    ],
+    attendanceLogs: [
+      {
+        id: "1",
+        date: "2025-10-16",
+        time: "06:30 AM",
+        class: "Zumba"
+      },
+      {
+        id: "2",
+        date: "2025-10-15",
+        time: "05:00 PM",
+        class: "CrossFit"
+      },
+      {
+        id: "3",
+        date: "2025-10-14",
+        time: "06:30 AM",
+        class: "Spinning"
+      },
+      {
+        id: "4",
+        date: "2025-10-13",
+        time: "06:30 AM",
+        class: "CrossFit"
+      }
+    ],
+    paymentMethods: [
+      {
+        id: "1",
+        type: "Credit Card",
+        last4: "4242",
+        expiry: "12/25",
+        isDefault: true
+      },
+      {
+        id: "2",
+        type: "Bank Transfer",
+        account: "****1234",
+        isDefault: false
+      }
+    ]
+  },
+  {
+    id: "e7507033-d9ca-4dcb-801b-1c8f850a1a26",
+    name: "Sarah Smith",
+    email: "sarah.smith@example.com",
+    phone: "(555) 234-5678",
+    status: "active",
+    plan: "Basic",
+    joinDate: "2024-03-20",
+    expiryDate: "2024-12-20",
+    address: "282 Example Street, Cityville, ST 6753, Country",
+    dateOfBirth: "1970-06-26",
+    emergencyContact: "Anna Smith - +61 487 228 471",
+    invoices: [
+      {
+        id: "INV-100",
+        member: "Sarah Smith",
+        date: "2025-10-16",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-10-30",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-10-16",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      },
+      {
+        id: "INV-101",
+        member: "Sarah Smith",
+        date: "2025-09-16",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-09-30",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-09-16",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      },
+      {
+        id: "INV-102",
+        member: "Sarah Smith",
+        date: "2025-08-17",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-08-31",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-08-17",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      }
+    ],
+    attendanceLogs: [
+      {
+        id: "1",
+        date: "2025-10-16",
+        time: "06:30 AM",
+        class: "Yoga"
+      },
+      {
+        id: "2",
+        date: "2025-10-15",
+        time: "05:00 PM",
+        class: "Zumba"
+      },
+      {
+        id: "3",
+        date: "2025-10-14",
+        time: "05:00 PM",
+        class: "CrossFit"
+      },
+      {
+        id: "4",
+        date: "2025-10-13",
+        time: "06:30 AM",
+        class: "Pilates"
+      }
+    ],
+    paymentMethods: [
+      {
+        id: "1",
+        type: "Credit Card",
+        last4: "4242",
+        expiry: "12/25",
+        isDefault: true
+      },
+      {
+        id: "2",
+        type: "Bank Transfer",
+        account: "****1234",
+        isDefault: false
+      }
+    ]
+  },
+  {
+    id: "cea17c36-00a5-4b86-8954-0282107cd954",
+    name: "Mike Johnson",
+    email: "mike.j@example.com",
+    phone: "(555) 345-6789",
+    status: "expired",
+    plan: "Premium",
+    joinDate: "2023-06-10",
+    expiryDate: "2024-06-10",
+    address: "593 Example Street, Cityville, ST 5471, Country",
+    dateOfBirth: "1978-12-27",
+    emergencyContact: "Anna Johnson - +61 450 507 619",
+    invoices: [
+      {
+        id: "INV-100",
+        member: "Mike Johnson",
+        date: "2025-10-16",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-10-30",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-10-16",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      },
+      {
+        id: "INV-101",
+        member: "Mike Johnson",
+        date: "2025-09-16",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-09-30",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-09-16",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      },
+      {
+        id: "INV-102",
+        member: "Mike Johnson",
+        date: "2025-08-17",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-08-31",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-08-17",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      }
+    ],
+    attendanceLogs: [
+      {
+        id: "1",
+        date: "2025-10-16",
+        time: "07:00 AM",
+        class: "Spinning"
+      },
+      {
+        id: "2",
+        date: "2025-10-15",
+        time: "05:00 PM",
+        class: "CrossFit"
+      },
+      {
+        id: "3",
+        date: "2025-10-14",
+        time: "07:00 AM",
+        class: "Yoga"
+      },
+      {
+        id: "4",
+        date: "2025-10-13",
+        time: "05:00 PM",
+        class: "Pilates"
+      }
+    ],
+    paymentMethods: [
+      {
+        id: "1",
+        type: "Credit Card",
+        last4: "4242",
+        expiry: "12/25",
+        isDefault: true
+      },
+      {
+        id: "2",
+        type: "Bank Transfer",
+        account: "****1234",
+        isDefault: false
+      }
+    ]
+  },
+  {
+    id: "49deaec5-c9fd-4790-87e2-600d19c9b178",
+    name: "Emma Wilson",
+    email: "emma.w@example.com",
+    phone: "(555) 456-7890",
+    status: "trial",
+    plan: "Trial",
+    joinDate: "2024-10-01",
+    expiryDate: "2024-10-15",
+    address: "456 Example Street, Cityville, ST 6895, Country",
+    dateOfBirth: "1997-10-11",
+    emergencyContact: "Chris Wilson - +61 446 261 134",
+    invoices: [
+      {
+        id: "INV-100",
+        member: "Emma Wilson",
+        date: "2025-10-16",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-10-30",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-10-16",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      },
+      {
+        id: "INV-101",
+        member: "Emma Wilson",
+        date: "2025-09-16",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-09-30",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-09-16",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      },
+      {
+        id: "INV-102",
+        member: "Emma Wilson",
+        date: "2025-08-17",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-08-31",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-08-17",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      }
+    ],
+    attendanceLogs: [
+      {
+        id: "1",
+        date: "2025-10-16",
+        time: "07:00 AM",
+        class: "CrossFit"
+      },
+      {
+        id: "2",
+        date: "2025-10-15",
+        time: "05:00 PM",
+        class: "Zumba"
+      },
+      {
+        id: "3",
+        date: "2025-10-14",
+        time: "06:30 AM",
+        class: "Zumba"
+      },
+      {
+        id: "4",
+        date: "2025-10-13",
+        time: "05:00 PM",
+        class: "CrossFit"
+      }
+    ],
+    paymentMethods: [
+      {
+        id: "1",
+        type: "Credit Card",
+        last4: "4242",
+        expiry: "12/25",
+        isDefault: true
+      },
+      {
+        id: "2",
+        type: "Bank Transfer",
+        account: "****1234",
+        isDefault: false
+      }
+    ]
+  },
+  {
+    id: "432d6d92-8685-4c46-bc2f-62856e900b57",
+    name: "David Brown",
+    email: "david.b@example.com",
+    phone: "(555) 567-8901",
+    status: "active",
+    plan: "Personal Training",
+    joinDate: "2024-02-28",
+    expiryDate: "2025-02-28",
+    address: "129 Example Street, Cityville, ST 2590, Country",
+    dateOfBirth: "1989-02-07",
+    emergencyContact: "Tom Brown - +61 442 393 308",
+    invoices: [
+      {
+        id: "INV-100",
+        member: "David Brown",
+        date: "2025-10-16",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-10-30",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-10-16",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      },
+      {
+        id: "INV-101",
+        member: "David Brown",
+        date: "2025-09-16",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-09-30",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-09-16",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      },
+      {
+        id: "INV-102",
+        member: "David Brown",
+        date: "2025-08-17",
+        amount: "$99.00",
+        status: "paid",
+        dueDate: "2025-08-31",
+        paymentMethod: "Visa ****4242",
+        paymentAttempts: [
+          {
+            id: "1",
+            date: "2025-08-17",
+            amount: "$99.00",
+            status: "success",
+            method: "Visa ****4242"
+          }
+        ]
+      }
+    ],
+    attendanceLogs: [
+      {
+        id: "1",
+        date: "2025-10-16",
+        time: "07:00 AM",
+        class: "Pilates"
+      },
+      {
+        id: "2",
+        date: "2025-10-15",
+        time: "07:00 AM",
+        class: "Spinning"
+      },
+      {
+        id: "3",
+        date: "2025-10-14",
+        time: "07:00 AM",
+        class: "CrossFit"
+      },
+      {
+        id: "4",
+        date: "2025-10-13",
+        time: "07:00 AM",
+        class: "Zumba"
+      }
+    ],
+    paymentMethods: [
+      {
+        id: "1",
+        type: "Credit Card",
+        last4: "4242",
+        expiry: "12/25",
+        isDefault: true
+      },
+      {
+        id: "2",
+        type: "Bank Transfer",
+        account: "****1234",
+        isDefault: false
+      }
+    ]
+  }
+] //mocked members data
+
+const defaultMemberData = {
   id: "1",
   name: "John Doe",
   email: "john.doe@example.com",
@@ -73,18 +637,154 @@ const memberData = {
     { id: "1", type: "Credit Card", last4: "4242", expiry: "12/25", isDefault: true },
     { id: "2", type: "Bank Transfer", account: "****1234", isDefault: false },
   ],
-}
+};
 
 export default function MemberProfilePage() {
-  const [selectedInvoice, setSelectedInvoice] = useState<(typeof memberData.invoices)[0] | null>(null)
+  // memberData is loaded from fullMemberData based on URL id when available
+  const [memberDataState, setMemberDataState] = useState<typeof defaultMemberData>(defaultMemberData)
+  const [selectedInvoice, setSelectedInvoice] = useState<(typeof defaultMemberData.invoices)[0] | null>(null)
   const [isInvoiceDetailOpen, setIsInvoiceDetailOpen] = useState(false)
+  const [paymentMethodData, setPaymentMethodData] = useState<(typeof defaultMemberData.paymentMethods) | null>(null)
+  const [paymentMethodsLoading, setPaymentMethodsLoading] = useState(false)
+  const [paymentMethodsError, setPaymentMethodsError] = useState<string | null>(null)
+  const [renewOpen, setRenewOpen] = useState(false)
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
 
-  const handleInvoiceClick = (invoice: (typeof memberData.invoices)[0]) => {
+  // Mock plans (keep in sync with /app/plans/page.tsx if needed)
+  const plans = [
+    { id: "1", name: "Basic", price: 49, duration: "Monthly" },
+    { id: "2", name: "Premium", price: 99, duration: "Monthly" },
+    { id: "3", name: "Annual", price: 999, duration: "Yearly" },
+    { id: "4", name: "Personal Training", price: 149, duration: "Monthly" },
+  ]
+
+  const handleInvoiceClick = (invoice: any) => {
     setSelectedInvoice(invoice)
     setIsInvoiceDetailOpen(true)
   }
 
+  // Mock upcoming invoices (pending)
+  const upcomingInvoices: any[] = [
+    {
+      id: "INV-UP-200",
+      member: memberDataState.name,
+      date: new Date().toISOString().split("T")[0],
+      amount: "$120.00",
+      status: "pending" as const,
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      paymentMethod: "",
+      paymentAttempts: [],
+    },
+    {
+      id: "INV-UP-201",
+      member: memberDataState.name,
+      date: new Date().toISOString().split("T")[0],
+      amount: "$45.00",
+      status: "pending" as const,
+      dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      paymentMethod: "",
+      paymentAttempts: [],
+    },
+  ]
+
+  useEffect(() => {
+    const idFromPath = getCustomerIdFromPath()
+    if (idFromPath) {
+      const found = fullMemberData.find((m) => m.id === idFromPath)
+      if (found) {
+        setMemberDataState(found as typeof defaultMemberData)
+        // fetch payment methods for this customer immediately
+        // Note: fetchPaymentMethods is defined below
+        ;(async () => {
+          try {
+            await fetchPaymentMethods(idFromPath)
+          } catch (e) {
+            console.error("Failed to fetch payment methods on mount", e)
+          }
+        })()
+      }
+    }
+  }, [])
+
+  // Fetch payment methods for a customer using our token route then the Ezypay sandbox API
+  async function fetchPaymentMethods(customerId: string) {
+    setPaymentMethodsLoading(true)
+    setPaymentMethodsError(null)
+    try {
+      const res = await fetch(`/api/payment/methods`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId }),
+      })
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "")
+        const msg = `Proxy request failed (${res.status}) ${text ? `- ${text}` : ""}`
+        console.error("/api/payment/methods proxy failed", msg)
+        setPaymentMethodData(null)
+        setPaymentMethodsError(msg)
+        return
+      }
+
+      const response = await res.json()
+
+      // Some proxies or APIs nest the actual items under different keys - try common shapes
+      let items: any[] | null = null
+      if (Array.isArray(response)) items = response
+      else if (Array.isArray(response?.paymentMethods)) items = response.paymentMethods
+      else if (Array.isArray(response?.results)) items = response.results
+      else if (Array.isArray(response?.data)) items = response.data
+      else if (response) items = [response]
+
+      // Normalize items into the UI-friendly shape if Ezypay returns SDK-like objects
+      const normalized = (items || []).map((pm: any) => ({
+        id: pm.paymentMethodToken ?? pm.id ?? pm.token,
+        type: pm.type ?? pm.scheme ?? "",
+        last4: pm.card?.last4 ?? pm.bank?.last4 ?? pm.last4 ?? null,
+        expiry: pm.card ? `${pm.card.expiryMonth}/${pm.card.expiryYear}` : pm.expiry ?? null,
+        isDefault: pm.primary ?? pm.isDefault ?? false,
+        account: pm.payTo?.aliasId ?? (pm.payTo?.bbanAccountNo ? pm.payTo.bbanAccountNo.slice(-4) : undefined) ?? pm.account,
+      }))
+
+      setPaymentMethodData(normalized)
+    } catch (error: any) {
+      const msg = error?.message || String(error)
+      console.error("Error fetching payment methods via proxy", msg)
+      setPaymentMethodData(null)
+      setPaymentMethodsError(msg)
+    } finally {
+      setPaymentMethodsLoading(false)
+    }
+  }
+
+  const handleInvoiceDialogOpenChange = (open: boolean) => {
+    setIsInvoiceDetailOpen(open)
+    if (!open) {
+      const idFromPath = getCustomerIdFromPath() || memberDataState.id
+      if (idFromPath) fetchPaymentMethods(idFromPath)
+    }
+  }
+
+  // Handlers for AddPaymentMethodDialog
+  const handleAddPaymentOpenChange = (open: boolean) => {
+    if (!open) {
+      const idFromPath = getCustomerIdFromPath() || memberDataState.id
+      if (idFromPath) fetchPaymentMethods(idFromPath)
+    }
+  }
+
+  const handleAddPaymentSuccess = () => {
+    const idFromPath = getCustomerIdFromPath() || memberDataState.id
+    if (idFromPath) fetchPaymentMethods(idFromPath)
+  }
+
+  const handleInvoiceUpdate = () => {
+    const idFromPath = getCustomerIdFromPath() || memberDataState.id
+    if (idFromPath) fetchPaymentMethods(idFromPath)
+  }
+
   return (
+    
     <div className="flex h-screen">
       <AppSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -93,10 +793,10 @@ export default function MemberProfilePage() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-balance">{memberData.name}</h1>
+                <h1 className="text-3xl font-bold tracking-tight text-balance">{memberDataState.name}</h1>
                 <p className="text-muted-foreground">Member profile and activity</p>
               </div>
-              <Link href={`/members/${memberData.id}/edit`}>
+              <Link href={`/members/${memberDataState.id}/edit`}>
                 <Button>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Profile
@@ -114,30 +814,30 @@ export default function MemberProfilePage() {
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Email</p>
-                      <p className="text-sm text-muted-foreground">{memberData.email}</p>
+                      <p className="text-sm text-muted-foreground">{memberDataState.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Phone className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Phone</p>
-                      <p className="text-sm text-muted-foreground">{memberData.phone}</p>
+                      <p className="text-sm text-muted-foreground">{memberDataState.phone}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Date of Birth</p>
-                      <p className="text-sm text-muted-foreground">{memberData.dateOfBirth}</p>
+                      <p className="text-sm text-muted-foreground">{memberDataState.dateOfBirth}</p>
                     </div>
                   </div>
                   <div>
                     <p className="text-sm font-medium">Address</p>
-                    <p className="text-sm text-muted-foreground">{memberData.address}</p>
+                    <p className="text-sm text-muted-foreground">{memberDataState.address}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium">Emergency Contact</p>
-                    <p className="text-sm text-muted-foreground">{memberData.emergencyContact}</p>
+                    <p className="text-sm text-muted-foreground">{memberDataState.emergencyContact}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -149,24 +849,80 @@ export default function MemberProfilePage() {
                 <CardContent className="space-y-4">
                   <div>
                     <p className="text-sm font-medium">Status</p>
-                    <Badge className="mt-1" variant="default">
-                      {memberData.status}
+                    <Badge className="mt-1" variant={
+                            memberDataState.status === "active"
+                              ? "default"
+                              : memberDataState.status === "trial"
+                                ? "secondary"
+                                : "destructive"
+                          }>
+                      {memberDataState.status}
                     </Badge>
                   </div>
                   <div>
                     <p className="text-sm font-medium">Current Plan</p>
-                    <p className="text-sm text-muted-foreground">{memberData.plan}</p>
+                    <p className="text-sm text-muted-foreground">{memberDataState.plan}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium">Join Date</p>
-                    <p className="text-sm text-muted-foreground">{memberData.joinDate}</p>
+                    <p className="text-sm text-muted-foreground">{memberDataState.joinDate}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium">Expiry Date</p>
-                    <p className="text-sm text-muted-foreground">{memberData.expiryDate}</p>
+                    <p className="text-sm text-muted-foreground">{memberDataState.expiryDate}</p>
                   </div>
                   <Button className="w-full bg-transparent" variant="outline">
-                    Renew Membership
+                    <Dialog open={renewOpen} onOpenChange={setRenewOpen}>
+                      <DialogTrigger asChild>
+                        <span>Renew Membership</span>
+                      </DialogTrigger>
+
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Renew Membership</DialogTitle>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                          <p className="text-sm text-muted-foreground">Select a plan to renew or change the member's plan.</p>
+                          <div className="grid gap-2">
+                            {plans.map((plan) => (
+                              <label key={plan.id} className="flex items-center gap-3 rounded-md border p-3">
+                                <input type="radio" name="plan" value={plan.id} checked={selectedPlanId === plan.id} onChange={() => setSelectedPlanId(plan.id)} />
+                                <div>
+                                  <div className="font-medium">{plan.name}</div>
+                                  <div className="text-sm text-muted-foreground">${plan.price} / {plan.duration}</div>
+                                </div>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        <DialogFooter>
+                          <div className="flex gap-2">
+                            <Button onClick={() => setRenewOpen(false)} variant="outline">Cancel</Button>
+                            <Button
+                              onClick={() => {
+                                const plan = plans.find((p) => p.id === selectedPlanId)
+                                if (plan) {
+                                  // Update plan and expiry date (simple logic)
+                                  const now = new Date()
+                                  let newExpiry = new Date(now)
+                                  if (plan.duration.toLowerCase().includes("year")) {
+                                    newExpiry.setFullYear(newExpiry.getFullYear() + 1)
+                                  } else {
+                                    newExpiry.setMonth(newExpiry.getMonth() + 1)
+                                  }
+                                  setMemberDataState((prev) => ({ ...prev, plan: plan.name, expiryDate: newExpiry.toISOString().split("T")[0] }))
+                                }
+                                setRenewOpen(false)
+                              }}
+                            >
+                              Confirm
+                            </Button>
+                          </div>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </Button>
                 </CardContent>
               </Card>
@@ -176,38 +932,43 @@ export default function MemberProfilePage() {
                   <CardTitle>Payment Methods</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {memberData.paymentMethods.map((method) => (
-                    <div
-                      key={method.id}
-                      className="flex items-center justify-between rounded-lg border border-border p-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <CreditCard className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">
-                            {method.type} {method.last4 && `****${method.last4}`}
-                          </p>
-                          <p className="text-xs text-muted-foreground">{method.expiry || method.account}</p>
-                        </div>
-                      </div>
-                      {method.isDefault && (
-                        <Badge variant="secondary" className="text-xs">
-                          Default
-                        </Badge>
-                      )}
+                  {paymentMethodsLoading ? (
+                    <div className="flex items-center justify-center py-6">
+                      <Spinner className="h-6 w-6" />
                     </div>
-                  ))}
-                  <AddPaymentMethodDialog
-                    customerId={memberData.id}
-                    onSuccess={() => {
-                      console.log("[v0] Payment method added successfully")
-                      // Refresh payment methods list
-                    }}
-                  >
-                    <Button className="w-full bg-transparent" variant="outline" size="sm">
-                      Add Payment Method
-                    </Button>
-                  </AddPaymentMethodDialog>
+                  ) : paymentMethodsError ? (
+                    <div className="text-sm text-destructive py-4">Failed to load payment methods: {paymentMethodsError}</div>
+                  ) : (
+                    <>
+                      <div className="max-h-[240px] overflow-y-auto space-y-2">
+                        {(paymentMethodData ?? memberDataState.paymentMethods).map((method: any) => (
+                          <div
+                            key={method.id}
+                            className="flex items-center justify-between rounded-lg border border-border p-3"
+                          >
+                          <div className="flex items-center gap-3">
+                            <CreditCard className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm font-medium">{method.type}</p>
+                              <p className="text-xs text-muted-foreground">{`${method.last4 ? `****${method.last4}` : ""}  ${method.expiry || method.account || ""}`}</p>
+                            </div>
+                          </div>
+                          {method.isDefault && (
+                            <Badge variant="secondary" className="text-xs">
+                              Default
+                            </Badge>
+                          )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <AddPaymentMethodDialog customerId={memberDataState.id} onSuccess={handleAddPaymentSuccess} onOpenChange={handleAddPaymentOpenChange}>
+                        <Button className="w-full bg-transparent" variant="outline" size="sm">
+                          Add Payment Method
+                        </Button>
+                      </AddPaymentMethodDialog>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -215,6 +976,7 @@ export default function MemberProfilePage() {
             <Tabs defaultValue="invoices" className="space-y-4">
               <TabsList>
                 <TabsTrigger value="invoices">Invoices</TabsTrigger>
+                <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
                 <TabsTrigger value="attendance">Attendance Logs</TabsTrigger>
               </TabsList>
               <TabsContent value="invoices">
@@ -235,7 +997,7 @@ export default function MemberProfilePage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {memberData.invoices.map((invoice) => (
+                        {memberDataState.invoices.map((invoice) => (
                           <TableRow
                             key={invoice.id}
                             className="cursor-pointer hover:bg-muted/50"
@@ -247,6 +1009,38 @@ export default function MemberProfilePage() {
                             <TableCell className="text-sm text-muted-foreground">{invoice.paymentMethod}</TableCell>
                             <TableCell>
                               <Badge variant="default">{invoice.status}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="upcoming">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Upcoming Invoices</CardTitle>
+                    <CardDescription>Planned invoices with pending status</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Invoice ID</TableHead>
+                          <TableHead>Due Date</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {upcomingInvoices.map((invoice) => (
+                          <TableRow key={invoice.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleInvoiceClick(invoice)}>
+                            <TableCell className="font-medium">{invoice.id}</TableCell>
+                            <TableCell>{invoice.dueDate}</TableCell>
+                            <TableCell className="font-medium">{invoice.amount}</TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">{invoice.status}</Badge>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -271,7 +1065,7 @@ export default function MemberProfilePage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {memberData.attendanceLogs.map((log) => (
+                        {memberDataState.attendanceLogs.map((log) => (
                           <TableRow key={log.id}>
                             <TableCell>{log.date}</TableCell>
                             <TableCell>{log.time}</TableCell>
@@ -290,14 +1084,7 @@ export default function MemberProfilePage() {
         </main>
       </div>
 
-      <InvoiceDetailDialog
-        invoice={selectedInvoice}
-        open={isInvoiceDetailOpen}
-        onOpenChange={setIsInvoiceDetailOpen}
-        onUpdate={() => {
-          console.log("[v0] Invoice updated, refreshing list")
-        }}
-      />
+      <InvoiceDetailDialog invoice={selectedInvoice} open={isInvoiceDetailOpen} onOpenChange={handleInvoiceDialogOpenChange} onUpdate={handleInvoiceUpdate} />
     </div>
   )
 }

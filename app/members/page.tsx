@@ -11,10 +11,11 @@ import { Search, Plus, MoreHorizontal } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 const members = [
   {
-    id: "1",
+    id: "4dc71f12-2484-443e-85b0-eea29a3bd600",
     name: "John Doe",
     email: "john.doe@example.com",
     phone: "(555) 123-4567",
@@ -24,7 +25,7 @@ const members = [
     expiryDate: "2025-01-15",
   },
   {
-    id: "2",
+    id: "e7507033-d9ca-4dcb-801b-1c8f850a1a26",
     name: "Sarah Smith",
     email: "sarah.smith@example.com",
     phone: "(555) 234-5678",
@@ -34,7 +35,7 @@ const members = [
     expiryDate: "2024-12-20",
   },
   {
-    id: "3",
+    id: "cea17c36-00a5-4b86-8954-0282107cd954",
     name: "Mike Johnson",
     email: "mike.j@example.com",
     phone: "(555) 345-6789",
@@ -44,7 +45,7 @@ const members = [
     expiryDate: "2024-06-10",
   },
   {
-    id: "4",
+    id: "49deaec5-c9fd-4790-87e2-600d19c9b178",
     name: "Emma Wilson",
     email: "emma.w@example.com",
     phone: "(555) 456-7890",
@@ -54,7 +55,7 @@ const members = [
     expiryDate: "2024-10-15",
   },
   {
-    id: "5",
+    id: "432d6d92-8685-4c46-bc2f-62856e900b57",
     name: "David Brown",
     email: "david.b@example.com",
     phone: "(555) 567-8901",
@@ -66,6 +67,7 @@ const members = [
 ]
 
 export default function MembersPage() {
+  const router = useRouter()
   const [statusFilter, setStatusFilter] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -136,8 +138,23 @@ export default function MembersPage() {
                 </TableHeader>
                 <TableBody>
                   {filteredMembers.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell className="font-medium">{member.name}</TableCell>
+                    <TableRow
+                      key={member.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      tabIndex={0}
+                      role="link"
+                      aria-label={`View ${member.name} profile`}
+                      onClick={() => router.push(`/members/${member.id}`)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault()
+                          router.push(`/members/${member.id}`)
+                        }
+                      }}
+                    >
+                      <TableCell className="font-medium">
+                        {member.name}
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           <span className="text-sm">{member.email}</span>
@@ -163,7 +180,13 @@ export default function MembersPage() {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            {/* Prevent trigger clicks from bubbling to the row */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => e.stopPropagation()}
+                              onKeyDown={(e) => e.stopPropagation()}
+                            >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>

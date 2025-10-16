@@ -272,14 +272,8 @@ export function InvoiceDetailDialog({ invoice, open, onOpenChange, onUpdate }: I
                 Refund Invoice
               </Button>
             )}
-            {(invoice.status === "failed" || invoice.status === "past due") && (
+            {(invoice.status === "failed" || invoice.status === "past due" || invoice.status === "pending") && (
               <>
-                <Button variant="outline" onClick={handleWriteOff} disabled={isProcessing}>
-                  Write Off
-                </Button>
-                <Button onClick={handleRetry} disabled={isProcessing}>
-                  Retry Payment
-                </Button>
                 <Button
                   variant="secondary"
                   onClick={() => setShowExternalPayment(!showExternalPayment)}

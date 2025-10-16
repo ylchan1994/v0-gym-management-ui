@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Dialog,
   DialogContent,
@@ -33,10 +33,23 @@ export function AddPaymentMethodDialog({
   const [internalOpen, setInternalOpen] = useState(false)
   const [iframeUrl, setIframeUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const iframeRef = useRef<HTMLIFrameElement | null>(null)
+  const iframeOriginRef = useRef<string | null>(null)
 
   // Use controlled state if provided, otherwise use internal state
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
-  const setOpen = controlledOnOpenChange || setInternalOpen
+
+  // Only call parent's onOpenChange when the component is actually controlled via `open` prop.
+  // If parent passed an onOpenChange without supplying `open`, treat the component as uncontrolled
+  // and update internal state instead. This prevents the DialogTrigger from invoking the
+  // parent's handler while the internal `open` remains false (which would make the dialog not open).
+  const setOpen = (newOpen: boolean) => {
+    if (controlledOpen !== undefined) {
+      controlledOnOpenChange?.(newOpen)
+    } else {
+      setInternalOpen(newOpen)
+    }
+  }
 
   useEffect(() => {
     if (open && !iframeUrl) {
@@ -44,40 +57,29 @@ export function AddPaymentMethodDialog({
     }
   }, [open])
 
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent<PaymentMethodIframeResponse>) => {
-      // In production, verify event.origin matches your payment provider's domain
-      // Example: if (event.origin !== 'https://payment-provider.example.com') return
-
-      console.log("[v0] Received message from iframe:", event.data)
-
-      // Check if the message is from our payment iframe
-      if (event.data && typeof event.data === "object" && "success" in event.data) {
-        const response = event.data
-
-        if (response.success) {
-          toast.success(response.message || "Payment method added successfully")
-          setOpen(false)
-          setIframeUrl(null) // Reset iframe URL for next time
-          onSuccess?.()
-        } else {
-          toast.error(response.error || "Failed to add payment method")
-        }
-      }
-    }
-
-    window.addEventListener("message", handleMessage)
-
-    return () => {
-      window.removeEventListener("message", handleMessage)
-    }
-  }, [onSuccess, setOpen])
-
   const loadIframeUrl = async () => {
     setIsLoading(true)
     try {
-      const url = await generatePaymentMethodIframeUrl(customerId)
-      setIframeUrl(url)
+      // Request access token from our server-side token route
+      const tokenRes = await fetch("/api/payment/token", { method: "POST" })
+
+      if (!tokenRes.ok) {
+        throw new Error(`Token endpoint failed: ${tokenRes.status}`)
+      }
+
+      const tokenData = await tokenRes.json()
+      const token = tokenData.access_token;
+      const pcpUrl = `https://hosted-global-sandbox.ezypay.com/embed?token=${token}&feepricing=true&submitbutton=true&customerId=${customerId}`
+      setIframeUrl(pcpUrl);
+
+      try {
+        // Record origin from the iframe URL so we can validate messages
+        const url = new URL(pcpUrl)
+        iframeOriginRef.current = url.origin
+      } catch (e) {
+        iframeOriginRef.current = null
+      }
+
     } catch (error) {
       console.error("[v0] Error loading iframe URL:", error)
       toast.error("Failed to load payment form")
@@ -96,18 +98,19 @@ export function AddPaymentMethodDialog({
   }
 
   const content = (
-    <DialogContent className="max-w-[80vw] h-[60vh] p-0">
-      <DialogHeader className="p-6 pb-0">
+    <DialogContent className="min-w-[80vw] h-[90vh]">
+      <DialogHeader className="p-2 pb-0">
         <DialogTitle>Add Payment Method</DialogTitle>
         <DialogDescription>Add a new payment method for automatic billing</DialogDescription>
       </DialogHeader>
-      <div className="flex-1 p-6 pt-4">
+  <div className="flex-1 p-4 pt-4">
         {isLoading ? (
-          <div className="flex h-full items-center justify-center">
+          <div className="flex items-center justify-center">
             <Spinner className="h-8 w-8" />
           </div>
         ) : iframeUrl ? (
           <iframe
+            ref={iframeRef}
             src={iframeUrl}
             className="h-full w-full rounded-lg border border-border"
             title="Add Payment Method"

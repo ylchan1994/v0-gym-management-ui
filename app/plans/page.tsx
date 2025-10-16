@@ -24,7 +24,7 @@ const plans = [
     id: "1",
     name: "Basic",
     price: 49,
-    duration: "Monthly",
+    duration: "Weekly",
     description: "Perfect for beginners starting their fitness journey",
     features: ["Access to gym equipment", "Locker room access", "Free fitness assessment", "Mobile app access"],
     activeMembers: 342,
@@ -34,7 +34,7 @@ const plans = [
     id: "2",
     name: "Premium",
     price: 99,
-    duration: "Monthly",
+    duration: "Fortnightly",
     description: "Our most popular plan with unlimited access",
     features: [
       "All Basic features",
