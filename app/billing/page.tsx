@@ -8,6 +8,7 @@ import { DollarSign, AlertCircle, Clock, TrendingUp } from "lucide-react"
 import { BillingOverview } from "@/components/billing/billing-overview"
 import { InvoicesTable } from "@/components/billing/invoices-table"
 import { AutoBillingSettings } from "@/components/billing/auto-billing-settings"
+import { UpcomingInvoicesTable } from "@/components/billing/upcoming-invoices-table"
 
 const stats = [
   {
@@ -72,6 +73,7 @@ export default function BillingPage() {
               <TabsList>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="invoices">Invoices</TabsTrigger>
+                <TabsTrigger value="upcoming">Upcoming Invoices</TabsTrigger>
                 <TabsTrigger value="auto-billing">Auto-Billing</TabsTrigger>
               </TabsList>
               <TabsContent value="overview">
@@ -79,6 +81,9 @@ export default function BillingPage() {
               </TabsContent>
               <TabsContent value="invoices">
                 <InvoicesTable />
+              </TabsContent>
+              <TabsContent value="upcoming">
+                <UpcomingInvoicesTable />
               </TabsContent>
               <TabsContent value="auto-billing">
                 <AutoBillingSettings />
