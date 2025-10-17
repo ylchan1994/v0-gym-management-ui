@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Download, Send, Search, Plus } from "lucide-react"
 import { useState } from "react"
 import { InvoiceDetailDialog } from "./invoice-detail-dialog"
+import { CreateInvoiceDialog } from "./create-invoice-dialog"
 
-const invoices = [
+const initialInvoices = [
   {
     id: "INV-001",
     member: "John Doe",
@@ -87,10 +88,12 @@ const invoices = [
 ]
 
 export function InvoicesTable() {
+  const [invoices, setInvoices] = useState(initialInvoices)
   const [statusFilter, setStatusFilter] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedInvoice, setSelectedInvoice] = useState<(typeof invoices)[0] | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
 
   const filteredInvoices = invoices.filter((invoice) => {
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter
@@ -105,6 +108,11 @@ export function InvoicesTable() {
     setIsDetailOpen(true)
   }
 
+  const handleInvoiceCreated = (newInvoice: any) => {
+    console.log("[v0] Adding new invoice to list:", newInvoice)
+    setInvoices((prev) => [newInvoice, ...prev])
+  }
+
   return (
     <>
       <Card>
@@ -114,7 +122,7 @@ export function InvoicesTable() {
               <CardTitle>Invoices</CardTitle>
               <CardDescription>Generate, send, and manage member invoices</CardDescription>
             </div>
-            <Button>
+            <Button onClick={() => setIsCreateOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Create Invoice
             </Button>
@@ -220,10 +228,11 @@ export function InvoicesTable() {
         open={isDetailOpen}
         onOpenChange={setIsDetailOpen}
         onUpdate={() => {
-          // Refresh invoice list
           console.log("[v0] Invoice updated, refreshing list")
         }}
       />
+
+      <CreateInvoiceDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} onSuccess={handleInvoiceCreated} />
     </>
   )
 }
