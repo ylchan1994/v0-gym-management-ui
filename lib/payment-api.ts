@@ -36,6 +36,7 @@ export async function generatePaymentMethodIframeUrl(customerId: string): Promis
 
 /**
  * Processes a refund for a paid invoice
+ * @param amount - The amount to refund. If null or equals invoice amount, it's a full refund
  */
 export async function refundInvoice(invoiceId: string, amount: number): Promise<{ success: boolean; message: string }> {
   console.log("[v0] Processing refund for invoice:", invoiceId, "Amount:", amount)
@@ -43,9 +44,10 @@ export async function refundInvoice(invoiceId: string, amount: number): Promise<
   // Simulate API call
   await new Promise((resolve) => setTimeout(resolve, 1000))
 
+  const refundType = amount ? "partial" : "full"
   return {
     success: true,
-    message: `Refund of $${amount} processed successfully`,
+    message: `${refundType === "full" ? "Full" : "Partial"} refund of $${amount.toFixed(2)} processed successfully`,
   }
 }
 

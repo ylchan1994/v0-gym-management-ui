@@ -7,8 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DollarSign, AlertCircle, Clock, TrendingUp } from "lucide-react"
 import { BillingOverview } from "@/components/billing/billing-overview"
 import { InvoicesTable } from "@/components/billing/invoices-table"
-import { AutoBillingSettings } from "@/components/billing/auto-billing-settings"
 import { UpcomingInvoicesTable } from "@/components/billing/upcoming-invoices-table"
+import { SettlementTable } from "@/components/billing/settlement-table"
 
 const stats = [
   {
@@ -50,7 +50,7 @@ export default function BillingPage() {
         <main className="flex-1 overflow-y-auto p-6">
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-balance">Billing & Payments</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-balance">Billing</h1>
               <p className="text-muted-foreground">Manage invoices, payments, and billing settings</p>
             </div>
 
@@ -74,7 +74,7 @@ export default function BillingPage() {
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="invoices">Invoices</TabsTrigger>
                 <TabsTrigger value="upcoming">Upcoming Invoices</TabsTrigger>
-                <TabsTrigger value="auto-billing">Auto-Billing</TabsTrigger>
+                <TabsTrigger value="settlement">Settlement</TabsTrigger>
               </TabsList>
               <TabsContent value="overview">
                 <BillingOverview />
@@ -85,8 +85,8 @@ export default function BillingPage() {
               <TabsContent value="upcoming">
                 <UpcomingInvoicesTable />
               </TabsContent>
-              <TabsContent value="auto-billing">
-                <AutoBillingSettings />
+              <TabsContent value="settlement">
+                <SettlementTable />
               </TabsContent>
             </Tabs>
           </div>

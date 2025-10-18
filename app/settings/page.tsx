@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { Trash2, Plus, Eye, EyeOff } from "lucide-react"
 import { useState } from "react"
+import { AutoBillingSettings } from "@/components/billing/auto-billing-settings"
 
 type DeviceStatus = "active" | "inactive" | "pending"
 
@@ -178,6 +179,7 @@ export default function SettingsPage() {
               <TabsList>
                 <TabsTrigger value="ezypay">Ezypay Integration</TabsTrigger>
                 <TabsTrigger value="terminals">Terminal Registration</TabsTrigger>
+                <TabsTrigger value="auto-billing">Auto-Billing</TabsTrigger>
               </TabsList>
 
               <TabsContent value="ezypay">
@@ -351,6 +353,10 @@ export default function SettingsPage() {
                     </Table>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="auto-billing">
+                <AutoBillingSettings />
               </TabsContent>
             </Tabs>
           </div>

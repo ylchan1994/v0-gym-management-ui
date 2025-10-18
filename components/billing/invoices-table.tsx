@@ -113,6 +113,13 @@ export function InvoicesTable() {
     setInvoices((prev) => [newInvoice, ...prev])
   }
 
+  const getStatusBadgeVariant = (status: string) => {
+    if (status === "paid") return "default"
+    if (status === "refunded") return "outline"
+    if (status === "pending") return "secondary"
+    return "destructive"
+  }
+
   return (
     <>
       <Card>
@@ -149,6 +156,7 @@ export function InvoicesTable() {
                 <SelectItem value="paid">Paid</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="past due">Past Due</SelectItem>
+                <SelectItem value="refunded">Refunded</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -179,13 +187,8 @@ export function InvoicesTable() {
                   <TableCell className="text-sm text-muted-foreground">{invoice.paymentMethod}</TableCell>
                   <TableCell>
                     <Badge
-                      variant={
-                        invoice.status === "paid"
-                          ? "default"
-                          : invoice.status === "pending"
-                            ? "secondary"
-                            : "destructive"
-                      }
+                      variant={getStatusBadgeVariant(invoice.status)}
+                      className={invoice.status === "refunded" ? "border-orange-500 text-orange-500" : ""}
                     >
                       {invoice.status}
                     </Badge>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { getEzypayToken } from "@/lib/ezypay-token"
 
 // Proxy route to fetch payment methods server-side to avoid CORS
 export async function POST(req: Request) {
@@ -9,22 +10,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing customerId" }, { status: 400 })
     }
 
-    // Request token from the internal token route (server-side call)
-    const tokenRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/payment/token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    })
-
-    if (!tokenRes.ok) {
-      const text = await tokenRes.text()
-      console.error("Token route failed:", tokenRes.status, text)
-      return NextResponse.json({ error: "Token fetch failed" }, { status: 502 })
-    }
-
-    const tokenData = await tokenRes.json()
-    const token = tokenData?.access_token
+    // Get token directly from utility function instead of HTTP request
+    const tokenData = await getEzypayToken()
+    const token = tokenData.access_token
     if (!token) {
-      console.error("No access_token from token route", tokenData)
+      console.error("No access_token from token utility", tokenData)
       return NextResponse.json({ error: "No access_token" }, { status: 502 })
     }
 
