@@ -69,16 +69,16 @@ export default function BillingPage() {
               ))}
             </div>
 
-            <Tabs defaultValue="overview" className="space-y-4">
+            <Tabs defaultValue="invoices" className="space-y-4">
               <TabsList>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
+                {/* <TabsTrigger value="overview">Overview</TabsTrigger> */}
                 <TabsTrigger value="invoices">Invoices</TabsTrigger>
-                <TabsTrigger value="upcoming">Upcoming Invoices</TabsTrigger>
+                <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
                 <TabsTrigger value="settlement">Settlement</TabsTrigger>
               </TabsList>
-              <TabsContent value="overview">
+              {/* <TabsContent value="overview">
                 <BillingOverview />
-              </TabsContent>
+              </TabsContent> */}
               <TabsContent value="invoices">
                 <InvoicesTable />
               </TabsContent>

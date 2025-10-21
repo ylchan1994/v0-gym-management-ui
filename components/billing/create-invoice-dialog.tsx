@@ -106,8 +106,8 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
         amount: `$${Number.parseFloat(formData.amount).toFixed(2)}`,
         status: invoiceStatus,
         date: new Date().toISOString().split("T")[0],
-        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-        paymentMethod: formData.paymentMethod === "tap-to-pay" ? "Card (Terminal)" : "Card",
+        dueDate: new Date().toISOString().split("T")[0],
+        paymentMethod: "Visa ****4242",
         description: formData.description,
         terminal: formData.paymentMethod === "tap-to-pay" ? selectedTerminal?.name : undefined,
         paymentAttempts:
@@ -118,7 +118,7 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
                   date: new Date().toISOString().split("T")[0],
                   amount: `$${Number.parseFloat(formData.amount).toFixed(2)}`,
                   status: "success" as const,
-                  method: "Card (Terminal)",
+                  method: "Visa ****4242",
                   terminal: selectedTerminal?.name,
                 },
               ]
@@ -143,11 +143,44 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
           })
           break
         case "checkout":
-          console.log("[v0] Generating checkout link...")
-          toast({
-            title: "Invoice Created - Checkout",
-            description: "Invoice created with checkout link sent to member.",
-          })
+          try {
+            console.log("[v0] Generating checkout link...")
+
+            // POST to internal API which proxies to Ezypay Checkout
+            const res = await fetch(`/api/payment/checkout`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              // Ezypay expects amount in cents/lowest currency unit in many APIs;
+              // the server route will forward this along. Keep original amount as number here.
+              body: JSON.stringify({ amount: Number.parseFloat(formData.amount), desciption: formData.description }),
+            })
+
+            const data = await res.json()
+
+            // Support several possible fields for the returned URL
+            const checkoutUrl =  data?.checkoutUrl 
+
+            if (checkoutUrl && typeof window !== "undefined") {
+              window.open(checkoutUrl, "_blank")
+              toast({
+                title: "Invoice Created - Checkout",
+                description: "Checkout opened in a new tab.",
+              })
+            } else {
+              console.warn("[v0] Checkout API did not return a URL", data)
+              toast({
+                title: "Invoice Created",
+                description: "Invoice created but no checkout URL was returned.",
+              })
+            }
+          } catch (err) {
+            console.error("[v0] Error generating checkout link:", err)
+            toast({
+              title: "Checkout Error",
+              description: "Failed to generate checkout link. Please try again.",
+              variant: "destructive",
+            })
+          }
           break
       }
 
@@ -246,19 +279,19 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="ondemand" id="ondemand" />
                     <Label htmlFor="ondemand" className="font-normal cursor-pointer">
-                      On Demand - Member pays when ready
+                      On Demand
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="tap-to-pay" id="tap-to-pay" />
                     <Label htmlFor="tap-to-pay" className="font-normal cursor-pointer">
-                      Tap to Pay - Use terminal for immediate payment
+                      Tap to Pay
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="checkout" id="checkout" />
                     <Label htmlFor="checkout" className="font-normal cursor-pointer">
-                      Checkout - Send payment link to member
+                      Checkout
                     </Label>
                   </div>
                 </RadioGroup>
@@ -293,7 +326,7 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? "Creating..." : "Create Invoice"}
+                {loading ? "Creating..." : "Create"}
               </Button>
             </DialogFooter>
           </form>

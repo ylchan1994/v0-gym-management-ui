@@ -73,7 +73,7 @@ export function UpcomingInvoicesTable() {
             <CardTitle>Upcoming Invoices</CardTitle>
             <CardDescription>Scheduled invoices pending payment</CardDescription>
           </div>
-          <CreateInvoiceDialog onSuccess={handleCreateSuccess} />
+          {/* <CreateInvoiceDialog onSuccess={handleCreateSuccess} /> */}
         </CardHeader>
         <CardContent>
           <Table>

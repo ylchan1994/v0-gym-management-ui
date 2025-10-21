@@ -146,7 +146,7 @@ export function SettlementTable() {
                   <Badge variant="default">{settlement.status}</Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleDownloadReport(settlement)} className="gap-2">
+                  <Button variant="ghost" size="sm" className="gap-2">
                     <Download className="h-4 w-4" />
                     Download Report
                   </Button>
