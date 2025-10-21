@@ -34,11 +34,11 @@ export function AutoBillingSettings() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="grace-period">Grace Period (days)</Label>
             <Input id="grace-period" type="number" defaultValue="3" />
             <p className="text-sm text-muted-foreground">Days before marking payment as overdue</p>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
 
@@ -56,24 +56,24 @@ export function AutoBillingSettings() {
             <Switch id="retry-failed" defaultChecked />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="retry-attempts">Maximum Retry Attempts</Label>
+            <Label htmlFor="retry-attempts">Maximum Failed Attempts</Label>
             <Input id="retry-attempts" type="number" defaultValue="3" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="retry-interval">Retry Interval (days)</Label>
             <Input id="retry-interval" type="number" defaultValue="3" />
           </div>
-          <div className="flex items-center justify-between rounded-lg border border-border p-4">
+          {/* <div className="flex items-center justify-between rounded-lg border border-border p-4">
             <div className="space-y-0.5">
               <Label htmlFor="allow-writeoff">Allow Write-off</Label>
               <p className="text-sm text-muted-foreground">Enable manual write-off for uncollectable payments</p>
             </div>
             <Switch id="allow-writeoff" />
-          </div>
+          </div> */}
         </CardContent>
       </Card>
 
-      <Card className="lg:col-span-2">
+      {/* <Card className="lg:col-span-2">
         <CardHeader>
           <CardTitle>External Payment Tracking</CardTitle>
           <CardDescription>Mark invoices as paid outside the system</CardDescription>
@@ -93,7 +93,7 @@ export function AutoBillingSettings() {
             the system.
           </p>
         </CardContent>
-      </Card>
+      </Card> */}
 
       <div className="lg:col-span-2">
         <Button size="lg">Save Settings</Button>

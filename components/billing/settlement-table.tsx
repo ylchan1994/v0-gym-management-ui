@@ -14,7 +14,6 @@ const initialSettlements = [
     id: "STL-001",
     date: "2024-10-15",
     amount: "$12,450.00",
-    transactionCount: 45,
     status: "completed" as const,
     period: "Oct 1-15, 2024",
   },
@@ -22,7 +21,6 @@ const initialSettlements = [
     id: "STL-002",
     date: "2024-09-30",
     amount: "$18,920.00",
-    transactionCount: 67,
     status: "completed" as const,
     period: "Sep 16-30, 2024",
   },
@@ -30,7 +28,6 @@ const initialSettlements = [
     id: "STL-003",
     date: "2024-09-15",
     amount: "$15,680.00",
-    transactionCount: 52,
     status: "completed" as const,
     period: "Sep 1-15, 2024",
   },
@@ -38,7 +35,6 @@ const initialSettlements = [
     id: "STL-004",
     date: "2024-08-31",
     amount: "$21,340.00",
-    transactionCount: 78,
     status: "completed" as const,
     period: "Aug 16-31, 2024",
   },
@@ -46,7 +42,6 @@ const initialSettlements = [
     id: "STL-005",
     date: "2024-08-15",
     amount: "$19,560.00",
-    transactionCount: 71,
     status: "completed" as const,
     period: "Aug 1-15, 2024",
   },
@@ -72,7 +67,6 @@ export function SettlementTable() {
       ["Period", settlement.period],
       ["Settlement Date", settlement.date],
       ["Total Amount", settlement.amount],
-      ["Transaction Count", settlement.transactionCount.toString()],
       ["Status", settlement.status],
       [],
       ["Transaction Details"],
@@ -129,9 +123,8 @@ export function SettlementTable() {
               <TableHead>Period</TableHead>
               <TableHead>Settlement Date</TableHead>
               <TableHead>Amount</TableHead>
-              <TableHead>Transactions</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -141,7 +134,6 @@ export function SettlementTable() {
                 <TableCell>{settlement.period}</TableCell>
                 <TableCell>{settlement.date}</TableCell>
                 <TableCell className="font-medium">{settlement.amount}</TableCell>
-                <TableCell>{settlement.transactionCount}</TableCell>
                 <TableCell>
                   <Badge variant="default">{settlement.status}</Badge>
                 </TableCell>

@@ -61,7 +61,7 @@ const fullMemberData = [
         member: "John Doe",
         date: "2025-09-16",
         amount: "$99.00",
-        status: "paid",
+        status: "failed",
         dueDate: "2025-09-30",
         paymentMethod: "Visa ****4242",
         paymentAttempts: [
@@ -483,7 +483,7 @@ const fullMemberData = [
         member: "David Brown",
         date: "2025-10-16",
         amount: "$99.00",
-        status: "paid",
+        status: "failed",
         dueDate: "2025-10-30",
         paymentMethod: "Visa ****4242",
         paymentAttempts: [
@@ -638,6 +638,13 @@ const defaultMemberData = {
     { id: "2", type: "Bank Transfer", account: "****1234", isDefault: false },
   ],
 };
+
+const getStatusBadgeVariant = (status: string) => {
+  if (status === "paid") return "default"
+  if (status === "refunded") return "warning"
+  if (status === "pending") return "secondary"
+  return "destructive"
+}
 
 export default function MemberProfilePage() {
   // memberData is loaded from fullMemberData based on URL id when available
@@ -1008,7 +1015,7 @@ export default function MemberProfilePage() {
                             <TableCell className="font-medium">{invoice.amount}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">{invoice.paymentMethod}</TableCell>
                             <TableCell>
-                              <Badge variant="default">{invoice.status}</Badge>
+                              <Badge variant={getStatusBadgeVariant(invoice.status)}>{invoice.status}</Badge>
                             </TableCell>
                           </TableRow>
                         ))}

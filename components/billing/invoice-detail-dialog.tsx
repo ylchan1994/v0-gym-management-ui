@@ -17,7 +17,7 @@ interface PaymentAttempt {
   id: string
   date: string
   amount: string
-  status: "success" | "failed"
+  status: "success" | "failed" | "pending"
   method: string
   errorMessage?: string
 }
@@ -26,7 +26,7 @@ interface Invoice {
   id: string
   member: string
   amount: string
-  status: "paid" | "pending" | "past due" | "failed" | "refunded"
+  status: "paid" | "pending" | "past due" | "failed" | "refunded" | 'chargeback' | 'write off'
   date: string
   dueDate: string
   paymentMethod: string
@@ -86,6 +86,10 @@ export function InvoiceDetailDialog({ invoice, open, onOpenChange, onUpdate }: I
       const result = await writeOffInvoice(invoice.id)
       if (result.success) {
         toast.success(result.message)
+        // update local invoice status immediately for UI feedback
+        if (invoice) {
+          invoice.status = 'write off'
+        }
         onUpdate?.()
         onOpenChange(false)
       }
@@ -102,6 +106,18 @@ export function InvoiceDetailDialog({ invoice, open, onOpenChange, onUpdate }: I
       const result = await retryInvoicePayment(invoice.id)
       if (result.success) {
         toast.success(result.message)
+        // add a pending transaction record locally and update status to pending
+        if (invoice) {
+          const attempt: PaymentAttempt = {
+            id: `${Date.now()}`,
+            date: new Date().toISOString().split("T")[0],
+            amount: invoice.amount,
+            status: "pending",
+            method: invoice.paymentMethod,
+          }
+          invoice.paymentAttempts = [...invoice.paymentAttempts, attempt]
+          invoice.status = "pending"
+        }
         onUpdate?.()
         onOpenChange(false)
       }
@@ -136,7 +152,7 @@ export function InvoiceDetailDialog({ invoice, open, onOpenChange, onUpdate }: I
 
   const getStatusBadgeVariant = (status: string) => {
     if (status === "paid") return "default"
-    if (status === "refunded") return "outline"
+    if (status === "refunded") return "warning"
     if (status === "pending") return "secondary"
     return "destructive"
   }
@@ -169,7 +185,6 @@ export function InvoiceDetailDialog({ invoice, open, onOpenChange, onUpdate }: I
                 <p className="text-sm font-medium text-muted-foreground">Status</p>
                 <Badge
                   variant={getStatusBadgeVariant(invoice.status)}
-                  className={invoice.status === "refunded" ? "border-orange-500 text-orange-500" : ""}
                 >
                   {invoice.status}
                 </Badge>
@@ -334,7 +349,7 @@ export function InvoiceDetailDialog({ invoice, open, onOpenChange, onUpdate }: I
                   Refund Invoice
                 </Button>
               )}
-              {(invoice.status === "failed" || invoice.status === "past due" || invoice.status === "pending") && (
+              {(invoice.status === "failed" || invoice.status === "past due") && (
                 <>
                   <Button
                     variant="secondary"
@@ -342,6 +357,15 @@ export function InvoiceDetailDialog({ invoice, open, onOpenChange, onUpdate }: I
                     disabled={isProcessing}
                   >
                     Track External Payment
+                  </Button>
+
+                  <Button variant="secondary" onClick={handleRetry} disabled={isProcessing}>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Retry
+                  </Button>
+
+                  <Button variant="destructive" onClick={handleWriteOff} disabled={isProcessing}>
+                    Write off
                   </Button>
                 </>
               )}

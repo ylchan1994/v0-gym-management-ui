@@ -85,6 +85,18 @@ const initialInvoices = [
       { id: "1", date: "2024-10-05", amount: "$149.00", status: "success" as const, method: "Amex ****9012" },
     ],
   },
+  {
+    id: "INV-006",
+    member: "John Doe",
+    amount: "$99.00",
+    status: "chargeback" as const,
+    date: "2024-10-01",
+    dueDate: "2024-10-04",
+    paymentMethod: "Amex ****9012",
+    paymentAttempts: [
+      { id: "6", date: "2024-10-04", amount: "$99.00", status: "failed" as const, method: "Amex ****9012" },
+    ],
+  },
 ]
 
 export function InvoicesTable() {
@@ -115,7 +127,7 @@ export function InvoicesTable() {
 
   const getStatusBadgeVariant = (status: string) => {
     if (status === "paid") return "default"
-    if (status === "refunded") return "outline"
+    if (status === "refunded") return "warning"
     if (status === "pending") return "secondary"
     return "destructive"
   }
@@ -157,6 +169,7 @@ export function InvoicesTable() {
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="past due">Past Due</SelectItem>
                 <SelectItem value="refunded">Refunded</SelectItem>
+                <SelectItem value="chargeback">Chargeback</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -188,7 +201,7 @@ export function InvoicesTable() {
                   <TableCell>
                     <Badge
                       variant={getStatusBadgeVariant(invoice.status)}
-                      className={invoice.status === "refunded" ? "border-orange-500 text-orange-500" : ""}
+                      // className={invoice.status === "refunded" ? "border-orange-500 text-orange-500" : ""}
                     >
                       {invoice.status}
                     </Badge>

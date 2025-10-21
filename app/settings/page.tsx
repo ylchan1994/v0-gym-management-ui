@@ -62,9 +62,9 @@ const initialDevices: Device[] = [
 ]
 
 export default function SettingsPage() {
-  const [ezypayUsername, setEzypayUsername] = useState("")
-  const [ezypayPassword, setEzypayPassword] = useState("")
-  const [ezypayMerchantId, setEzypayMerchantId] = useState("")
+  const [ezypayUsername, setEzypayUsername] = useState("EzypayDemoAccount")
+  const [ezypayPassword, setEzypayPassword] = useState("********")
+  const [ezypayMerchantId, setEzypayMerchantId] = useState("5ee1dffe-70ab-43a9-bc1c-d8b7bd66586d")
   const [devices, setDevices] = useState<Device[]>(initialDevices)
   const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false)
   const [isRegistrationCodeOpen, setIsRegistrationCodeOpen] = useState(false)
@@ -72,14 +72,22 @@ export default function SettingsPage() {
   const [newDeviceName, setNewDeviceName] = useState("")
   const [newDeviceId, setNewDeviceId] = useState("")
   const [visibleCodes, setVisibleCodes] = useState<Set<string>>(new Set())
+  const [isSaving, setIsSaving] = useState(false)
 
-  const handleSaveEzypay = () => {
+  const handleSaveEzypay = async () => {
     // TODO: Implement API call to save Ezypay credentials
-    console.log("[v0] Saving Ezypay credentials:", {
-      username: ezypayUsername,
-      merchantId: ezypayMerchantId,
-    })
-    alert("Ezypay credentials saved successfully!")
+    try {
+      setIsSaving(true)
+      console.log("[v0] Saving Ezypay credentials:", {
+        username: ezypayUsername,
+        merchantId: ezypayMerchantId,
+      })
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      alert("Ezypay credentials saved successfully!")
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const generateRegistrationCode = () => {
@@ -169,6 +177,28 @@ export default function SettingsPage() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar />
         <main className="flex-1 overflow-y-auto p-6">
+          {isSaving && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div className="rounded-md bg-white p-6 shadow-lg">
+                <div className="flex items-center space-x-3">
+                  <svg
+                    className="h-6 w-6 animate-spin text-primary"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    ></path>
+                  </svg>
+                  <div className="text-sm font-medium">Saving credentials…</div>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-balance">Settings</h1>
@@ -223,8 +253,8 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="pt-4">
-                      <Button onClick={handleSaveEzypay} size="lg">
-                        Save Credentials
+                      <Button onClick={handleSaveEzypay} size="lg" disabled={isSaving}>
+                        {isSaving ? "Saving..." : "Save Credentials"}
                       </Button>
                     </div>
                   </CardContent>
@@ -240,11 +270,11 @@ export default function SettingsPage() {
                     </div>
                     <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
                       <DialogTrigger asChild>
-                        <Button>
-                          <Plus className="mr-2 h-4 w-4" />
-                          Add Device
-                        </Button>
-                      </DialogTrigger>
+                          <Button disabled={isSaving}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add Device
+                          </Button>
+                        </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle>Add New Device</DialogTitle>
@@ -271,10 +301,10 @@ export default function SettingsPage() {
                           </div>
                         </div>
                         <DialogFooter>
-                          <Button variant="outline" onClick={() => setIsAddDeviceOpen(false)}>
+                          <Button variant="outline" onClick={() => setIsAddDeviceOpen(false)} disabled={isSaving}>
                             Cancel
                           </Button>
-                          <Button onClick={handleAddDevice}>Add Device</Button>
+                          <Button onClick={handleAddDevice} disabled={isSaving}>Add Device</Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
@@ -295,7 +325,7 @@ export default function SettingsPage() {
                           </p>
                         </div>
                         <DialogFooter>
-                          <Button onClick={() => setIsRegistrationCodeOpen(false)}>Close</Button>
+                          <Button onClick={() => setIsRegistrationCodeOpen(false)} disabled={isSaving}>Close</Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
@@ -327,6 +357,7 @@ export default function SettingsPage() {
                                   size="sm"
                                   onClick={() => toggleCodeVisibility(device.id)}
                                   className="h-6 w-6 p-0"
+                                  disabled={isSaving}
                                 >
                                   {visibleCodes.has(device.id) ? (
                                     <EyeOff className="h-4 w-4" />
@@ -343,7 +374,7 @@ export default function SettingsPage() {
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">{device.lastSeen}</TableCell>
                             <TableCell className="text-right">
-                              <Button variant="ghost" size="sm" onClick={() => handleDeleteDevice(device.id)}>
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteDevice(device.id)} disabled={isSaving}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
                             </TableCell>
