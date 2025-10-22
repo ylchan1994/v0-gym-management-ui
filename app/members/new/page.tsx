@@ -8,10 +8,73 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Spinner } from "@/components/ui/spinner"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { useState, useEffect, useRef } from "react"
+import { toast } from "sonner"
 
 export default function NewMemberPage() {
+  const [iframeUrl, setIframeUrl] = useState<string | null>(null)
+  const [isLoadingIframe, setIsLoadingIframe] = useState(false)
+  const iframeRef = useRef<HTMLIFrameElement | null>(null)
+  const iframeOriginRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    loadIframeUrl()
+  }, [])
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Validate origin if we have it
+      if (iframeOriginRef.current && event.origin !== iframeOriginRef.current) {
+        return
+      }
+
+      // Handle payment method added successfully
+      if (event.data?.type === "PAYMENT_METHOD_ADDED" || event.data?.success) {
+        toast.success("Payment method added successfully")
+      } else if (event.data?.type === "PAYMENT_METHOD_ERROR" || event.data?.error) {
+        toast.error("Failed to add payment method")
+      }
+    }
+
+    window.addEventListener("message", handleMessage)
+    return () => window.removeEventListener("message", handleMessage)
+  }, [])
+
+  const loadIframeUrl = async () => {
+    setIsLoadingIframe(true)
+    try {
+      // Request access token from our server-side token route
+      const tokenRes = await fetch("/api/payment/token", { method: "POST" })
+
+      if (!tokenRes.ok) {
+        throw new Error(`Token endpoint failed: ${tokenRes.status}`)
+      }
+
+      const tokenData = await tokenRes.json()
+      const token = tokenData.access_token
+      // Use a temporary customer ID for new members
+      const tempCustomerId = "new-member-" + Date.now()
+      const pcpUrl = `https://hosted-global-sandbox.ezypay.com/embed?token=${token}&feepricing=true&submitbutton=true&customerId=${tempCustomerId}`
+      setIframeUrl(pcpUrl)
+
+      try {
+        // Record origin from the iframe URL so we can validate messages
+        const url = new URL(pcpUrl)
+        iframeOriginRef.current = url.origin
+      } catch (e) {
+        iframeOriginRef.current = null
+      }
+    } catch (error) {
+      console.error("[v0] Error loading iframe URL:", error)
+      toast.error("Failed to load payment form")
+    } finally {
+      setIsLoadingIframe(false)
+    }
+  }
+
   return (
     <div className="flex h-screen">
       <AppSidebar />
@@ -120,30 +183,24 @@ export default function NewMemberPage() {
                   <CardTitle>Payment Information</CardTitle>
                   <CardDescription>Add payment method for recurring billing</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="paymentMethod">Payment Method</Label>
-                    <Select>
-                      <SelectTrigger id="paymentMethod">
-                        <SelectValue placeholder="Select payment method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="card">Credit/Debit Card</SelectItem>
-                        <SelectItem value="bank">Bank Transfer</SelectItem>
-                        <SelectItem value="cash">Cash</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="cardNumber">Card Number</Label>
-                      <Input id="cardNumber" placeholder="4242 4242 4242 4242" />
+                <CardContent>
+                  {isLoadingIframe ? (
+                    <div className="flex h-[500px] items-center justify-center">
+                      <Spinner className="h-8 w-8" />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cardExpiry">Expiry Date</Label>
-                      <Input id="cardExpiry" placeholder="MM/YY" />
+                  ) : iframeUrl ? (
+                    <iframe
+                      ref={iframeRef}
+                      src={iframeUrl}
+                      className="h-[500px] w-full rounded-lg border border-border"
+                      title="Add Payment Method"
+                      sandbox="allow-scripts allow-same-origin allow-forms"
+                    />
+                  ) : (
+                    <div className="flex h-[500px] items-center justify-center text-muted-foreground">
+                      Failed to load payment form
                     </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
 
