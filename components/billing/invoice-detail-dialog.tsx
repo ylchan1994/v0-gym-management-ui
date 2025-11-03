@@ -22,7 +22,7 @@ interface PaymentAttempt {
   errorMessage?: string
 }
 
-interface Invoice {
+export interface Invoice {
   id: string
   member: string
   amount: string

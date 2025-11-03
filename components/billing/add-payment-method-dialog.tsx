@@ -12,8 +12,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
-import { generatePaymentMethodIframeUrl, type PaymentMethodIframeResponse } from "@/lib/payment-api"
 import { toast } from "sonner"
+import { getEzypayToken } from "@/lib/ezypay-token"
 
 interface AddPaymentMethodDialogProps {
   customerId: string
@@ -61,15 +61,14 @@ export function AddPaymentMethodDialog({
     setIsLoading(true)
     try {
       // Request access token from our server-side token route
-      const tokenRes = await fetch("/api/payment/token", { method: "POST" })
+      const tokenRes = await getEzypayToken()
+      const token = tokenRes.access_token
 
-      if (!tokenRes.ok) {
-        throw new Error(`Token endpoint failed: ${tokenRes.status}`)
+      if (!token) {
+        throw new Error(`Token endpoint failed`)
       }
 
-      const tokenData = await tokenRes.json()
-      const token = tokenData.access_token;
-      const pcpUrl = `https://hosted-global-sandbox.ezypay.com/embed?token=${token}&feepricing=true&submitbutton=true&customerId=${customerId}`
+      const pcpUrl = `${process.env.NEXT_PUBLIC_PCP_ENDPOINT}/embed?token=${token}&feepricing=true&submitbutton=true&customerId=${customerId}`
       setIframeUrl(pcpUrl);
 
       try {
@@ -94,6 +93,7 @@ export function AddPaymentMethodDialog({
     if (!newOpen) {
       // Reset iframe URL when dialog closes
       setIframeUrl(null)
+      onSuccess?.()
     }
   }
 

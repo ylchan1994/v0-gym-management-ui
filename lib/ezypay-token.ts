@@ -1,11 +1,14 @@
+'use server'
+
 // Shared utility to fetch Ezypay access token
 export async function getEzypayToken(): Promise<{ access_token: string; error?: string }> {
+
   try {
     const {
-      EZYPAY_CLIENT_ID = "0oa1yspeszvuG97wq0h8",
-      EZYPAY_CLIENT_SECRET = "eGiBZQZ2P7rkBFavu8xa89MINPsgaCgfWVeMupIhspyg9vY6pM8uD2Vl8pn-5Wxc",
-      EZYPAY_USERNAME = "EzypayFitnessCenter",
-      EZYPAY_PASSWORD = "Password1234!",
+      EZYPAY_CLIENT_SECRET = 'eGiBZQZ2P7rkBFavu8xa89MINPsgaCgfWVeMupIhspyg9vY6pM8uD2Vl8pn-5Wxc',
+      EZYPAY_CLIENT_ID = '0oa1yspeszvuG97wq0h8',
+      EZYPAY_USERNAME = 'EzypayFitnessCenter',
+      EZYPAY_PASSWORD = 'Password1234!'
     } = process.env
 
     if (!EZYPAY_CLIENT_ID || !EZYPAY_CLIENT_SECRET || !EZYPAY_USERNAME || !EZYPAY_PASSWORD) {
@@ -26,7 +29,6 @@ export async function getEzypayToken(): Promise<{ access_token: string; error?: 
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        "Cache-Control": "no-cache",
       },
       body: body.toString(),
     })
