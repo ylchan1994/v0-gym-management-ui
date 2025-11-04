@@ -12,8 +12,7 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import { toast } from "sonner"
-import { getEzypayToken } from "@/lib/ezypay-token"
-import { createCustomer } from "@/lib/customer"
+import { getEzypayToken, createCustomer } from "@/lib/passer-functions"
 
 const pcpEndpoint = process.env.NEXT_PUBLIC_PCP_ENDPOINT;
 const defaultformData = {
@@ -74,7 +73,7 @@ export default function NewMemberPage() {
       const token = await tokenRes.access_token
       // Use a temporary customer ID for new members
 
-      const pcpUrl = `${pcpEndpoint}/embed?token=${token}&feepricing=true&submitbutton=true${customerId? '&' + customerId : ""}`
+      const pcpUrl = `${pcpEndpoint}/embed?token=${token}&feepricing=true&submitbutton=true${customerId? '&customerId=' + customerId : ""}`
       setIframeUrl(pcpUrl)
 
       try {

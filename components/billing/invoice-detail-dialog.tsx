@@ -26,10 +26,12 @@ export interface Invoice {
   id: string
   member: string
   amount: string
-  status: "paid" | "pending" | "past due" | "failed" | "refunded" | 'chargeback' | 'write off'
+  status: "paid" | "pending" | "past_due" | "failed" | "refunded" | 'chargeback' | 'written_off' | 'partially_refunded'
   date: string
   dueDate: string
   paymentMethod: string
+  items: any[]
+  number: string
   paymentAttempts: PaymentAttempt[]
   refundAmount?: string
   refundDate?: string
@@ -88,7 +90,7 @@ export function InvoiceDetailDialog({ invoice, open, onOpenChange, onUpdate }: I
         toast.success(result.message)
         // update local invoice status immediately for UI feedback
         if (invoice) {
-          invoice.status = 'write off'
+          invoice.status = 'written_off'
         }
         onUpdate?.()
         onOpenChange(false)
@@ -171,7 +173,7 @@ export function InvoiceDetailDialog({ invoice, open, onOpenChange, onUpdate }: I
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Invoice ID</p>
-                <p className="text-lg font-semibold">{invoice.id}</p>
+                <p className="text-lg font-semibold">{invoice.number}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Member</p>
@@ -241,6 +243,31 @@ export function InvoiceDetailDialog({ invoice, open, onOpenChange, onUpdate }: I
 
             <Separator />
 
+            {/* Invoice Item breakdown */}
+            <div>
+              <p className="mb-3">Breakdown</p>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {invoice.items?.map((item) => (
+                    <TableRow key={item.description}>
+                      <TableCell>{item.description}</TableCell>
+                      <TableCell className="font-medium">{item.amount}</TableCell>                      
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <Separator />
+
+            <Separator />
+
             {/* Payment Method */}
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-2">Payment Method</p>
@@ -300,21 +327,12 @@ export function InvoiceDetailDialog({ invoice, open, onOpenChange, onUpdate }: I
                   <h4 className="font-medium">Track External Payment</h4>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="paymentMethod">Payment Method</Label>
+                      <Label htmlFor="paymentMethod">Method</Label>
                       <Input
                         id="paymentMethod"
                         placeholder="e.g., Cash, Bank Transfer"
                         value={externalPaymentData.method}
                         onChange={(e) => setExternalPaymentData({ ...externalPaymentData, method: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="reference">Reference Number</Label>
-                      <Input
-                        id="reference"
-                        placeholder="e.g., TXN123456"
-                        value={externalPaymentData.reference}
-                        onChange={(e) => setExternalPaymentData({ ...externalPaymentData, reference: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
@@ -349,19 +367,20 @@ export function InvoiceDetailDialog({ invoice, open, onOpenChange, onUpdate }: I
                   Refund Invoice
                 </Button>
               )}
-              {(invoice.status === "failed" || invoice.status === "past due") && (
+              {(invoice.status === "failed" || invoice.status === "past_due") && (
                 <>
+                
+                  <Button variant="secondary" onClick={handleRetry} disabled={isProcessing}>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Retry
+                  </Button>
+
                   <Button
                     variant="secondary"
                     onClick={() => setShowExternalPayment(!showExternalPayment)}
                     disabled={isProcessing}
                   >
                     Track External Payment
-                  </Button>
-
-                  <Button variant="secondary" onClick={handleRetry} disabled={isProcessing}>
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Retry
                   </Button>
 
                   <Button variant="destructive" onClick={handleWriteOff} disabled={isProcessing}>

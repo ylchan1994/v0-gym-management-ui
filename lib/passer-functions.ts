@@ -21,8 +21,8 @@ export async function getCustomer(customer) {
   return await getEzypayCustomer(customer)
 }
 
-export async function listInvoiceByCustomer(customerId) {
-  return await listEzypayInvoiceByCustomer(customerId)
+export async function listInvoiceByCustomer(customerId, customerName) {
+  return await listEzypayInvoiceByCustomer(customerId, customerName)
 }
 
 export async function getEzypayToken() {

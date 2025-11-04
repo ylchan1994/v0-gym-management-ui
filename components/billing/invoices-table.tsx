@@ -127,8 +127,8 @@ export function InvoicesTable() {
 
   const getStatusBadgeVariant = (status: string) => {
     if (status === "paid") return "default"
-    if (status === "refunded") return "warning"
-    if (status === "pending") return "secondary"
+    if (status.includes("refund") || status.includes("written") ) return "warning"
+    if (status === "pending" || status === 'unpaid') return "secondary"
     return "destructive"
   }
 
@@ -183,8 +183,6 @@ export function InvoicesTable() {
                 <TableHead>Payment Method</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -206,32 +204,7 @@ export function InvoicesTable() {
                       {invoice.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{invoice.date}</TableCell>
-                  <TableCell>{invoice.dueDate}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          // Download logic
-                        }}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          // Send logic
-                        }}
-                      >
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+                  <TableCell>{invoice.date}</TableCell>                  
                 </TableRow>
               ))}
             </TableBody>

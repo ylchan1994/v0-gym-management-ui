@@ -66,7 +66,7 @@ export async function listCustomer(): Promise<any> {
       throw new Error(`List customer failed: No access_token from token utility`)
     }    
 
-    const response = await fetch(`${apiEndpoint}?limit=10&cursor=18`, {
+    const response = await fetch(`${apiEndpoint}?limit=10&cursor=20`, {
       headers: {
         "Authorization": `Bearer ${token}`,
         merchant: merchantId ,
@@ -125,7 +125,7 @@ export async function getCustomer(customerId: string | null): Promise<any> {
   }
 }
 
-export async function getCustomerPaymentMethods(customerId: string) {
+export async function getCustomerPaymentMethods(customerId: string): Promise<any> {
   try {
     if (!customerId) {
       throw new Error('No customer ID provided')

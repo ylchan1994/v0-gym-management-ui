@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Edit, Mail, Phone, Calendar, CreditCard } from "lucide-react"
 import Link from "next/link"
 import { AddPaymentMethodDialog } from "@/components/billing/add-payment-method-dialog"
-import { Invoice, InvoiceDetailDialog } from "@/components/billing/invoice-detail-dialog"
+import { InvoiceDetailDialog } from "@/components/billing/invoice-detail-dialog"
 import { useState, useEffect } from "react"
 import { Spinner } from "@/components/ui/spinner"
 import { getCustomerIdFromPath } from "@/lib/utils"
@@ -25,580 +25,10 @@ import {
 import { getCustomer } from "@/lib/customer"
 import { listInvoiceByCustomer, getCustomerPaymentMethods } from "@/lib/passer-functions"
 
-// fullMemberData is the source of truth for mocked members in this file.
-const fullMemberData = [
-  {
-    id: "4dc71f12-2484-443e-85b0-eea29a3bd600",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "(555) 123-4567",
-    status: "active",
-    plan: "Premium",
-    joinDate: "2024-01-15",
-    expiryDate: "2025-01-15",
-    address: "208 Example Street, Cityville, ST 4359, Country",
-    dateOfBirth: "1980-11-07",
-    emergencyContact: "Jane Doe - +61 456 307 903",
-    invoices: [
-      {
-        id: "INV-100",
-        member: "John Doe",
-        date: "2025-10-16",
-        amount: "$99.00",
-        status: "paid",
-        dueDate: "2025-10-30",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-10-16",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      },
-      {
-        id: "INV-101",
-        member: "John Doe",
-        date: "2025-09-16",
-        amount: "$99.00",
-        status: "failed",
-        dueDate: "2025-09-30",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-09-16",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      },
-      {
-        id: "INV-102",
-        member: "John Doe",
-        date: "2025-08-17",
-        amount: "$99.00",
-        status: "paid",
-        dueDate: "2025-08-31",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-08-17",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      }
-    ],
-    attendanceLogs: [
-      {
-        id: "1",
-        date: "2025-10-16",
-        time: "06:30 AM",
-        class: "Zumba"
-      },
-      {
-        id: "2",
-        date: "2025-10-15",
-        time: "05:00 PM",
-        class: "CrossFit"
-      },
-      {
-        id: "3",
-        date: "2025-10-14",
-        time: "06:30 AM",
-        class: "Spinning"
-      },
-      {
-        id: "4",
-        date: "2025-10-13",
-        time: "06:30 AM",
-        class: "CrossFit"
-      }
-    ],
-    paymentMethods: [
-      {
-        id: "1",
-        type: "Credit Card",
-        last4: "4242",
-        expiry: "12/25",
-        isDefault: true
-      },
-      {
-        id: "2",
-        type: "Bank Transfer",
-        account: "****1234",
-        isDefault: false
-      }
-    ]
-  },
-  {
-    id: "e7507033-d9ca-4dcb-801b-1c8f850a1a26",
-    name: "Sarah Smith",
-    email: "sarah.smith@example.com",
-    phone: "(555) 234-5678",
-    status: "active",
-    plan: "Basic",
-    joinDate: "2024-03-20",
-    expiryDate: "2024-12-20",
-    address: "282 Example Street, Cityville, ST 6753, Country",
-    dateOfBirth: "1970-06-26",
-    emergencyContact: "Anna Smith - +61 487 228 471",
-    invoices: [
-      {
-        id: "INV-100",
-        member: "Sarah Smith",
-        date: "2025-10-16",
-        amount: "$99.00",
-        status: "paid",
-        dueDate: "2025-10-30",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-10-16",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      },
-      {
-        id: "INV-101",
-        member: "Sarah Smith",
-        date: "2025-09-16",
-        amount: "$99.00",
-        status: "paid",
-        dueDate: "2025-09-30",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-09-16",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      },
-      {
-        id: "INV-102",
-        member: "Sarah Smith",
-        date: "2025-08-17",
-        amount: "$99.00",
-        status: "paid",
-        dueDate: "2025-08-31",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-08-17",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      }
-    ],
-    attendanceLogs: [
-      {
-        id: "1",
-        date: "2025-10-16",
-        time: "06:30 AM",
-        class: "Yoga"
-      },
-      {
-        id: "2",
-        date: "2025-10-15",
-        time: "05:00 PM",
-        class: "Zumba"
-      },
-      {
-        id: "3",
-        date: "2025-10-14",
-        time: "05:00 PM",
-        class: "CrossFit"
-      },
-      {
-        id: "4",
-        date: "2025-10-13",
-        time: "06:30 AM",
-        class: "Pilates"
-      }
-    ],
-    paymentMethods: [
-      {
-        id: "1",
-        type: "Credit Card",
-        last4: "4242",
-        expiry: "12/25",
-        isDefault: true
-      },
-      {
-        id: "2",
-        type: "Bank Transfer",
-        account: "****1234",
-        isDefault: false
-      }
-    ]
-  },
-  {
-    id: "cea17c36-00a5-4b86-8954-0282107cd954",
-    name: "Mike Johnson",
-    email: "mike.j@example.com",
-    phone: "(555) 345-6789",
-    status: "expired",
-    plan: "Premium",
-    joinDate: "2023-06-10",
-    expiryDate: "2024-06-10",
-    address: "593 Example Street, Cityville, ST 5471, Country",
-    dateOfBirth: "1978-12-27",
-    emergencyContact: "Anna Johnson - +61 450 507 619",
-    invoices: [
-      {
-        id: "INV-100",
-        member: "Mike Johnson",
-        date: "2025-10-16",
-        amount: "$99.00",
-        status: "paid",
-        dueDate: "2025-10-30",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-10-16",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      },
-      {
-        id: "INV-101",
-        member: "Mike Johnson",
-        date: "2025-09-16",
-        amount: "$99.00",
-        status: "paid",
-        dueDate: "2025-09-30",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-09-16",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      },
-      {
-        id: "INV-102",
-        member: "Mike Johnson",
-        date: "2025-08-17",
-        amount: "$99.00",
-        status: "paid",
-        dueDate: "2025-08-31",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-08-17",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      }
-    ],
-    attendanceLogs: [
-      {
-        id: "1",
-        date: "2025-10-16",
-        time: "07:00 AM",
-        class: "Spinning"
-      },
-      {
-        id: "2",
-        date: "2025-10-15",
-        time: "05:00 PM",
-        class: "CrossFit"
-      },
-      {
-        id: "3",
-        date: "2025-10-14",
-        time: "07:00 AM",
-        class: "Yoga"
-      },
-      {
-        id: "4",
-        date: "2025-10-13",
-        time: "05:00 PM",
-        class: "Pilates"
-      }
-    ],
-    paymentMethods: [
-      {
-        id: "1",
-        type: "Credit Card",
-        last4: "4242",
-        expiry: "12/25",
-        isDefault: true
-      },
-      {
-        id: "2",
-        type: "Bank Transfer",
-        account: "****1234",
-        isDefault: false
-      }
-    ]
-  },
-  {
-    id: "49deaec5-c9fd-4790-87e2-600d19c9b178",
-    name: "Emma Wilson",
-    email: "emma.w@example.com",
-    phone: "(555) 456-7890",
-    status: "trial",
-    plan: "Trial",
-    joinDate: "2024-10-01",
-    expiryDate: "2024-10-15",
-    address: "456 Example Street, Cityville, ST 6895, Country",
-    dateOfBirth: "1997-10-11",
-    emergencyContact: "Chris Wilson - +61 446 261 134",
-    invoices: [
-      {
-        id: "INV-100",
-        member: "Emma Wilson",
-        date: "2025-10-16",
-        amount: "$99.00",
-        status: "paid",
-        dueDate: "2025-10-30",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-10-16",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      },
-      {
-        id: "INV-101",
-        member: "Emma Wilson",
-        date: "2025-09-16",
-        amount: "$99.00",
-        status: "paid",
-        dueDate: "2025-09-30",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-09-16",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      },
-      {
-        id: "INV-102",
-        member: "Emma Wilson",
-        date: "2025-08-17",
-        amount: "$99.00",
-        status: "paid",
-        dueDate: "2025-08-31",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-08-17",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      }
-    ],
-    attendanceLogs: [
-      {
-        id: "1",
-        date: "2025-10-16",
-        time: "07:00 AM",
-        class: "CrossFit"
-      },
-      {
-        id: "2",
-        date: "2025-10-15",
-        time: "05:00 PM",
-        class: "Zumba"
-      },
-      {
-        id: "3",
-        date: "2025-10-14",
-        time: "06:30 AM",
-        class: "Zumba"
-      },
-      {
-        id: "4",
-        date: "2025-10-13",
-        time: "05:00 PM",
-        class: "CrossFit"
-      }
-    ],
-    paymentMethods: [
-      {
-        id: "1",
-        type: "Credit Card",
-        last4: "4242",
-        expiry: "12/25",
-        isDefault: true
-      },
-      {
-        id: "2",
-        type: "Bank Transfer",
-        account: "****1234",
-        isDefault: false
-      }
-    ]
-  },
-  {
-    id: "432d6d92-8685-4c46-bc2f-62856e900b57",
-    name: "David Brown",
-    email: "david.b@example.com",
-    phone: "(555) 567-8901",
-    status: "active",
-    plan: "Personal Training",
-    joinDate: "2024-02-28",
-    expiryDate: "2025-02-28",
-    address: "129 Example Street, Cityville, ST 2590, Country",
-    dateOfBirth: "1989-02-07",
-    emergencyContact: "Tom Brown - +61 442 393 308",
-    invoices: [
-      {
-        id: "INV-100",
-        member: "David Brown",
-        date: "2025-10-16",
-        amount: "$99.00",
-        status: "failed",
-        dueDate: "2025-10-30",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-10-16",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      },
-      {
-        id: "INV-101",
-        member: "David Brown",
-        date: "2025-09-16",
-        amount: "$99.00",
-        status: "paid",
-        dueDate: "2025-09-30",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-09-16",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      },
-      {
-        id: "INV-102",
-        member: "David Brown",
-        date: "2025-08-17",
-        amount: "$99.00",
-        status: "paid",
-        dueDate: "2025-08-31",
-        paymentMethod: "Visa ****4242",
-        paymentAttempts: [
-          {
-            id: "1",
-            date: "2025-08-17",
-            amount: "$99.00",
-            status: "success",
-            method: "Visa ****4242"
-          }
-        ]
-      }
-    ],
-    attendanceLogs: [
-      {
-        id: "1",
-        date: "2025-10-16",
-        time: "07:00 AM",
-        class: "Pilates"
-      },
-      {
-        id: "2",
-        date: "2025-10-15",
-        time: "07:00 AM",
-        class: "Spinning"
-      },
-      {
-        id: "3",
-        date: "2025-10-14",
-        time: "07:00 AM",
-        class: "CrossFit"
-      },
-      {
-        id: "4",
-        date: "2025-10-13",
-        time: "07:00 AM",
-        class: "Zumba"
-      }
-    ],
-    paymentMethods: [
-      {
-        id: "1",
-        type: "Credit Card",
-        last4: "4242",
-        expiry: "12/25",
-        isDefault: true
-      },
-      {
-        id: "2",
-        type: "Bank Transfer",
-        account: "****1234",
-        isDefault: false
-      }
-    ]
-  }
-] //mocked members data
-
-type defaultMemberData = {
-  id: string,
-  name: string,
-  email: string,
-  phone: string,
-  address: string,
-  dateOfBirth: string,
-  emergencyContact: string,
-  status: string,
-  plan: string,
-  joinDate: string,
-  expiryDate: string,
-  invoices: Invoice,
-  attendanceLogs: any[],
-};
-
 const getStatusBadgeVariant = (status: string) => {
-  if (status === "PAID") return "default"
-  if (status.includes("REFUND") ) return "warning"
-  if (status === "PENDING" || status === 'UNPAID') return "secondary"
+  if (status === "paid") return "default"
+  if (status.includes("refund") || status.includes("written") ) return "warning"
+  if (status === "pending" || status === 'unpaid') return "secondary"
   return "destructive"
 }
 
@@ -607,6 +37,7 @@ export default function MemberProfilePage() {
   useEffect(() => {
     
     const customerId = getCustomerIdFromPath()
+    let customerName
 
     try {
       getCustomer(customerId).then((customer) => {
@@ -614,9 +45,11 @@ export default function MemberProfilePage() {
           throw new Error('Customer not found')
         }
 
+        customerName = `${customer.firstName} ${customer.lastName}`
+
         setMemberDataState ({
           id: customer.id,
-          name: `${customer.firstName} ${customer.lastName}`,
+          name: customerName,
           email: customer.email,
           phone: customer.mobilePhone,
           address: Object.values(customer.address).join(' '),
@@ -626,68 +59,25 @@ export default function MemberProfilePage() {
           plan: customer.metadata?.plan ?? 'Trial',
           joinDate: customer.metadata?.joinDate ?? new Date(Date.now()).toISOString().split('T')[0],
           expiryDate: customer.metadata?.expiryDate ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          invoices: [
-            {
-              id: "INV-001",
-              member: "John Doe",
-              date: "2024-10-01",
-              amount: "$99.00",
-              status: "paid" as const,
-              dueDate: "2024-10-15",
-              paymentMethod: "Visa ****4242",
-              paymentAttempts: [
-                { id: "1", date: "2024-10-01", amount: "$99.00", status: "success" as const, method: "Visa ****4242" },
-              ],
-            },
-            {
-              id: "INV-002",
-              member: "John Doe",
-              date: "2024-09-01",
-              amount: "$99.00",
-              status: "paid" as const,
-              dueDate: "2024-09-15",
-              paymentMethod: "Visa ****4242",
-              paymentAttempts: [
-                { id: "1", date: "2024-09-01", amount: "$99.00", status: "success" as const, method: "Visa ****4242" },
-              ],
-            },
-            {
-              id: "INV-003",
-              member: "John Doe",
-              date: "2024-08-01",
-              amount: "$99.00",
-              status: "paid" as const,
-              dueDate: "2024-08-15",
-              paymentMethod: "Visa ****4242",
-              paymentAttempts: [
-                { id: "1", date: "2024-08-01", amount: "$99.00", status: "success" as const, method: "Visa ****4242" },
-              ],
-            },
-          ],
+          invoices: [],
           attendanceLogs: [
             { id: "1", date: "2024-10-14", time: "06:30 AM", class: "Yoga" },
             { id: "2", date: "2024-10-13", time: "05:00 PM", class: "CrossFit" },
             { id: "3", date: "2024-10-12", time: "07:00 AM", class: "Spinning" },
             { id: "4", date: "2024-10-11", time: "06:30 AM", class: "Yoga" },
           ],
-          paymentMethods: [
-            { id: "1", type: "Credit Card", last4: "4242", expiry: "12/25", isDefault: true },
-            { id: "2", type: "Bank Transfer", account: "****1234", isDefault: false },
-          ],
-        })
-
-        setIsLoading(false)
-        fetchPaymentMethods(customerId)
+          paymentMethods: [],
+        })      
 
       })
 
-      listInvoiceByCustomer(customerId).then( res => {
-        let response = res.data
-        let invoices = []
-
-        response.forEach( invoice => {
-          console.log(invoice)
-        })
+      listInvoiceByCustomer(customerId, customerName).then( res => {
+        console.log(res)
+        setMemberDataState(prev => ({...prev, invoices: res}))
+        
+        setIsLoading(false)
+        fetchPaymentMethods(customerId)
+        
       })
 
     } catch (error) {
@@ -698,7 +88,7 @@ export default function MemberProfilePage() {
 
   // memberData is loaded from fullMemberData based on URL id when available
   const [memberDataState, setMemberDataState] = useState<any>({})
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
+  const [selectedInvoice, setSelectedInvoice] = useState<any[] | null>(null)
   const [isInvoiceDetailOpen, setIsInvoiceDetailOpen] = useState(false)
   const [paymentMethodData, setPaymentMethodData] = useState<any[] | null>(null)
   const [paymentMethodsLoading, setPaymentMethodsLoading] = useState(false)
@@ -752,7 +142,6 @@ export default function MemberProfilePage() {
     try {      
 
       const response = await getCustomerPaymentMethods(customerId)
-      console.log(response)
 
       // Some proxies or APIs nest the actual items under different keys - try common shapes
       let items: any[] | null = null
@@ -1035,7 +424,7 @@ export default function MemberProfilePage() {
                             className="cursor-pointer hover:bg-muted/50"
                             onClick={() => handleInvoiceClick(invoice)}
                           >
-                            <TableCell className="font-medium">{invoice.id}</TableCell>
+                            <TableCell className="font-medium">{invoice.number}</TableCell>
                             <TableCell>{invoice.date}</TableCell>
                             <TableCell className="font-medium">{invoice.amount}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">{invoice.paymentMethod}</TableCell>
@@ -1068,7 +457,7 @@ export default function MemberProfilePage() {
                       <TableBody>
                         {upcomingInvoices.map((invoice) => (
                           <TableRow key={invoice.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleInvoiceClick(invoice)}>
-                            <TableCell className="font-medium">{invoice.id}</TableCell>
+                            <TableCell className="font-medium">{invoice.number}</TableCell>
                             <TableCell>{invoice.dueDate}</TableCell>
                             <TableCell className="font-medium">{invoice.amount}</TableCell>
                             <TableCell>
