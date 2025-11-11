@@ -1,106 +1,114 @@
-'use server'
+"use server"
 
-import { getEzypayToken } from "./ezypay-token";
+import { getEzypayToken } from "./ezypay-token"
 
 const apiEndpoint = `${process.env.API_ENDPOINT}/v2/billing/invoices`
 const transactionEndpoint = `${process.env.API_ENDPOINT}/v2/billing/transactions`
 const merchantId = process.env.EZYPAY_MERCHANT_ID || "5ee1dffe-70ab-43a9-bc1c-d8b7bd66586d"
 
 function normalisedEzypayInvoice(invoices, customerName = null) {
-
   function extractPaymentMethodData(paymentMethodData) {
-    const type = paymentMethodData.type.toLowerCase()    
+    const type = paymentMethodData.type.toLowerCase()
 
     switch (type) {
-      case 'card':
+      case "card":
         return `${paymentMethodData.card?.type} **** ${paymentMethodData.card?.last4}`
-        break;
-      case 'bank':
+        break
+      case "bank":
         return `**** ${paymentMethodData.bank?.last4}`
         break
-      case 'payto':
+      case "payto":
         return paymentMethodData.payto.bbanAccountNo ?? paymentMethodData.payto.aliasId
     }
   }
 
   function mergeItemsByDescription(items) {
-    const merged = {};
+    const merged = {}
 
-    items.forEach(item => {
-      const desc = item.description;
-      const amount = item.amount.value;
+    items.forEach((item) => {
+      const desc = item.description
+      const amount = item.amount.value
 
       if (merged[desc]) {
-        merged[desc] += amount;
+        merged[desc] += amount
       } else {
-        merged[desc] = amount;
+        merged[desc] = amount
       }
-    });
+    })
 
     return Object.entries(merged).map(([description, amount]) => ({
       description,
-      amount: `$${amount.toFixed(2)}`
-    }));
+      amount: `$${amount.toFixed(2)}`,
+    }))
   }
-    
-  const normalisedInvoice = invoices.data.map( invoice => ({
-      id: invoice.id,
-      member: customerName,
-      amount: `$${invoice.amount.value}`,
-      number: invoice.documentNumber.replace(/0/g, ''),
-      date: invoice.date,
-      dueDate: invoice.dueDate,
-      paymentMethod: extractPaymentMethodData(invoice.paymentMethodData),
-      items: mergeItemsByDescription(invoice.items),
-      status: invoice.status.toLowerCase(),
-      paymentAttempts: [],
-      customerId: invoice.customerId,
-      failedPaymentReason: invoice.failedPaymentReason,
-      paymentProviderResponse: invoice.paymentProviderResponse
+
+  const normalisedInvoice = invoices.data.map((invoice) => ({
+    id: invoice.id,
+    member: customerName,
+    amount: `$${invoice.amount.value}`,
+    number: invoice.documentNumber.replace(/0/g, ""),
+    date: invoice.date,
+    dueDate: invoice.dueDate,
+    paymentMethod: extractPaymentMethodData(invoice.paymentMethodData),
+    items: mergeItemsByDescription(invoice.items),
+    status: invoice.status.toLowerCase(),
+    paymentAttempts: [],
+    customerId: invoice.customerId,
+    failedPaymentReason: invoice.failedPaymentReason,
+    paymentProviderResponse: invoice.paymentProviderResponse,
   }))
 
   return normalisedInvoice
 }
 
 export async function listInvoice(): Promise<any> {
+  try {
+    if (!process.env.API_ENDPOINT) {
+      console.error("API_ENDPOINT environment variable is not configured")
+      return []
+    }
 
-  try {          
     // Get token directly from utility function instead of HTTP request
     const tokenData = await getEzypayToken()
     const token = tokenData.access_token
     if (!token) {
       console.error("No access_token from token utility", tokenData)
-      throw new Error(`List customer failed: No access_token from token utility`)
-    }    
+      return []
+    }
 
     const invoiceResponse = await fetch(`${apiEndpoint}?limit=30&cursor=50`, {
       headers: {
-        "Authorization": `Bearer ${token}`,
-        merchant: merchantId ,
+        Authorization: `Bearer ${token}`,
+        merchant: merchantId,
       },
     })
 
     if (!invoiceResponse.ok) {
       const text = await invoiceResponse.text()
       console.error("List invoice failed:", invoiceResponse.status, text)
-      throw new Error(`List invoice failed: ${invoiceResponse.status}`)
+      return []
     }
 
-    const invoiceData = await invoiceResponse.json()  
+    const contentType = invoiceResponse.headers.get("content-type")
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await invoiceResponse.text()
+      console.error("List invoice error: Expected JSON but received:", contentType, text.substring(0, 200))
+      return []
+    }
 
-    let normalisedInvoice  = normalisedEzypayInvoice(invoiceData)   
-    
+    const invoiceData = await invoiceResponse.json()
+
+    const normalisedInvoice = normalisedEzypayInvoice(invoiceData)
 
     return normalisedInvoice
   } catch (err) {
     console.error("List invoice error:", err)
-    throw err
+    return []
   }
 }
 
 export async function listInvoiceByCustomer(customerId, customerName): Promise<any> {
-
-  try {      
+  try {
     if (!customerId) {
       throw new Error("No customer ID")
     }
@@ -111,12 +119,12 @@ export async function listInvoiceByCustomer(customerId, customerName): Promise<a
     if (!token) {
       console.error("No access_token from token utility", tokenData)
       throw new Error(`List customer failed: No access_token from token utility`)
-    }    
+    }
 
     const invoiceResponse = await fetch(`${apiEndpoint}?customerId=${customerId}&limit=10`, {
       headers: {
-        "Authorization": `Bearer ${token}`,
-        merchant: merchantId ,
+        Authorization: `Bearer ${token}`,
+        merchant: merchantId,
       },
     })
 
@@ -126,9 +134,9 @@ export async function listInvoiceByCustomer(customerId, customerName): Promise<a
       throw new Error(`List Customer invoice failed: ${invoiceResponse.status}`)
     }
 
-    const invoiceData = await invoiceResponse.json()  
+    const invoiceData = await invoiceResponse.json()
 
-    let normalisedInvoice  = normalisedEzypayInvoice(invoiceData, customerName)
+    const normalisedInvoice = normalisedEzypayInvoice(invoiceData, customerName)
 
     return normalisedInvoice
   } catch (err) {
@@ -137,8 +145,8 @@ export async function listInvoiceByCustomer(customerId, customerName): Promise<a
   }
 }
 
-export async function listTransactionByInvoice(invoiceId, paymentMethod): Promise<any> {  
-  try {      
+export async function listTransactionByInvoice(invoiceId, paymentMethod): Promise<any> {
+  try {
     if (!invoiceId) {
       throw new Error("No invoice ID")
     }
@@ -149,12 +157,12 @@ export async function listTransactionByInvoice(invoiceId, paymentMethod): Promis
     if (!token) {
       console.error("No access_token from token utility", tokenData)
       throw new Error(`List customer failed: No access_token from token utility`)
-    }    
+    }
 
     const transactionResponse = await fetch(`${transactionEndpoint}?documentId=${invoiceId}&limit=10`, {
       headers: {
-        "Authorization": `Bearer ${token}`,
-        merchant: merchantId ,
+        Authorization: `Bearer ${token}`,
+        merchant: merchantId,
       },
     })
 
@@ -164,20 +172,19 @@ export async function listTransactionByInvoice(invoiceId, paymentMethod): Promis
       throw new Error(`List transaction failed: ${transactionResponse.status}`)
     }
 
-    const transactionData = await transactionResponse.json()  
+    const transactionData = await transactionResponse.json()
 
-    let transactions = transactionData.data.map( ( transaction ) => ({
+    const transactions = transactionData.data.map((transaction) => ({
       id: transaction.id,
-      date: transaction.createdOn?.split('T')[0],
+      date: transaction.createdOn?.split("T")[0],
       amount: `$${transaction.amount.value}`,
       status: transaction.status.toLowerCase(),
-      method: paymentMethod
+      method: paymentMethod,
     }))
-    
+
     return transactions
   } catch (err) {
     console.error("List transaction error:", err)
     throw err
   }
 }
-
