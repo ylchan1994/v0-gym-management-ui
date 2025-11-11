@@ -36,11 +36,3 @@ export async function getEzypayToken() {
 export async function getCustomerPaymentMethods(customer) {
   return await getEzypayCustomerPaymentMethods(customer)
 }
-
-export async function listInvoice() {
-  return await listEzypayInvoice()
-}
-
-export async function listTransactionByInvoice(invoiceId, paymentMethod) {
-  return await listEzypayTransactionByInvoice(invoiceId, paymentMethod)
-}
