@@ -165,7 +165,6 @@ export async function listTransactionByInvoice(invoiceId, paymentMethod): Promis
     }
 
     const transactionData = await transactionResponse.json()  
-    console.log(transactionData, transactionResponse)
 
     let transactions = transactionData.data.map( ( transaction ) => ({
       id: transaction.id,
