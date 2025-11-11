@@ -3,7 +3,9 @@
 import { Home, Users, CreditCard, FileText, BarChart3, Settings, Dumbbell } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
+import { cn, normalisedEzypayCustomer } from "@/lib/utils"
+import { useEffect } from "react"
+import { listCustomer } from "@/lib/passer-functions"
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
@@ -15,6 +17,14 @@ const navigation = [
 ]
 
 export function AppSidebar() {
+  
+  useEffect(() => {
+    listCustomer().then(res => {
+      const customers = res.data.map(customer => normalisedEzypayCustomer(customer) )
+      sessionStorage.setItem('defaultCustomerList', JSON.stringify(customers))
+    })
+  })
+
   const pathname = usePathname()
 
   return (

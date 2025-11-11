@@ -7,129 +7,61 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Download, Send, Search, Plus } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { InvoiceDetailDialog } from "./invoice-detail-dialog"
 import { CreateInvoiceDialog } from "./create-invoice-dialog"
+import { getStatusBadgeVariant } from "@/app/members/[id]/page"
+import type { Invoice } from "./invoice-detail-dialog"
 
-const initialInvoices = [
-  {
-    id: "INV-001",
-    member: "John Doe",
-    amount: "$99.00",
-    status: "paid" as const,
-    date: "2024-10-01",
-    dueDate: "2024-10-15",
-    paymentMethod: "Visa ****4242",
-    paymentAttempts: [
-      { id: "1", date: "2024-10-01", amount: "$99.00", status: "success" as const, method: "Visa ****4242" },
-    ],
-  },
-  {
-    id: "INV-002",
-    member: "Sarah Smith",
-    amount: "$49.00",
-    status: "paid" as const,
-    date: "2024-10-03",
-    dueDate: "2024-10-17",
-    paymentMethod: "Mastercard ****5678",
-    paymentAttempts: [
-      { id: "1", date: "2024-10-03", amount: "$49.00", status: "success" as const, method: "Mastercard ****5678" },
-    ],
-  },
-  {
-    id: "INV-003",
-    member: "Mike Johnson",
-    amount: "$99.00",
-    status: "past due" as const,
-    date: "2024-09-15",
-    dueDate: "2024-09-29",
-    paymentMethod: "Visa ****1234",
-    paymentAttempts: [
-      {
-        id: "1",
-        date: "2024-09-29",
-        amount: "$99.00",
-        status: "failed" as const,
-        method: "Visa ****1234",
-        errorMessage: "Insufficient funds",
-      },
-      {
-        id: "2",
-        date: "2024-10-05",
-        amount: "$99.00",
-        status: "failed" as const,
-        method: "Visa ****1234",
-        errorMessage: "Card declined",
-      },
-    ],
-  },
-  {
-    id: "INV-004",
-    member: "Emma Wilson",
-    amount: "$149.00",
-    status: "pending" as const,
-    date: "2024-10-10",
-    dueDate: "2024-10-24",
-    paymentMethod: "Bank Transfer - ANZ ****5678",
-    paymentAttempts: [],
-  },
-  {
-    id: "INV-005",
-    member: "David Brown",
-    amount: "$149.00",
-    status: "paid" as const,
-    date: "2024-10-05",
-    dueDate: "2024-10-19",
-    paymentMethod: "Amex ****9012",
-    paymentAttempts: [
-      { id: "1", date: "2024-10-05", amount: "$149.00", status: "success" as const, method: "Amex ****9012" },
-    ],
-  },
-  {
-    id: "INV-006",
-    member: "John Doe",
-    amount: "$99.00",
-    status: "chargeback" as const,
-    date: "2024-10-01",
-    dueDate: "2024-10-04",
-    paymentMethod: "Amex ****9012",
-    paymentAttempts: [
-      { id: "6", date: "2024-10-04", amount: "$99.00", status: "failed" as const, method: "Amex ****9012" },
-    ],
-  },
-]
-
-export function InvoicesTable() {
-  const [invoices, setInvoices] = useState(initialInvoices)
+export function InvoicesTable({variant = 'billing', invoices}) {
+  if (!invoices) {return ''}
+  // const [invoices, setInvoices] = useState<Invoice[]>(invoices)
   const [statusFilter, setStatusFilter] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedInvoice, setSelectedInvoice] = useState<(typeof invoices)[0] | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
 
-  const filteredInvoices = invoices.filter((invoice) => {
+  const filteredInvoices = invoices?.filter((invoice) => {
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter
-    const matchesSearch =
+    const matchesSearch = variant == 'billing' ? (
       invoice.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       invoice.member.toLowerCase().includes(searchQuery.toLowerCase())
+    ) : (
+      invoice.id.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     return matchesStatus && matchesSearch
   })
 
   const handleInvoiceClick = (invoice: (typeof invoices)[0]) => {
+    if (!invoice.id) {
+      console.error('Invalid invoice data (missing id):', invoice)
+      return
+    }
     setSelectedInvoice(invoice)
     setIsDetailOpen(true)
+  }
+
+  // Safely format values for table cells to avoid rendering plain objects
+  const formatCellValue = (val: any) => {
+    if (val === null || val === undefined) return ""
+    if (typeof val === "object") {
+      // Common API shapes might include { code, description }
+      if (val.code || val.description) {
+        return `${val.code ?? ""}${val.description ? ` - ${val.description}` : ""}`.trim()
+      }
+      try {
+        return JSON.stringify(val)
+      } catch (e) {
+        return String(val)
+      }
+    }
+    return String(val)
   }
 
   const handleInvoiceCreated = (newInvoice: any) => {
     console.log("[v0] Adding new invoice to list:", newInvoice)
     setInvoices((prev) => [newInvoice, ...prev])
-  }
-
-  const getStatusBadgeVariant = (status: string) => {
-    if (status === "paid") return "default"
-    if (status.includes("refund") || status.includes("written") ) return "warning"
-    if (status === "pending" || status === 'unpaid') return "secondary"
-    return "destructive"
   }
 
   return (
@@ -167,7 +99,7 @@ export function InvoicesTable() {
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="paid">Paid</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="past due">Past Due</SelectItem>
+                <SelectItem value="past_due">Past Due</SelectItem>
                 <SelectItem value="refunded">Refunded</SelectItem>
                 <SelectItem value="chargeback">Chargeback</SelectItem>
               </SelectContent>
@@ -178,7 +110,7 @@ export function InvoicesTable() {
             <TableHeader>
               <TableRow>
                 <TableHead>Invoice ID</TableHead>
-                <TableHead>Member</TableHead>
+                {variant == 'billing' ? <TableHead>Member</TableHead> : ''}
                 <TableHead>Amount</TableHead>
                 <TableHead>Payment Method</TableHead>
                 <TableHead>Status</TableHead>
@@ -186,25 +118,25 @@ export function InvoicesTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredInvoices.map((invoice) => (
+              {filteredInvoices?.map((invoice) => (
                 <TableRow
                   key={invoice.id}
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => handleInvoiceClick(invoice)}
                 >
-                  <TableCell className="font-medium">{invoice.id}</TableCell>
-                  <TableCell>{invoice.member}</TableCell>
-                  <TableCell className="font-medium">{invoice.amount}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{invoice.paymentMethod}</TableCell>
+                  <TableCell className="font-medium">{formatCellValue(invoice.number ?? invoice.id)}</TableCell>
+                  {variant == 'billing' ? <TableCell>{formatCellValue(invoice.member)}</TableCell> : ''}
+                  <TableCell className="font-medium">{formatCellValue(invoice.amount)}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{formatCellValue(invoice.paymentMethod)}</TableCell>
                   <TableCell>
                     <Badge
-                      variant={getStatusBadgeVariant(invoice.status)}
+                      variant={getStatusBadgeVariant(String(invoice.status))}
                       // className={invoice.status === "refunded" ? "border-orange-500 text-orange-500" : ""}
                     >
-                      {invoice.status}
+                      {formatCellValue(invoice.status)}
                     </Badge>
                   </TableCell>
-                  <TableCell>{invoice.date}</TableCell>                  
+                  <TableCell>{formatCellValue(invoice.date)}</TableCell>                  
                 </TableRow>
               ))}
             </TableBody>
@@ -212,14 +144,17 @@ export function InvoicesTable() {
         </CardContent>
       </Card>
 
-      <InvoiceDetailDialog
-        invoice={selectedInvoice}
-        open={isDetailOpen}
-        onOpenChange={setIsDetailOpen}
-        onUpdate={() => {
-          console.log("[v0] Invoice updated, refreshing list")
-        }}
-      />
+      
+      {isDetailOpen && selectedInvoice && (
+        <InvoiceDetailDialog
+          invoiceProp={selectedInvoice}
+          open={isDetailOpen}
+          onOpenChange={setIsDetailOpen}
+          onUpdate={() => {
+            console.log("[v0] Invoice updated, refreshing list")
+          }}
+        />
+      )}
 
       <CreateInvoiceDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} onSuccess={handleInvoiceCreated} />
     </>

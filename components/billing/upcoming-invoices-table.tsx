@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { InvoiceDetailDialog } from "./invoice-detail-dialog"
-import { CreateInvoiceDialog } from "./create-invoice-dialog"
 
 // Mock upcoming invoices data
 const upcomingInvoicesData = [
@@ -52,10 +51,10 @@ const upcomingInvoicesData = [
 ]
 
 export function UpcomingInvoicesTable() {
-  const [selectedInvoice, setSelectedInvoice] = useState<(typeof upcomingInvoicesData)[0] | null>(null)
+  const [selectedInvoice, setSelectedInvoice] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
 
-  const handleInvoiceClick = (invoice: (typeof upcomingInvoicesData)[0]) => {
+  const handleInvoiceClick = (invoice) => {
     setSelectedInvoice(invoice)
     setIsDetailOpen(true)
   }
@@ -109,7 +108,9 @@ export function UpcomingInvoicesTable() {
         </CardContent>
       </Card>
 
-      <InvoiceDetailDialog invoice={selectedInvoice} open={isDetailOpen} onOpenChange={setIsDetailOpen} />
+      {isDetailOpen && selectedInvoice && (
+        <InvoiceDetailDialog invoiceProp={selectedInvoice} open={isDetailOpen} onOpenChange={setIsDetailOpen} />
+      )}
     </>
   )
 }

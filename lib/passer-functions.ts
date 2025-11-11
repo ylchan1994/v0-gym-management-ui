@@ -6,8 +6,12 @@ import {
   getCustomer as getEzypayCustomer,
   getCustomerPaymentMethods as getEzypayCustomerPaymentMethods
 } from '@/lib/customer'
-import { listInvoiceByCustomer as listEzypayInvoiceByCustomer } from "@/lib/invoice"
-import { getEzypayToken as innerGetEzypayToken } from './ezypay-token'
+import { 
+  listInvoiceByCustomer as listEzypayInvoiceByCustomer,
+  listInvoice as listEzypayInvoice,
+  listTransactionByInvoice as listEzypayTransactionByInvoice
+ } from "@/lib/invoice"
+import { getEzypayToken as innerGetEzypayToken } from './ezypay-token' 
 
 export async function createCustomer(customer) {
   return await createEzypayCustomer(customer)
@@ -31,4 +35,12 @@ export async function getEzypayToken() {
 
 export async function getCustomerPaymentMethods(customer) {
   return await getEzypayCustomerPaymentMethods(customer)
+}
+
+export async function listInvoice() {
+  return await listEzypayInvoice()
+}
+
+export async function listTransactionByInvoice(invoiceId, paymentMethod) {
+  return await listEzypayTransactionByInvoice(invoiceId, paymentMethod)
 }

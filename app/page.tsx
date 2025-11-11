@@ -7,6 +7,7 @@ import { ClassAttendanceChart } from "@/components/dashboard/class-attendance-ch
 import { NotificationsPanel } from "@/components/dashboard/notifications-panel"
 
 export default function DashboardPage() {
+
   return (
     <div className="flex h-screen">
       <AppSidebar />

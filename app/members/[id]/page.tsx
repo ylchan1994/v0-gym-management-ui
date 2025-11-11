@@ -13,7 +13,7 @@ import { AddPaymentMethodDialog } from "@/components/billing/add-payment-method-
 import { InvoiceDetailDialog } from "@/components/billing/invoice-detail-dialog"
 import { useState, useEffect } from "react"
 import { Spinner } from "@/components/ui/spinner"
-import { getCustomerIdFromPath } from "@/lib/utils"
+import { getCustomerIdFromPath, normalisedEzypayInvoice } from "@/lib/utils"
 import {
   Dialog,
   DialogContent,
@@ -22,10 +22,10 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { getCustomer } from "@/lib/customer"
-import { listInvoiceByCustomer, getCustomerPaymentMethods } from "@/lib/passer-functions"
+import { getCustomerPaymentMethods } from "@/lib/passer-functions"
+import { InvoicesTable } from "@/components/billing/invoices-table"
 
-const getStatusBadgeVariant = (status: string) => {
+export const getStatusBadgeVariant = (status: string) => {
   if (status === "paid") return "default"
   if (status.includes("refund") || status.includes("written") ) return "warning"
   if (status === "pending" || status === 'unpaid') return "secondary"
@@ -37,52 +37,20 @@ export default function MemberProfilePage() {
   useEffect(() => {
     
     const customerId = getCustomerIdFromPath()
-    let customerName
+    
+    const fetchData = async () => {
+      try {
+        const memberData = await normalisedEzypayInvoice(customerId);
+        setMemberDataState(memberData);
+        setIsLoading(false);
+        fetchPaymentMethods(customerId);
+      } catch (error) {
+        console.error(error);
+        setIsLoading(false); // Optional: ensure loading stops on error
+      }
+    };
 
-    try {
-      getCustomer(customerId).then((customer) => {
-        if (!customer.id) {
-          throw new Error('Customer not found')
-        }
-
-        customerName = `${customer.firstName} ${customer.lastName}`
-
-        setMemberDataState ({
-          id: customer.id,
-          name: customerName,
-          email: customer.email,
-          phone: customer.mobilePhone,
-          address: Object.values(customer.address).join(' '),
-          dateOfBirth: customer.dateofBirth,
-          emergencyContact: customer.homePhone,
-          status: customer.metadata?.status ?? 'trial',
-          plan: customer.metadata?.plan ?? 'Trial',
-          joinDate: customer.metadata?.joinDate ?? new Date(Date.now()).toISOString().split('T')[0],
-          expiryDate: customer.metadata?.expiryDate ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          invoices: [],
-          attendanceLogs: [
-            { id: "1", date: "2024-10-14", time: "06:30 AM", class: "Yoga" },
-            { id: "2", date: "2024-10-13", time: "05:00 PM", class: "CrossFit" },
-            { id: "3", date: "2024-10-12", time: "07:00 AM", class: "Spinning" },
-            { id: "4", date: "2024-10-11", time: "06:30 AM", class: "Yoga" },
-          ],
-          paymentMethods: [],
-        })      
-
-      })
-
-      listInvoiceByCustomer(customerId, customerName).then( res => {
-        console.log(res)
-        setMemberDataState(prev => ({...prev, invoices: res}))
-        
-        setIsLoading(false)
-        fetchPaymentMethods(customerId)
-        
-      })
-
-    } catch (error) {
-      console.error(error)
-    }
+    fetchData();
 
   }, [])
 
@@ -401,42 +369,7 @@ export default function MemberProfilePage() {
                 <TabsTrigger value="attendance">Attendance Logs</TabsTrigger>
               </TabsList>
               <TabsContent value="invoices">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Invoices</CardTitle>
-                    <CardDescription>Complete invoice and payment history</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Invoice ID</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Amount</TableHead>
-                          <TableHead>Payment Method</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {(memberDataState.invoices ?? []).map((invoice) => (
-                          <TableRow
-                            key={invoice.id}
-                            className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => handleInvoiceClick(invoice)}
-                          >
-                            <TableCell className="font-medium">{invoice.number}</TableCell>
-                            <TableCell>{invoice.date}</TableCell>
-                            <TableCell className="font-medium">{invoice.amount}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">{invoice.paymentMethod}</TableCell>
-                            <TableCell>
-                              <Badge variant={getStatusBadgeVariant(invoice.status)}>{invoice.status}</Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
+                <InvoicesTable variant='customer' invoices={memberDataState.invoices}/>
               </TabsContent>
               <TabsContent value="upcoming">
                 <Card>
@@ -505,7 +438,9 @@ export default function MemberProfilePage() {
         </main>
       </div>
 
-      <InvoiceDetailDialog invoice={selectedInvoice} open={isInvoiceDetailOpen} onOpenChange={handleInvoiceDialogOpenChange} onUpdate={handleInvoiceUpdate} />
+      {isInvoiceDetailOpen && selectedInvoice && (
+        <InvoiceDetailDialog invoiceProp={selectedInvoice} open={isInvoiceDetailOpen} onOpenChange={handleInvoiceDialogOpenChange} onUpdate={handleInvoiceUpdate} />
+      )}
     </div>
   )
 }

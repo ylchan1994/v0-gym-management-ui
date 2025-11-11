@@ -5,10 +5,12 @@ import { TopBar } from "@/components/top-bar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DollarSign, AlertCircle, Clock, TrendingUp } from "lucide-react"
-import { BillingOverview } from "@/components/billing/billing-overview"
 import { InvoicesTable } from "@/components/billing/invoices-table"
 import { UpcomingInvoicesTable } from "@/components/billing/upcoming-invoices-table"
 import { SettlementTable } from "@/components/billing/settlement-table"
+import { useEffect, useState } from "react"
+import { listInvoice } from "@/lib/passer-functions"
+import { Spinner } from "@/components/ui/spinner"
 
 const stats = [
   {
@@ -42,6 +44,29 @@ const stats = [
 ]
 
 export default function BillingPage() {
+  const [ invoices, setInvoices ] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    listInvoice().then(res => {
+      
+      let customerData = sessionStorage.getItem('defaultCustomerList')
+      let invoices
+      if (customerData) {
+        customerData = JSON.parse(customerData)
+      }
+      console.log(customerData)
+
+      invoices = res.map(invoice => {
+        const id = invoice.customerId
+        const customerName = customerData?.filter( cus => cus.id == id)[0]?.name
+        return {...invoice, member:customerName}
+      })
+      setInvoices(invoices)
+      setIsLoading(false)
+    })
+  }, [])
+
   return (
     <div className="flex h-screen">
       <AppSidebar />
@@ -71,16 +96,21 @@ export default function BillingPage() {
 
             <Tabs defaultValue="invoices" className="space-y-4">
               <TabsList>
-                {/* <TabsTrigger value="overview">Overview</TabsTrigger> */}
                 <TabsTrigger value="invoices">Invoices</TabsTrigger>
                 <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
                 <TabsTrigger value="settlement">Settlement</TabsTrigger>
               </TabsList>
-              {/* <TabsContent value="overview">
-                <BillingOverview />
-              </TabsContent> */}
-              <TabsContent value="invoices">
-                <InvoicesTable />
+              <TabsContent value="invoices" className="relative">
+                {isLoading ? (
+                  <div className="flex justify-center items-center w-full h-60 absolute pt-10">
+                    <Spinner 
+                      className="w-30 h-30"
+                    />
+                  </div>
+                ) : (
+                  <InvoicesTable invoices={invoices}/>
+                )}
+                
               </TabsContent>
               <TabsContent value="upcoming">
                 <UpcomingInvoicesTable />
