@@ -10,7 +10,10 @@ import {
   listInvoiceByCustomer as listEzypayInvoiceByCustomer,
   listInvoice as listEzypayInvoice,
   listTransactionByInvoice as listEzypayTransactionByInvoice,
-  retryInvoice as retryEzypayInvoice
+  retryInvoice as retryEzypayInvoice,
+  writeOffInvoice as writeOffEzypayInvoice,
+  recordExternalInvoice as recordEzypayExternalInvoice,
+  refundInvoice as refundEzypayInvoice,
  } from "@/lib/invoice"
 import { getEzypayToken as innerGetEzypayToken } from './ezypay-token' 
 
@@ -48,4 +51,16 @@ export async function listTransactionByInvoice(invoiceId, paymentMethod) {
 
 export async function retryInvoice(invoiceId, paymentMethodId) {
   return await retryEzypayInvoice(invoiceId, paymentMethodId)
+}
+
+export async function writeOffInvoice(invoiceId) {
+  return await writeOffEzypayInvoice(invoiceId)
+}
+
+export async function recordExternalInvoice(invoiceId, method) {
+  return await recordEzypayExternalInvoice(invoiceId, method)
+}
+
+export async function refundInvoice(invoiceId, amount) {
+  return await refundEzypayInvoice(invoiceId, amount)
 }

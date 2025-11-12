@@ -225,3 +225,114 @@ export async function retryInvoice(invoiceId, paymentMethodId) {
     throw err
   } 
 }
+
+export async function writeOffInvoice(invoiceId) {
+  try {      
+    if (!invoiceId) {
+      throw new Error("No invoice ID")
+    }
+
+    // Get token directly from utility function instead of HTTP request
+    const tokenData = await getEzypayToken()
+    const token = tokenData.access_token
+    if (!token) {
+      console.error("No access_token from token utility", tokenData)
+      throw new Error(`List customer failed: No access_token from token utility`)
+    }    
+
+    const response = await fetch(`${apiEndpoint}/${invoiceId}/writeoff`, {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        merchant: merchantId ,
+        'Content-type': 'application/json'
+      },
+      body: "{}",
+    })
+    
+    if (!response.ok) {
+      const text = await response.text()
+      console.error("Write off Invoice failed:", response.status, text)
+      throw new Error(`Write off invoice failed: ${response.status}`)
+    }
+    
+    return await response.json()
+  } catch (err) {
+    console.error("Write off Invoice failed error:", err)
+    throw err
+  } 
+}
+
+export async function recordExternalInvoice(invoiceId, method) {
+  try {      
+    if (!invoiceId) {
+      throw new Error("No invoice ID")
+    }
+
+    // Get token directly from utility function instead of HTTP request
+    const tokenData = await getEzypayToken()
+    const token = tokenData.access_token
+    if (!token) {
+      console.error("No access_token from token utility", tokenData)
+      throw new Error(`List customer failed: No access_token from token utility`)
+    }    
+
+    const response = await fetch(`${apiEndpoint}/${invoiceId}/recordpayment`, {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        merchant: merchantId ,
+        'Content-type': 'application/json'
+      },
+      body: `{"paymentMethodType": "${method}"}`
+    })
+    
+    if (!response.ok) {
+      const text = await response.text()
+      console.error("Record External Invoice failed:", response.status, text)
+      throw new Error(`Record External invoice failed: ${response.status}`)
+    }
+    
+    return await response.json()
+  } catch (err) {
+    console.error("Record External Invoice failed error:", err)
+    throw err
+  } 
+}
+
+export async function refundInvoice(invoiceId, amount = null) {
+  try {      
+    if (!invoiceId) {
+      throw new Error("No invoice ID")
+    }
+
+    // Get token directly from utility function instead of HTTP request
+    const tokenData = await getEzypayToken()
+    const token = tokenData.access_token
+    if (!token) {
+      console.error("No access_token from token utility", tokenData)
+      throw new Error(`Refund failed: No access_token from token utility`)
+    }    
+
+    const response = await fetch(`${apiEndpoint}/${invoiceId}/refund`, {
+      method: 'PUT',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        merchant: merchantId ,
+        'Content-type': 'application/json'
+      },
+      body: amount ? `{"amount": "${amount}"}` : '{}'
+    })
+    
+    if (!response.ok) {
+      const text = await response.text()
+      console.error("Refund Invoice failed:", response.status, text)
+      throw new Error(`Refund invoice failed: ${response.status}`)
+    }
+    
+    return await response.json()
+  } catch (err) {
+    console.error("Refund Invoice failed error:", err)
+    throw err
+  } 
+}

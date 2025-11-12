@@ -9,11 +9,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CreditCard, CheckCircle, XCircle, DollarSign, RefreshCw } from "lucide-react"
-import { refundInvoice, writeOffInvoice, trackExternalPayment } from "@/lib/payment-api"
+//import { refundInvoice, writeOffInvoice, trackExternalPayment } from "@/lib/payment-api"
 import { toast } from "sonner"
 import { RefundDialog } from "./refund-dialog"
 import { getStatusBadgeVariant } from "@/app/members/[id]/page"
-import { listTransactionByInvoice, retryInvoice } from "@/lib/passer-functions"
+import { listTransactionByInvoice, retryInvoice, writeOffInvoice, recordExternalInvoice, refundInvoice } from "@/lib/passer-functions"
 import { Spinner } from "../ui/spinner"
 import { PaymentMethodsList } from "./payment-methods-list"
 
@@ -82,45 +82,35 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
 
   const handleRefund = async (amount: number | null) => {
     setIsProcessing(true)
+    setIsRetrying(true)
     try {
-      const invoiceAmount = Number.parseFloat(invoice.amount.replace("$", ""))
-      const refundAmount = amount === null ? invoiceAmount : amount
+      const refundAmount = amount === null ? null : amount
 
       const result = await refundInvoice(invoice.id, refundAmount)
-      if (result.success) {
-        toast.success(result.message)
-        if (invoice) {
-          invoice.status = "refunded"
-          invoice.refundAmount = `$${refundAmount.toFixed(2)}`
-          invoice.refundDate = new Date().toISOString().split("T")[0]
-          invoice.refundType = amount === null || amount === invoiceAmount ? "full" : "partial"
-        }
-        onUpdate?.()
-        setShowRefundDialog(false)
-      }
+      toast.success("Refund initiated successfully")
+      onUpdate?.()
+      onOpenChange(false)
     } catch (error) {
-      toast.error("Failed to process refund")
+      toast.error("Failed to refund payment")
     } finally {
       setIsProcessing(false)
+      setIsRetrying(false)
     }
   }
 
   const handleWriteOff = async () => {
     setIsProcessing(true)
+    setIsRetrying(true)
     try {
       const result = await writeOffInvoice(invoice.id)
-      if (result.success) {
-        toast.success(result.message)
-        if (invoice) {
-          invoice.status = "written_off"
-        }
-        onUpdate?.()
-        onOpenChange(false)
-      }
+      toast.success("Write off initiated successfully")
+      onUpdate?.()
+      onOpenChange(false)
     } catch (error) {
-      toast.error("Failed to write off invoice")
+      toast.error("Failed to write off payment")
     } finally {
       setIsProcessing(false)
+      setIsRetrying(false)
     }
   }
 
@@ -139,7 +129,6 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
     setIsRetrying(true)
     try {
       const result = await retryInvoice(invoice.id, selectedPaymentMethodId)
-      console.log(result)
       toast.success("Payment retry initiated successfully")
       onUpdate?.()
       onOpenChange(false)
@@ -152,24 +141,23 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
   }
 
   const handleTrackExternal = async () => {
-    if (!externalPaymentData.method || !externalPaymentData.reference) {
-      toast.error("Please fill in all fields")
+    if (!invoice.id) {
+      toast.error("No Invoice ID")
       return
     }
 
     setIsProcessing(true)
+    setIsRetrying(true)
     try {
-      const result = await trackExternalPayment(invoice.id, externalPaymentData)
-      if (result.success) {
-        toast.success(result.message)
-        onUpdate?.()
-        onOpenChange(false)
-        setShowExternalPayment(false)
-      }
+      const result = await recordExternalInvoice(invoice.id, externalPaymentData.method || 'others')
+      toast.success("Payment retry initiated successfully")
+      onUpdate?.()
+      onOpenChange(false)
     } catch (error) {
-      toast.error("Failed to track external payment")
+      toast.error("Failed to retry payment")
     } finally {
       setIsProcessing(false)
+      setIsRetrying(false)
     }
   }
 
@@ -387,15 +375,6 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
                         placeholder="e.g., Cash, Bank Transfer"
                         value={externalPaymentData.method}
                         onChange={(e) => setExternalPaymentData({ ...externalPaymentData, method: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="paymentDate">Payment Date</Label>
-                      <Input
-                        id="paymentDate"
-                        type="date"
-                        value={externalPaymentData.date}
-                        onChange={(e) => setExternalPaymentData({ ...externalPaymentData, date: e.target.value })}
                       />
                     </div>
                   </div>
