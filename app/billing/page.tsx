@@ -11,6 +11,7 @@ import { SettlementTable } from "@/components/billing/settlement-table"
 import { useEffect, useState } from "react"
 import { listInvoice } from "@/lib/passer-functions"
 import { Spinner } from "@/components/ui/spinner"
+import { useToast } from "@/hooks/use-toast"
 
 const stats = [
   {
@@ -44,27 +45,38 @@ const stats = [
 ]
 
 export default function BillingPage() {
-  const [ invoices, setInvoices ] = useState([])
+  const [invoices, setInvoices] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const { toast } = useToast()
 
   useEffect(() => {
-    listInvoice().then(res => {
-      
-      let customerData = sessionStorage.getItem('defaultCustomerList')
-      let invoices
-      if (customerData) {
-        customerData = JSON.parse(customerData)
-      }
+    listInvoice()
+      .then((res) => {
+        let customerData = sessionStorage.getItem("defaultCustomerList")
+        let invoices
+        if (customerData) {
+          customerData = JSON.parse(customerData)
+        }
+        console.log(customerData)
 
-      invoices = res.map(invoice => {
-        const id = invoice.customerId
-        const customerName = customerData?.filter( cus => cus.id == id)[0]?.name
-        return {...invoice, member:customerName}
+        invoices = res.map((invoice) => {
+          const id = invoice.customerId
+          const customerName = customerData?.filter((cus) => cus.id == id)[0]?.name
+          return { ...invoice, member: customerName }
+        })
+        setInvoices(invoices)
+        setIsLoading(false)
       })
-      setInvoices(invoices)
-      setIsLoading(false)
-    })
-  }, [])
+      .catch((err) => {
+        console.error("Failed to load invoices:", err)
+        toast({
+          title: "Error loading invoices",
+          description: "Please check if the API endpoint is configured correctly.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+      })
+  }, [toast])
 
   return (
     <div className="flex h-screen">
@@ -102,14 +114,11 @@ export default function BillingPage() {
               <TabsContent value="invoices" className="relative">
                 {isLoading ? (
                   <div className="flex justify-center items-center w-full h-60 absolute pt-10">
-                    <Spinner 
-                      className="w-30 h-30"
-                    />
+                    <Spinner className="w-30 h-30" />
                   </div>
                 ) : (
-                  <InvoicesTable invoices={invoices}/>
+                  <InvoicesTable invoices={invoices} />
                 )}
-                
               </TabsContent>
               <TabsContent value="upcoming">
                 <UpcomingInvoicesTable />
