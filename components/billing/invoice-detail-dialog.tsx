@@ -6,14 +6,19 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { CreditCard, CheckCircle, XCircle, DollarSign, RefreshCw } from "lucide-react"
-//import { refundInvoice, writeOffInvoice, trackExternalPayment } from "@/lib/payment-api"
 import { toast } from "sonner"
 import { RefundDialog } from "./refund-dialog"
 import { getStatusBadgeVariant } from "@/app/members/[id]/page"
-import { listTransactionByInvoice, retryInvoice, writeOffInvoice, recordExternalInvoice, refundInvoice } from "@/lib/passer-functions"
+import {
+  listTransactionByInvoice,
+  retryInvoice,
+  writeOffInvoice,
+  recordExternalInvoice,
+  refundInvoice,
+} from "@/lib/passer-functions"
 import { Spinner } from "../ui/spinner"
 import { PaymentMethodsList } from "./payment-methods-list"
 
@@ -61,11 +66,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
   const [showRefundDialog, setShowRefundDialog] = useState(false)
   const [showRetryPaymentSelection, setShowRetryPaymentSelection] = useState(false)
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null)
-  const [externalPaymentData, setExternalPaymentData] = useState({
-    method: "",
-    reference: "",
-    date: new Date().toISOString().split("T")[0],
-  })
+  const [externalPaymentMethod, setExternalPaymentMethod] = useState<string>("")
 
   useEffect(() => {
     setInvoice(invoiceProp)
@@ -90,6 +91,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
       toast.success("Refund initiated successfully")
       onUpdate?.()
       onOpenChange(false)
+      window.location.reload()
     } catch (error) {
       toast.error("Failed to refund payment")
     } finally {
@@ -106,6 +108,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
       toast.success("Write off initiated successfully")
       onUpdate?.()
       onOpenChange(false)
+      window.location.reload()
     } catch (error) {
       toast.error("Failed to write off payment")
     } finally {
@@ -132,6 +135,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
       toast.success("Payment retry initiated successfully")
       onUpdate?.()
       onOpenChange(false)
+      window.location.reload()
     } catch (error) {
       toast.error("Failed to retry payment")
     } finally {
@@ -146,15 +150,21 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
       return
     }
 
+    if (!externalPaymentMethod) {
+      toast.error("Please select a payment method")
+      return
+    }
+
     setIsProcessing(true)
     setIsRetrying(true)
     try {
-      const result = await recordExternalInvoice(invoice.id, externalPaymentData.method || 'others')
-      toast.success("Payment retry initiated successfully")
+      const result = await recordExternalInvoice(invoice.id, externalPaymentMethod)
+      toast.success("External payment recorded successfully")
       onUpdate?.()
       onOpenChange(false)
+      window.location.reload()
     } catch (error) {
-      toast.error("Failed to retry payment")
+      toast.error("Failed to record external payment")
     } finally {
       setIsProcessing(false)
       setIsRetrying(false)
@@ -367,19 +377,23 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
                 <Separator />
                 <div className="space-y-4 rounded-lg border border-border p-4">
                   <h4 className="font-medium">Track External Payment</h4>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="paymentMethod">Method</Label>
-                      <Input
-                        id="paymentMethod"
-                        placeholder="e.g., Cash, Bank Transfer"
-                        value={externalPaymentData.method}
-                        onChange={(e) => setExternalPaymentData({ ...externalPaymentData, method: e.target.value })}
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="paymentMethod">Payment Method</Label>
+                    <Select value={externalPaymentMethod} onValueChange={setExternalPaymentMethod}>
+                      <SelectTrigger id="paymentMethod">
+                        <SelectValue placeholder="Select payment method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="cheque">Cheque</SelectItem>
+                        <SelectItem value="card">Card</SelectItem>
+                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                        <SelectItem value="others">Others</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={handleTrackExternal} disabled={isProcessing}>
+                    <Button onClick={handleTrackExternal} disabled={isProcessing || !externalPaymentMethod}>
                       <DollarSign className="mr-2 h-4 w-4" />
                       Confirm Payment
                     </Button>

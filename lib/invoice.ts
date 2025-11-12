@@ -178,7 +178,7 @@ export async function listTransactionByInvoice(invoiceId, paymentMethod): Promis
       date: transaction.createdOn?.split("T")[0],
       amount: `$${transaction.amount.value}`,
       status: transaction.status.toLowerCase(),
-      method: paymentMethod,
+      method: transaction.source == 'external_payment' ? `External (${transaction.paymentMethodType})` : paymentMethod,
     }))
 
     return transactions
