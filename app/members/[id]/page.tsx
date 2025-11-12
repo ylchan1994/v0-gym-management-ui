@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Edit, Mail, Phone, Calendar, CreditCard } from "lucide-react"
 import Link from "next/link"
 import { AddPaymentMethodDialog } from "@/components/billing/add-payment-method-dialog"
-import { InvoiceDetailDialog } from "@/components/billing/invoice-detail-dialog"
+// import { InvoiceDetailDialog } from "@/components/billing/invoice-detail-dialog"
 import { useState, useEffect } from "react"
 import { Spinner } from "@/components/ui/spinner"
 import { getCustomerIdFromPath, normalisedEzypayInvoice } from "@/lib/utils"
@@ -127,6 +127,7 @@ export default function MemberProfilePage() {
         expiry: pm.card ? `${pm.card.expiryMonth}/${pm.card.expiryYear}` : pm.expiry ?? null,
         isDefault: pm.primary ?? false,
         account: pm.payTo?.aliasId ?? (pm.payTo?.bbanAccountNo ? pm.payTo.bbanAccountNo.slice(-4) : undefined) ?? pm.account,
+        valid: pm.valid
       }))
 
       setPaymentMethodData(normalized)
@@ -347,6 +348,11 @@ export default function MemberProfilePage() {
                               Default
                             </Badge>
                           )}
+                          {!method.valid && (
+                            <Badge variant="destructive" className="text-xs">
+                              Invalid
+                            </Badge>
+                          )}
                           </div>
                         ))}
                       </div>
@@ -438,9 +444,9 @@ export default function MemberProfilePage() {
         </main>
       </div>
 
-      {isInvoiceDetailOpen && selectedInvoice && (
+      {/* {isInvoiceDetailOpen && selectedInvoice && (
         <InvoiceDetailDialog invoiceProp={selectedInvoice} open={isInvoiceDetailOpen} onOpenChange={handleInvoiceDialogOpenChange} onUpdate={handleInvoiceUpdate} />
-      )}
+      )} */}
     </div>
   )
 }

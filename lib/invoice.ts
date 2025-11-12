@@ -4,7 +4,7 @@ import { getEzypayToken } from "./ezypay-token";
 
 const apiEndpoint = `${process.env.API_ENDPOINT}/v2/billing/invoices`
 const transactionEndpoint = `${process.env.API_ENDPOINT}/v2/billing/transactions`
-const merchantId = process.env.EZYPAY_MERCHANT_ID || "5ee1dffe-70ab-43a9-bc1c-d8b7bd66586d"
+const merchantId = process.env.EZYPAY_MERCHANT_ID 
 
 function normalisedEzypayInvoice(invoices, customerName = null) {
 
@@ -42,12 +42,11 @@ function normalisedEzypayInvoice(invoices, customerName = null) {
       amount: `$${amount.toFixed(2)}`
     }));
   }
-    
   const normalisedInvoice = invoices.data.map( invoice => ({
       id: invoice.id,
       member: customerName,
       amount: `$${invoice.amount.value}`,
-      number: invoice.documentNumber.replace(/0/g, ''),
+      number: 'IN' + parseInt(invoice.documentNumber.substring(4)),
       date: invoice.date,
       dueDate: invoice.dueDate,
       paymentMethod: extractPaymentMethodData(invoice.paymentMethodData),
@@ -113,7 +112,7 @@ export async function listInvoiceByCustomer(customerId, customerName): Promise<a
       throw new Error(`List customer failed: No access_token from token utility`)
     }    
 
-    const invoiceResponse = await fetch(`${apiEndpoint}?customerId=${customerId}&limit=10`, {
+    const invoiceResponse = await fetch(`${apiEndpoint}?customerId=${customerId}&limit=30`, {
       headers: {
         "Authorization": `Bearer ${token}`,
         merchant: merchantId ,
@@ -181,3 +180,39 @@ export async function listTransactionByInvoice(invoiceId, paymentMethod): Promis
   }
 }
 
+export async function retryInvoice(invoiceId) {
+  try {      
+    if (!invoiceId) {
+      throw new Error("No invoice ID")
+    }
+
+    // Get token directly from utility function instead of HTTP request
+    const tokenData = await getEzypayToken()
+    const token = tokenData.access_token
+    if (!token) {
+      console.error("No access_token from token utility", tokenData)
+      throw new Error(`List customer failed: No access_token from token utility`)
+    }    
+
+    const response = await fetch(`${apiEndpoint}/${invoiceId}/retrypayment`, {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        merchant: merchantId ,
+        'Content-type': 'application/json'
+      },
+      body: '{}',
+    })
+    
+    if (!response.ok) {
+      const text = await response.text()
+      console.error("Retry Invoice failed:", response.status, text)
+      throw new Error(`Retry invoice failed: ${response.status}`)
+    }
+    
+    return await response.json()
+  } catch (err) {
+    console.error("Retry Invoice failed error:", err)
+    throw err
+  } 
+}

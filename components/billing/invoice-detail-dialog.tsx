@@ -13,7 +13,7 @@ import { refundInvoice, writeOffInvoice, retryInvoicePayment, trackExternalPayme
 import { toast } from "sonner"
 import { RefundDialog } from "./refund-dialog"
 import { getStatusBadgeVariant } from "@/app/members/[id]/page"
-import { listTransactionByInvoice } from "@/lib/passer-functions"
+import { listTransactionByInvoice, retryInvoice } from "@/lib/passer-functions"
 import { Spinner } from "../ui/spinner"
 
 
@@ -55,6 +55,7 @@ interface InvoiceDetailDialogProps {
 export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate }: InvoiceDetailDialogProps) {
   const [invoice, setInvoice] = useState<Invoice | null>(invoiceProp)
   const [isTransactionLoading, setIsTransactionLoading] = useState(true)
+  const [isRetrying, setIsRetrying] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [showExternalPayment, setShowExternalPayment] = useState(false)
   const [showRefundDialog, setShowRefundDialog] = useState(false)
@@ -70,7 +71,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
 
   useEffect(() => {
     listTransactionByInvoice(invoiceProp?.id, invoiceProp?.paymentMethod).then(transactions => {
-      console.log(transactions, invoiceProp)
+      //console.log(transactions, invoiceProp)
       setInvoice(prev => ({...prev, paymentAttempts: transactions}))
       setIsTransactionLoading(false)
     })
@@ -125,29 +126,17 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
 
   const handleRetry = async () => {
     setIsProcessing(true)
+    setIsRetrying(true)
     try {
-      const result = await retryInvoicePayment(invoice.id)
-      if (result.success) {
-        toast.success(result.message)
-        // add a pending transaction record locally and update status to pending
-        if (invoice) {
-          const attempt: PaymentAttempt = {
-            id: `${Date.now()}`,
-            date: new Date().toISOString().split("T")[0],
-            amount: invoice.amount,
-            status: "pending",
-            method: invoice.paymentMethod,
-          }
-          invoice.paymentAttempts = [...invoice.paymentAttempts, attempt]
-          invoice.status = "pending"
-        }
-        onUpdate?.()
-        onOpenChange(false)
-      }
+      const result = await retryInvoice(invoice.id)
+      console.log(result)
+      onUpdate?.()
+      onOpenChange(false)
     } catch (error) {
       toast.error("Failed to retry payment")
     } finally {
       setIsProcessing(false)
+      setIsRetrying(false)
     }
   }
 

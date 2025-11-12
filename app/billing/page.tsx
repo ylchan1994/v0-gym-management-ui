@@ -55,7 +55,6 @@ export default function BillingPage() {
       if (customerData) {
         customerData = JSON.parse(customerData)
       }
-      console.log(customerData)
 
       invoices = res.map(invoice => {
         const id = invoice.customerId

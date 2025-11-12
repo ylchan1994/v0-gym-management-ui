@@ -89,7 +89,6 @@ export async function listCustomer(): Promise<any> {
 }
 
 export async function getCustomer(customerId: string | null): Promise<any> {
-  console.log('Start calling the get customer API', new Date().toISOString())
 
   try {      
 
