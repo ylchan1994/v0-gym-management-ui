@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -19,17 +19,29 @@ import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useToast } from "@/hooks/use-toast"
 import { TapToPayAnimation } from "./tap-to-pay-animation"
+import { listCustomer } from "@/lib/passer-functions"
+import { Spinner } from "@/components/ui/spinner"
 
 interface CreateInvoiceDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess?: (invoice: any) => void
+  customerId?: string
+  customerName?: string
 }
 
-export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInvoiceDialogProps) {
+export function CreateInvoiceDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+  customerId,
+  customerName,
+}: CreateInvoiceDialogProps) {
   const [loading, setLoading] = useState(false)
+  const [loadingCustomers, setLoadingCustomers] = useState(false)
   const [showTapAnimation, setShowTapAnimation] = useState(false)
   const { toast } = useToast()
+  const [customers, setCustomers] = useState<any[]>([])
   const [formData, setFormData] = useState({
     memberId: "",
     amount: "",
@@ -38,14 +50,29 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
     terminalId: "",
   })
 
-  // Mock members list
-  const members = [
-    { id: "1", name: "John Doe" },
-    { id: "2", name: "Sarah Smith" },
-    { id: "3", name: "Mike Johnson" },
-    { id: "4", name: "Emma Wilson" },
-    { id: "5", name: "David Brown" },
-  ]
+  useEffect(() => {
+    if (open && !customerId) {
+      setLoadingCustomers(true)
+      listCustomer()
+        .then((response) => {
+          const customerList = response?.items || []
+          setCustomers(customerList)
+          sessionStorage.setItem("defaultCustomerList", JSON.stringify(customerList))
+          setLoadingCustomers(false)
+        })
+        .catch((err) => {
+          console.error("Failed to load customers:", err)
+          toast({
+            title: "Error",
+            description: "Failed to load customer list.",
+            variant: "destructive",
+          })
+          setLoadingCustomers(false)
+        })
+    } else if (open && customerId) {
+      setFormData((prev) => ({ ...prev, memberId: customerId }))
+    }
+  }, [open, customerId, toast])
 
   const terminalDevices = [
     {
@@ -77,7 +104,12 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
     setLoading(true)
 
     try {
-      const selectedMember = members.find((m) => m.id === formData.memberId)
+      let selectedMemberName = customerName
+      if (!selectedMemberName) {
+        const selectedCustomer = customers.find((c) => c.id === formData.memberId)
+        selectedMemberName = selectedCustomer ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}` : "Unknown"
+      }
+
       const selectedTerminal = terminalDevices.find((t) => t.id === formData.terminalId)
 
       let invoiceStatus: "pending" | "paid" = "pending"
@@ -102,7 +134,8 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
 
       const invoiceData = {
         id: `INV-${String(Date.now()).slice(-3)}`,
-        member: selectedMember?.name || "Unknown",
+        customerId: formData.memberId,
+        member: selectedMemberName,
         amount: `$${Number.parseFloat(formData.amount).toFixed(2)}`,
         status: invoiceStatus,
         date: new Date().toISOString().split("T")[0],
@@ -126,6 +159,7 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
       }
 
       console.log("[v0] Creating invoice with payment method:", formData.paymentMethod)
+      console.log("[v0] Invoice data:", invoiceData)
 
       // Different logic for each payment method
       switch (formData.paymentMethod) {
@@ -150,15 +184,12 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
             const res = await fetch(`/api/payment/checkout`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              // Ezypay expects amount in cents/lowest currency unit in many APIs;
-              // the server route will forward this along. Keep original amount as number here.
               body: JSON.stringify({ amount: Number.parseFloat(formData.amount), desciption: formData.description }),
             })
 
             const data = await res.json()
 
-            // Support several possible fields for the returned URL
-            const checkoutUrl =  data?.checkoutUrl 
+            const checkoutUrl = data?.checkoutUrl
 
             if (checkoutUrl && typeof window !== "undefined") {
               window.open(checkoutUrl, "_blank")
@@ -186,7 +217,7 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
 
       // Reset form and close dialog
       setFormData({
-        memberId: "",
+        memberId: customerId || "",
         amount: "",
         description: "",
         paymentMethod: "ondemand",
@@ -212,7 +243,7 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
       <TapToPayAnimation open={showTapAnimation} />
 
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle>Create New Invoice</DialogTitle>
             <DialogDescription>Create a new invoice with pending status</DialogDescription>
@@ -221,22 +252,35 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="member">Member</Label>
-                <Select
-                  value={formData.memberId}
-                  onValueChange={(value) => setFormData((prev) => ({ ...prev, memberId: value }))}
-                  required
-                >
-                  <SelectTrigger id="member">
-                    <SelectValue placeholder="Select a member" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {members.map((member) => (
-                      <SelectItem key={member.id} value={member.id}>
-                        {member.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {customerId ? (
+                  <Input id="member" value={customerName || ""} disabled className="bg-muted" />
+                ) : (
+                  <Select
+                    value={formData.memberId}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, memberId: value }))}
+                    required
+                    disabled={loadingCustomers}
+                  >
+                    <SelectTrigger id="member">
+                      <SelectValue placeholder={loadingCustomers ? "Loading customers..." : "Select a member"} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {loadingCustomers ? (
+                        <div className="flex justify-center py-4">
+                          <Spinner className="h-6 w-6" />
+                        </div>
+                      ) : customers.length === 0 ? (
+                        <div className="py-4 text-center text-sm text-muted-foreground">No customers found</div>
+                      ) : (
+                        customers.map((customer) => (
+                          <SelectItem key={customer.id} value={customer.id}>
+                            {customer.firstName} {customer.lastName} ({customer.email})
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -325,7 +369,7 @@ export function CreateInvoiceDialog({ open, onOpenChange, onSuccess }: CreateInv
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading || loadingCustomers}>
                 {loading ? "Creating..." : "Create"}
               </Button>
             </DialogFooter>

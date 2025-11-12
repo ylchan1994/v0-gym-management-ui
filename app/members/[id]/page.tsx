@@ -16,6 +16,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { getCustomerIdFromPath, normalisedEzypayInvoice } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
 import { InvoicesTable } from "@/components/billing/invoices-table"
+import { CreateInvoiceDialog } from "@/components/billing/create-invoice-dialog"
 
 export const getStatusBadgeVariant = (status: string) => {
   if (status === "paid") return "default"
@@ -49,6 +50,7 @@ export default function MemberProfilePage() {
   const [renewOpen, setRenewOpen] = useState(false)
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false)
 
   // Mock plans (keep in sync with /app/plans/page.tsx if needed)
   const plans = [
@@ -83,6 +85,22 @@ export default function MemberProfilePage() {
   const handleInvoiceUpdate = () => {
     const idFromPath = getCustomerIdFromPath() || memberDataState?.id
     if (idFromPath) setMemberDataState((prev) => ({ ...prev }))
+  }
+
+  const handleInvoiceCreated = (invoice: any) => {
+    // Refresh member data to show new invoice
+    const idFromPath = getCustomerIdFromPath() || memberDataState?.id
+    if (idFromPath) {
+      const fetchData = async () => {
+        try {
+          const memberData = await normalisedEzypayInvoice(idFromPath)
+          setMemberDataState(memberData)
+        } catch (error) {
+          console.error(error)
+        }
+      }
+      fetchData()
+    }
   }
 
   return (
@@ -281,6 +299,9 @@ export default function MemberProfilePage() {
                 <TabsTrigger value="attendance">Attendance Logs</TabsTrigger>
               </TabsList>
               <TabsContent value="invoices">
+                <div className="flex justify-end mb-4">
+                  <Button onClick={() => setIsCreateInvoiceOpen(true)}>Create Invoice</Button>
+                </div>
                 <InvoicesTable variant="customer" invoices={memberDataState.invoices} />
               </TabsContent>
               <TabsContent value="upcoming">
@@ -354,9 +375,13 @@ export default function MemberProfilePage() {
         </main>
       </div>
 
-      {/* {isInvoiceDetailOpen && selectedInvoice && (
-        <InvoiceDetailDialog invoiceProp={selectedInvoice} open={isInvoiceDetailOpen} onOpenChange={handleInvoiceDialogOpenChange} onUpdate={handleInvoiceUpdate} />
-      )} */}
+      <CreateInvoiceDialog
+        open={isCreateInvoiceOpen}
+        onOpenChange={setIsCreateInvoiceOpen}
+        customerId={memberDataState?.id}
+        customerName={memberDataState?.name}
+        onSuccess={handleInvoiceCreated}
+      />
     </div>
   )
 }
