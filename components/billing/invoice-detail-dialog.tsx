@@ -9,19 +9,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CreditCard, CheckCircle, XCircle, DollarSign, RefreshCw } from "lucide-react"
-import { refundInvoice, writeOffInvoice, retryInvoicePayment, trackExternalPayment } from "@/lib/payment-api"
+import { refundInvoice, writeOffInvoice, trackExternalPayment } from "@/lib/payment-api"
 import { toast } from "sonner"
 import { RefundDialog } from "./refund-dialog"
 import { getStatusBadgeVariant } from "@/app/members/[id]/page"
 import { listTransactionByInvoice, retryInvoice } from "@/lib/passer-functions"
 import { Spinner } from "../ui/spinner"
-
+import { PaymentMethodsList } from "./payment-methods-list"
 
 interface PaymentAttempt {
   id: string
   date: string
   amount: string
-  status: "success" | "failed" | "pending" | 'settled'
+  status: "success" | "failed" | "pending" | "settled"
   method: string
   errorMessage?: string
 }
@@ -59,6 +59,8 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
   const [isProcessing, setIsProcessing] = useState(false)
   const [showExternalPayment, setShowExternalPayment] = useState(false)
   const [showRefundDialog, setShowRefundDialog] = useState(false)
+  const [showRetryPaymentSelection, setShowRetryPaymentSelection] = useState(false)
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null)
   const [externalPaymentData, setExternalPaymentData] = useState({
     method: "",
     reference: "",
@@ -70,9 +72,8 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
   }, [invoiceProp])
 
   useEffect(() => {
-    listTransactionByInvoice(invoiceProp?.id, invoiceProp?.paymentMethod).then(transactions => {
-      //console.log(transactions, invoiceProp)
-      setInvoice(prev => ({...prev, paymentAttempts: transactions}))
+    listTransactionByInvoice(invoiceProp?.id, invoiceProp?.paymentMethod).then((transactions) => {
+      setInvoice((prev) => ({ ...prev, paymentAttempts: transactions }))
       setIsTransactionLoading(false)
     })
   }, [])
@@ -110,9 +111,8 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
       const result = await writeOffInvoice(invoice.id)
       if (result.success) {
         toast.success(result.message)
-        // update local invoice status immediately for UI feedback
         if (invoice) {
-          invoice.status = 'written_off'
+          invoice.status = "written_off"
         }
         onUpdate?.()
         onOpenChange(false)
@@ -125,11 +125,22 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
   }
 
   const handleRetry = async () => {
+    if (!showRetryPaymentSelection) {
+      setShowRetryPaymentSelection(true)
+      return
+    }
+
+    if (!selectedPaymentMethodId) {
+      toast.error("Please select a payment method")
+      return
+    }
+
     setIsProcessing(true)
     setIsRetrying(true)
     try {
-      const result = await retryInvoice(invoice.id)
+      const result = await retryInvoice(invoice.id, selectedPaymentMethodId)
       console.log(result)
+      toast.success("Payment retry initiated successfully")
       onUpdate?.()
       onOpenChange(false)
     } catch (error) {
@@ -188,11 +199,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Status</p>
-                <Badge
-                  variant={getStatusBadgeVariant(invoice.status)}
-                >
-                  {invoice.status}
-                </Badge>
+                <Badge variant={getStatusBadgeVariant(invoice.status)}>{invoice.status}</Badge>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Invoice Date</p>
@@ -260,7 +267,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
                   {invoice.items?.map((item) => (
                     <TableRow key={item.description}>
                       <TableCell>{item.description}</TableCell>
-                      <TableCell className="font-medium">{item.amount}</TableCell>                      
+                      <TableCell className="font-medium">{item.amount}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -269,7 +276,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
 
             <Separator />
 
-            {/* {Failed Payment Reasons} */}
+            {/* Failed Payment Reasons */}
             {invoice.failedPaymentReason ? (
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-2">Failed Reasons</p>
@@ -278,7 +285,9 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
                   <p className="font-medium">{invoice.paymentProviderResponse.description}</p>
                 </div>
               </div>
-            ) : ('')}
+            ) : (
+              ""
+            )}
 
             <Separator />
 
@@ -296,50 +305,73 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
             {/* Payment Attempts */}
             <div>
               <p className="text-sm font-medium mb-3">Payment History</p>
-              
-                {isTransactionLoading ? (
-                  <div className="relative flex justify-center items-center">
-                    <Spinner className="w-10 h-10"/>
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Method</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Details</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {invoice.paymentAttempts.map((attempt) => (
-                        <TableRow key={attempt.id}>
-                          <TableCell>{attempt.date}</TableCell>
-                          <TableCell className="font-medium">{attempt.amount}</TableCell>
-                          <TableCell>{attempt.method}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {attempt.status === "success" || attempt.status === "settled" ? (
-                                <CheckCircle className="h-4 w-4 text-accent" />
-                              ) : (
-                                <XCircle className="h-4 w-4 text-destructive" />
-                              )}
-                              <span className="capitalize">{attempt.status}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {attempt.errorMessage && (
-                              <span className="text-xs text-destructive">{attempt.errorMessage}</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}                
 
+              {isTransactionLoading ? (
+                <div className="relative flex justify-center items-center">
+                  <Spinner className="w-10 h-10" />
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Method</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Details</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {invoice.paymentAttempts.map((attempt) => (
+                      <TableRow key={attempt.id}>
+                        <TableCell>{attempt.date}</TableCell>
+                        <TableCell className="font-medium">{attempt.amount}</TableCell>
+                        <TableCell>{attempt.method}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {attempt.status === "success" || attempt.status === "settled" ? (
+                              <CheckCircle className="h-4 w-4 text-accent" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-destructive" />
+                            )}
+                            <span className="capitalize">{attempt.status}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {attempt.errorMessage && (
+                            <span className="text-xs text-destructive">{attempt.errorMessage}</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </div>
+
+            {showRetryPaymentSelection && invoice.customerId && (
+              <>
+                <Separator />
+                <div className="space-y-4 rounded-lg border border-border p-4">
+                  <h4 className="font-medium">Select Payment Method for Retry</h4>
+                  <PaymentMethodsList
+                    customerId={invoice.customerId}
+                    variant="selection"
+                    selectedMethodId={selectedPaymentMethodId}
+                    onMethodSelect={setSelectedPaymentMethodId}
+                  />
+                  <div className="flex gap-2">
+                    <Button onClick={handleRetry} disabled={isProcessing || !selectedPaymentMethodId}>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Confirm Retry
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowRetryPaymentSelection(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* External Payment Form */}
             {showExternalPayment && (
@@ -391,7 +423,6 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
               )}
               {(invoice.status === "failed" || invoice.status === "past_due") && (
                 <>
-                
                   <Button variant="secondary" onClick={handleRetry} disabled={isProcessing}>
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Retry

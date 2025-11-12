@@ -188,7 +188,7 @@ export async function listTransactionByInvoice(invoiceId, paymentMethod): Promis
   }
 }
 
-export async function retryInvoice(invoiceId) {
+export async function retryInvoice(invoiceId, paymentMethodId) {
   try {      
     if (!invoiceId) {
       throw new Error("No invoice ID")
@@ -209,7 +209,8 @@ export async function retryInvoice(invoiceId) {
         merchant: merchantId ,
         'Content-type': 'application/json'
       },
-      body: '{}',
+      body: `{"paymentMethodToken": "${paymentMethodId}",
+        "oneOff": true}`,
     })
     
     if (!response.ok) {

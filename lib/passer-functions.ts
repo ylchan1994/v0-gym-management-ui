@@ -46,6 +46,6 @@ export async function listTransactionByInvoice(invoiceId, paymentMethod) {
   return await listEzypayTransactionByInvoice(invoiceId, paymentMethod)
 }
 
-export async function retryInvoice(invoiceId) {
-  return await retryEzypayInvoice(invoiceId)
+export async function retryInvoice(invoiceId, paymentMethodId) {
+  return await retryEzypayInvoice(invoiceId, paymentMethodId)
 }
