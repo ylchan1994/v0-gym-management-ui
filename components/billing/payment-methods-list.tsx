@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
-import { getCustomerPaymentMethods } from "@/lib/passer-functions"
+import { deletePaymentMethod, getCustomerPaymentMethods, replacePaymentMethod } from "@/lib/passer-functions"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -47,13 +47,14 @@ export function PaymentMethodsList({
   onMethodSelect,
   showInvalid = false,
 }: PaymentMethodsListProps) {
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[] | null>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [methodToDelete, setMethodToDelete] = useState<PaymentMethod | null>(null)
   const [replaceDialogOpen, setReplaceDialogOpen] = useState(false)
   const [methodToReplace, setMethodToReplace] = useState<PaymentMethod | null>(null)
+  const [defaultPaymentMethod, setDefaultPaymentMethod] = useState<PaymentMethod | null>(null)
 
   useEffect(() => {
     if (customerId) {
@@ -88,6 +89,7 @@ export function PaymentMethodsList({
       }))
 
       setPaymentMethods(normalized)
+      setDefaultPaymentMethod(normalized.filter(pm => pm.isDefault)[0])
     } catch (error: any) {
       const msg = error?.message || String(error)
       console.error("Error fetching payment methods", msg)
@@ -122,8 +124,12 @@ export function PaymentMethodsList({
   const handleDeleteConfirm = async () => {
     if (!methodToDelete) return
 
-    // TODO: Implement delete payment method API call
-    console.log("Delete payment method:", methodToDelete.id)
+    // Delete payment method API call
+    const deleteResult = await deletePaymentMethod(customerId, methodToDelete?.id)
+
+    if (deleteResult.error) {
+      //TODO: Show error on screen just like when refund is fail
+    }
 
     setDeleteDialogOpen(false)
     setMethodToDelete(null)
@@ -140,11 +146,16 @@ export function PaymentMethodsList({
 
   const handleReplaceConfirm = async () => {
     if (!methodToReplace) return
+    console.log(defaultPaymentMethod)
+    // Replace payment method API call
+    const replaceResult = await replacePaymentMethod(customerId, defaultPaymentMethod?.id, methodToReplace?.id)
 
-    // TODO: Implement replace payment method API call
-    console.log("Replace payment method:", methodToReplace.id)
+    if (replaceResult.error) {
+      //TODO: Show error on screen just like when refund is fail
+    }
 
     setReplaceDialogOpen(false)
+    setDefaultPaymentMethod(methodToReplace)
     setMethodToReplace(null)
 
     // Refresh payment methods after replace
@@ -267,11 +278,11 @@ export function PaymentMethodsList({
               All future payments will be defaulted to this payment method.
               {methodToReplace && (
                 <div className="mt-2 p-2 bg-muted rounded">
-                  <p className="text-sm font-medium text-foreground">{methodToReplace.type}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <span className="text-sm font-medium text-foreground">{methodToReplace.type}</span>
+                  <span className="text-xs text-muted-foreground">
                     {methodToReplace.last4 ? `****${methodToReplace.last4}` : ""}{" "}
                     {methodToReplace.expiry || methodToReplace.account || ""}
-                  </p>
+                  </span>
                 </div>
               )}
             </AlertDialogDescription>
@@ -291,11 +302,11 @@ export function PaymentMethodsList({
               Are you sure you want to delete this payment method? This action cannot be undone.
               {methodToDelete && (
                 <div className="mt-2 p-2 bg-muted rounded">
-                  <p className="text-sm font-medium text-foreground">{methodToDelete.type}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <span className="text-sm font-medium text-foreground">{methodToDelete.type}</span>
+                  <span className="text-xs text-muted-foreground">
                     {methodToDelete.last4 ? `****${methodToDelete.last4}` : ""}{" "}
                     {methodToDelete.expiry || methodToDelete.account || ""}
-                  </p>
+                  </span>
                 </div>
               )}
             </AlertDialogDescription>
