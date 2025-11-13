@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { CreditCard, Trash2, RefreshCw } from "lucide-react"
+import { CreditCard, Trash2, RefreshCw, AlertCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
@@ -21,6 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export interface PaymentMethod {
   id: string
@@ -55,6 +56,8 @@ export function PaymentMethodsList({
   const [replaceDialogOpen, setReplaceDialogOpen] = useState(false)
   const [methodToReplace, setMethodToReplace] = useState<PaymentMethod | null>(null)
   const [defaultPaymentMethod, setDefaultPaymentMethod] = useState<PaymentMethod | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   useEffect(() => {
     if (customerId) {
@@ -68,7 +71,6 @@ export function PaymentMethodsList({
     try {
       const response = await getCustomerPaymentMethods(customerId)
 
-      // Normalize response structure
       let items: any[] | null = null
       if (Array.isArray(response)) items = response
       else if (Array.isArray(response?.paymentMethods)) items = response.paymentMethods
@@ -76,7 +78,6 @@ export function PaymentMethodsList({
       else if (Array.isArray(response?.data)) items = response.data
       else if (response) items = [response]
 
-      // Normalize items into UI-friendly shape
       const normalized = (items || []).map((pm: any) => ({
         id: pm.paymentMethodToken ?? pm.id,
         type: pm.type ?? "",
@@ -88,8 +89,16 @@ export function PaymentMethodsList({
         valid: pm.valid,
       }))
 
-      setPaymentMethods(normalized)
-      setDefaultPaymentMethod(normalized.filter(pm => pm.isDefault)[0])
+      const sorted = normalized.sort((a, b) => {
+        if (a.isDefault && !b.isDefault) return -1
+        if (!a.isDefault && b.isDefault) return 1
+        if (a.valid && !b.valid) return -1
+        if (!a.valid && b.valid) return 1
+        return 0
+      })
+
+      setPaymentMethods(sorted)
+      setDefaultPaymentMethod(sorted.find((pm) => pm.isDefault) || null)
     } catch (error: any) {
       const msg = error?.message || String(error)
       console.error("Error fetching payment methods", msg)
@@ -119,22 +128,27 @@ export function PaymentMethodsList({
     e.stopPropagation()
     setMethodToDelete(method)
     setDeleteDialogOpen(true)
+    setActionError(null)
   }
 
   const handleDeleteConfirm = async () => {
     if (!methodToDelete) return
 
-    // Delete payment method API call
+    setIsProcessing(true)
+    setActionError(null)
+
     const deleteResult = await deletePaymentMethod(customerId, methodToDelete?.id)
 
+    setIsProcessing(false)
+
     if (deleteResult.error) {
-      //TODO: Show error on screen just like when refund is fail
+      setActionError(deleteResult.error.message)
+      return
     }
 
-    setDeleteDialogOpen(false)
+    //setDeleteDialogOpen(false)
     setMethodToDelete(null)
 
-    // Refresh payment methods after delete
     await fetchPaymentMethods()
   }
 
@@ -142,23 +156,28 @@ export function PaymentMethodsList({
     e.stopPropagation()
     setMethodToReplace(method)
     setReplaceDialogOpen(true)
+    setActionError(null)
   }
 
   const handleReplaceConfirm = async () => {
     if (!methodToReplace) return
-    console.log(defaultPaymentMethod)
-    // Replace payment method API call
+
+    setIsProcessing(true)
+    setActionError(null)
+
     const replaceResult = await replacePaymentMethod(customerId, defaultPaymentMethod?.id, methodToReplace?.id)
 
+    setIsProcessing(false)
+
     if (replaceResult.error) {
-      //TODO: Show error on screen just like when refund is fail
+      setActionError(replaceResult.error.message)
+      return
     }
 
-    setReplaceDialogOpen(false)
+    //setReplaceDialogOpen(false)
     setDefaultPaymentMethod(methodToReplace)
     setMethodToReplace(null)
 
-    // Refresh payment methods after replace
     await fetchPaymentMethods()
   }
 
@@ -217,7 +236,6 @@ export function PaymentMethodsList({
     )
   }
 
-  // Display variant
   return (
     <>
       <div className="max-h-[240px] overflow-y-auto space-y-2">
@@ -280,6 +298,7 @@ export function PaymentMethodsList({
                 <div className="mt-2 p-2 bg-muted rounded">
                   <span className="text-sm font-medium text-foreground">{methodToReplace.type}</span>
                   <span className="text-xs text-muted-foreground">
+                    {" "}
                     {methodToReplace.last4 ? `****${methodToReplace.last4}` : ""}{" "}
                     {methodToReplace.expiry || methodToReplace.account || ""}
                   </span>
@@ -287,9 +306,17 @@ export function PaymentMethodsList({
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {actionError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{actionError}</AlertDescription>
+            </Alert>
+          )}
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleReplaceConfirm}>Confirm</AlertDialogAction>
+            <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReplaceConfirm} disabled={isProcessing}>
+              {isProcessing ? "Processing..." : "Confirm"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -304,6 +331,7 @@ export function PaymentMethodsList({
                 <div className="mt-2 p-2 bg-muted rounded">
                   <span className="text-sm font-medium text-foreground">{methodToDelete.type}</span>
                   <span className="text-xs text-muted-foreground">
+                    {" "}
                     {methodToDelete.last4 ? `****${methodToDelete.last4}` : ""}{" "}
                     {methodToDelete.expiry || methodToDelete.account || ""}
                   </span>
@@ -311,13 +339,20 @@ export function PaymentMethodsList({
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {actionError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{actionError}</AlertDescription>
+            </Alert>
+          )}
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
+              disabled={isProcessing}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {isProcessing ? "Processing..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
