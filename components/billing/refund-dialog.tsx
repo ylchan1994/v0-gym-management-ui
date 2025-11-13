@@ -12,7 +12,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { DollarSign } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { DollarSign, AlertCircle } from "lucide-react"
 
 interface RefundDialogProps {
   open: boolean
@@ -20,9 +21,10 @@ interface RefundDialogProps {
   invoiceAmount: number
   onConfirm: (amount: number | null) => void
   isProcessing?: boolean
+  error?: string | null
 }
 
-export function RefundDialog({ open, onOpenChange, invoiceAmount, onConfirm, isProcessing }: RefundDialogProps) {
+export function RefundDialog({ open, onOpenChange, invoiceAmount, onConfirm, isProcessing, error }: RefundDialogProps) {
   const [refundAmount, setRefundAmount] = useState("")
 
   const handleConfirm = () => {
@@ -53,6 +55,13 @@ export function RefundDialog({ open, onOpenChange, invoiceAmount, onConfirm, isP
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="refundAmount">Refund Amount (Optional)</Label>
             <div className="relative">

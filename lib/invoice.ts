@@ -4,7 +4,7 @@ import { getEzypayToken } from "./ezypay-token"
 
 const apiEndpoint = `${process.env.API_ENDPOINT}/v2/billing/invoices`
 const transactionEndpoint = `${process.env.API_ENDPOINT}/v2/billing/transactions`
-const merchantId = process.env.EZYPAY_MERCHANT_ID 
+const merchantId = process.env.EZYPAY_MERCHANT_ID
 
 function normalisedEzypayInvoice(invoices, customerName = null) {
   function extractPaymentMethodData(paymentMethodData) {
@@ -41,20 +41,20 @@ function normalisedEzypayInvoice(invoices, customerName = null) {
       amount: `$${amount.toFixed(2)}`,
     }))
   }
-  const normalisedInvoice = invoices.data.map( invoice => ({
-      id: invoice.id,
-      member: customerName,
-      amount: `$${invoice.amount.value}`,
-      number: 'IN' + parseInt(invoice.documentNumber.substring(4)),
-      date: invoice.date,
-      dueDate: invoice.dueDate,
-      paymentMethod: extractPaymentMethodData(invoice.paymentMethodData),
-      items: mergeItemsByDescription(invoice.items),
-      status: invoice.status.toLowerCase(),
-      paymentAttempts: [],
-      customerId: invoice.customerId,
-      failedPaymentReason: invoice.failedPaymentReason,
-      paymentProviderResponse: invoice.paymentProviderResponse
+  const normalisedInvoice = invoices.data.map((invoice) => ({
+    id: invoice.id,
+    member: customerName,
+    amount: `$${invoice.amount.value}`,
+    number: "IN" + Number.parseInt(invoice.documentNumber.substring(4)),
+    date: invoice.date,
+    dueDate: invoice.dueDate,
+    paymentMethod: extractPaymentMethodData(invoice.paymentMethodData),
+    items: mergeItemsByDescription(invoice.items),
+    status: invoice.status.toLowerCase(),
+    paymentAttempts: [],
+    customerId: invoice.customerId,
+    failedPaymentReason: invoice.failedPaymentReason,
+    paymentProviderResponse: invoice.paymentProviderResponse,
   }))
 
   return normalisedInvoice
@@ -178,7 +178,7 @@ export async function listTransactionByInvoice(invoiceId, paymentMethod): Promis
       date: transaction.createdOn?.split("T")[0],
       amount: `$${transaction.amount.value}`,
       status: transaction.status.toLowerCase(),
-      method: transaction.source == 'external_payment' ? `External (${transaction.paymentMethodType})` : paymentMethod,
+      method: transaction.source == "external_payment" ? `External (${transaction.paymentMethodType})` : paymentMethod,
     }))
 
     return transactions
@@ -189,7 +189,7 @@ export async function listTransactionByInvoice(invoiceId, paymentMethod): Promis
 }
 
 export async function retryInvoice(invoiceId, paymentMethodId) {
-  try {      
+  try {
     if (!invoiceId) {
       throw new Error("No invoice ID")
     }
@@ -200,34 +200,34 @@ export async function retryInvoice(invoiceId, paymentMethodId) {
     if (!token) {
       console.error("No access_token from token utility", tokenData)
       throw new Error(`List customer failed: No access_token from token utility`)
-    }    
+    }
 
     const response = await fetch(`${apiEndpoint}/${invoiceId}/retrypayment`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        "Authorization": `Bearer ${token}`,
-        merchant: merchantId ,
-        'Content-type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        merchant: merchantId,
+        "Content-type": "application/json",
       },
       body: `{"paymentMethodToken": "${paymentMethodId}",
         "oneOff": true}`,
     })
-    
+
     if (!response.ok) {
       const text = await response.text()
       console.error("Retry Invoice failed:", response.status, text)
       throw new Error(`Retry invoice failed: ${response.status}`)
     }
-    
+
     return await response.json()
   } catch (err) {
     console.error("Retry Invoice failed error:", err)
     throw err
-  } 
+  }
 }
 
 export async function writeOffInvoice(invoiceId) {
-  try {      
+  try {
     if (!invoiceId) {
       throw new Error("No invoice ID")
     }
@@ -238,33 +238,33 @@ export async function writeOffInvoice(invoiceId) {
     if (!token) {
       console.error("No access_token from token utility", tokenData)
       throw new Error(`List customer failed: No access_token from token utility`)
-    }    
+    }
 
     const response = await fetch(`${apiEndpoint}/${invoiceId}/writeoff`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        "Authorization": `Bearer ${token}`,
-        merchant: merchantId ,
-        'Content-type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        merchant: merchantId,
+        "Content-type": "application/json",
       },
       body: "{}",
     })
-    
+
     if (!response.ok) {
       const text = await response.text()
       console.error("Write off Invoice failed:", response.status, text)
       throw new Error(`Write off invoice failed: ${response.status}`)
     }
-    
+
     return await response.json()
   } catch (err) {
     console.error("Write off Invoice failed error:", err)
     throw err
-  } 
+  }
 }
 
 export async function recordExternalInvoice(invoiceId, method) {
-  try {      
+  try {
     if (!invoiceId) {
       throw new Error("No invoice ID")
     }
@@ -275,33 +275,33 @@ export async function recordExternalInvoice(invoiceId, method) {
     if (!token) {
       console.error("No access_token from token utility", tokenData)
       throw new Error(`List customer failed: No access_token from token utility`)
-    }    
+    }
 
     const response = await fetch(`${apiEndpoint}/${invoiceId}/recordpayment`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        "Authorization": `Bearer ${token}`,
-        merchant: merchantId ,
-        'Content-type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        merchant: merchantId,
+        "Content-type": "application/json",
       },
-      body: `{"paymentMethodType": "${method}"}`
+      body: `{"paymentMethodType": "${method}"}`,
     })
-    
+
     if (!response.ok) {
       const text = await response.text()
       console.error("Record External Invoice failed:", response.status, text)
       throw new Error(`Record External invoice failed: ${response.status}`)
     }
-    
+
     return await response.json()
   } catch (err) {
     console.error("Record External Invoice failed error:", err)
     throw err
-  } 
+  }
 }
 
 export async function refundInvoice(invoiceId, amount = null) {
-  try {      
+  try {
     if (!invoiceId) {
       throw new Error("No invoice ID")
     }
@@ -312,33 +312,60 @@ export async function refundInvoice(invoiceId, amount = null) {
     if (!token) {
       console.error("No access_token from token utility", tokenData)
       throw new Error(`Refund failed: No access_token from token utility`)
-    }    
+    }
 
     const response = await fetch(`${apiEndpoint}/${invoiceId}/refund`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        "Authorization": `Bearer ${token}`,
-        merchant: merchantId ,
-        'Content-type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        merchant: merchantId,
+        "Content-type": "application/json",
       },
-      body: amount ? `{"amount": "${amount}"}` : '{}'
+      body: amount ? `{"amount": "${amount}"}` : "{}",
     })
-    
+
     if (!response.ok) {
       const text = await response.text()
       console.error("Refund Invoice failed:", response.status, text)
-      throw new Error(`Refund invoice failed: ${response.status}`)
+
+      try {
+        const errorData = JSON.parse(text)
+        return {
+          success: false,
+          error: {
+            type: errorData.type,
+            code: errorData.code,
+            message: errorData.message,
+          },
+        }
+      } catch (parseError) {
+        return {
+          success: false,
+          error: {
+            message: `Refund invoice failed: ${response.status}`,
+          },
+        }
+      }
     }
-    
-    return await response.json()
+
+    const result = await response.json()
+    return {
+      success: true,
+      data: result,
+    }
   } catch (err) {
     console.error("Refund Invoice failed error:", err)
-    throw err
-  } 
+    return {
+      success: false,
+      error: {
+        message: err.message || "An unexpected error occurred",
+      },
+    }
+  }
 }
 
 export async function createInvoice(invoiceData) {
-  try {      
+  try {
     if (!invoiceData) {
       throw new Error("No invoice Data")
     }
@@ -349,43 +376,45 @@ export async function createInvoice(invoiceData) {
     if (!token) {
       console.error("No access_token from token utility", tokenData)
       throw new Error(`Create invoice failed: No access_token from token utility`)
-    }    
+    }
 
-    let requestBody = {
+    const requestBody = {
       customerId: invoiceData.memberId,
-      items: [{
-        description: invoiceData.description,
-        amount: {
-          currency: 'AUD',
-          value: invoiceData.amount
-        }
-      }]
+      items: [
+        {
+          description: invoiceData.description,
+          amount: {
+            currency: "AUD",
+            value: invoiceData.amount,
+          },
+        },
+      ],
     }
     console.log(JSON.stringify(invoiceData))
     if (invoiceData.paymentMethodId) {
-        requestBody.paymentMethodToken = invoiceData.paymentMethodId
+      requestBody.paymentMethodToken = invoiceData.paymentMethodId
     }
 
     const response = await fetch(`${apiEndpoint}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        "Authorization": `Bearer ${token}`,
-        merchant: merchantId ,
-        'Content-type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        merchant: merchantId,
+        "Content-type": "application/json",
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
     })
-    
+
     if (!response.ok) {
       const text = await response.text()
       console.log(response)
       console.error("Create Invoice failed:", response.status, text)
       throw new Error(`Create invoice failed: ${response.status}`)
     }
-    
+
     return await response.json()
   } catch (err) {
     console.error("Create Invoice failed error:", err)
     throw err
-  } 
+  }
 }

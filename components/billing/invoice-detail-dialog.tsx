@@ -67,6 +67,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
   const [showRetryPaymentSelection, setShowRetryPaymentSelection] = useState(false)
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null)
   const [externalPaymentMethod, setExternalPaymentMethod] = useState<string>("")
+  const [refundError, setRefundError] = useState<string | null>(null)
 
   useEffect(() => {
     setInvoice(invoiceProp)
@@ -84,16 +85,23 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
   const handleRefund = async (amount: number | null) => {
     setIsProcessing(true)
     setIsRetrying(true)
+    setRefundError(null)
+
     try {
       const refundAmount = amount === null ? null : amount
 
       const result = await refundInvoice(invoice.id, refundAmount)
-      toast.success("Refund initiated successfully")
-      onUpdate?.()
-      onOpenChange(false)
-      window.location.reload()
+
+      if (result.success) {
+        toast.success("Refund initiated successfully")
+        onUpdate?.()
+        onOpenChange(false)
+        window.location.reload()
+      } else {
+        setRefundError(result.error?.message || "Failed to refund payment")
+      }
     } catch (error) {
-      toast.error("Failed to refund payment")
+      setRefundError("An unexpected error occurred")
     } finally {
       setIsProcessing(false)
       setIsRetrying(false)
@@ -445,6 +453,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
         invoiceAmount={Number.parseFloat(invoice.amount.replace("$", ""))}
         onConfirm={handleRefund}
         isProcessing={isProcessing}
+        error={refundError}
       />
     </>
   )
