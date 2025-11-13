@@ -351,7 +351,7 @@ export async function createInvoice(invoiceData) {
       throw new Error(`Create invoice failed: No access_token from token utility`)
     }    
 
-    const requestBody = {
+    let requestBody = {
       customerId: invoiceData.memberId,
       items: [{
         description: invoiceData.description,
@@ -360,6 +360,10 @@ export async function createInvoice(invoiceData) {
           value: invoiceData.amount
         }
       }]
+    }
+    console.log(JSON.stringify(invoiceData))
+    if (invoiceData.paymentMethodId) {
+        requestBody.paymentMethodToken = invoiceData.paymentMethodId
     }
 
     const response = await fetch(`${apiEndpoint}`, {

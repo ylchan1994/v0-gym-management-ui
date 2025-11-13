@@ -22,6 +22,7 @@ import { TapToPayAnimation } from "./tap-to-pay-animation"
 import { listCustomer } from "@/lib/passer-functions"
 import { Spinner } from "@/components/ui/spinner"
 import { createInvoice } from "@/lib/invoice"
+import { PaymentMethodsList } from "./payment-methods-list"
 
 interface CreateInvoiceDialogProps {
   open: boolean
@@ -49,6 +50,7 @@ export function CreateInvoiceDialog({
     description: "",
     paymentMethod: "ondemand" as "ondemand" | "tap-to-pay" | "checkout",
     terminalId: "",
+    paymentMethodId: "",
   })
 
   useEffect(() => {
@@ -97,6 +99,15 @@ export function CreateInvoiceDialog({
       toast({
         title: "Terminal Required",
         description: "Please select a terminal device for tap-to-pay.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (formData.paymentMethod === "ondemand" && !formData.paymentMethodId) {
+      toast({
+        title: "Payment Method Required",
+        description: "Please select a payment method for on-demand payment.",
         variant: "destructive",
       })
       return
@@ -159,74 +170,31 @@ export function CreateInvoiceDialog({
             : [],
       }
 
-      if (formData.paymentMethod === 'ondemand') {
-        createInvoice(formData)
+      if (formData.paymentMethod === "ondemand") {
+          console.log('formData before submi', JSON.stringify(formData))
+        await createInvoice({
+          memberId: formData.memberId,
+          amount: formData.amount,
+          description: formData.description,
+          paymentMethodId: formData.paymentMethodId,
+        })
+
+        toast({
+          title: "Invoice Created",
+          description: "Invoice created successfully with on-demand payment.",
+        })
       }
 
       console.log("[v0] Creating invoice with payment method:", formData.paymentMethod)
       console.log("[v0] Invoice data:", invoiceData)
 
-      // Different logic for each payment method
-      // switch (formData.paymentMethod) {
-      //   case "ondemand":
-      //     console.log("[v0] Processing on-demand payment...")
-      //     toast({
-      //       title: "Invoice Created - On Demand",
-      //       description: "Invoice created and ready for on-demand payment.",
-      //     })
-      //     break
-      //   case "tap-to-pay":
-      //     toast({
-      //       title: "Payment Successful",
-      //       description: `Payment processed successfully via ${selectedTerminal?.name}.`,
-      //     })
-      //     break
-      //   case "checkout":
-      //     try {
-      //       console.log("[v0] Generating checkout link...")
-
-      //       // POST to internal API which proxies to Ezypay Checkout
-      //       const res = await fetch(`/api/payment/checkout`, {
-      //         method: "POST",
-      //         headers: { "Content-Type": "application/json" },
-      //         body: JSON.stringify({ amount: Number.parseFloat(formData.amount), desciption: formData.description }),
-      //       })
-
-      //       const data = await res.json()
-
-      //       const checkoutUrl = data?.checkoutUrl
-
-      //       if (checkoutUrl && typeof window !== "undefined") {
-      //         window.open(checkoutUrl, "_blank")
-      //         toast({
-      //           title: "Invoice Created - Checkout",
-      //           description: "Checkout opened in a new tab.",
-      //         })
-      //       } else {
-      //         console.warn("[v0] Checkout API did not return a URL", data)
-      //         toast({
-      //           title: "Invoice Created",
-      //           description: "Invoice created but no checkout URL was returned.",
-      //         })
-      //       }
-      //     } catch (err) {
-      //       console.error("[v0] Error generating checkout link:", err)
-      //       toast({
-      //         title: "Checkout Error",
-      //         description: "Failed to generate checkout link. Please try again.",
-      //         variant: "destructive",
-      //       })
-      //     }
-      //     break
-      // }
-
-      // Reset form and close dialog
       setFormData({
         memberId: customerId || "",
         amount: "",
         description: "",
         paymentMethod: "ondemand",
         terminalId: "",
+        paymentMethodId: "",
       })
       onOpenChange(false)
       onSuccess?.(invoiceData)
@@ -322,7 +290,7 @@ export function CreateInvoiceDialog({
                 <RadioGroup
                   value={formData.paymentMethod}
                   onValueChange={(value: any) =>
-                    setFormData((prev) => ({ ...prev, paymentMethod: value, terminalId: "" }))
+                    setFormData((prev) => ({ ...prev, paymentMethod: value, terminalId: "", paymentMethodId: "" }))
                   }
                 >
                   <div className="flex items-center space-x-2">
@@ -345,6 +313,18 @@ export function CreateInvoiceDialog({
                   </div>
                 </RadioGroup>
               </div>
+
+              {formData.paymentMethod === "ondemand" && formData.memberId && (
+                <div className="space-y-2 pt-2 border-t">
+                  <Label>Select Payment Method</Label>
+                  <PaymentMethodsList
+                    customerId={formData.memberId}
+                    variant="selection"
+                    selectedMethodId={formData.paymentMethodId}
+                    onMethodSelect={(methodId) => setFormData((prev) => ({ ...prev, paymentMethodId: methodId }))}
+                  />
+                </div>
+              )}
 
               {formData.paymentMethod === "tap-to-pay" && (
                 <div className="space-y-2 pt-2 border-t">
