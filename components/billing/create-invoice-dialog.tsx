@@ -185,9 +185,6 @@ export function CreateInvoiceDialog({
         })
       }
 
-      console.log("[v0] Creating invoice with payment method:", formData.paymentMethod)
-      console.log("[v0] Invoice data:", invoiceData)
-
       setFormData({
         memberId: customerId || "",
         amount: "",
