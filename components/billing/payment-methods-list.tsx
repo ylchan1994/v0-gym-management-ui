@@ -1,13 +1,26 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { CreditCard } from "lucide-react"
+import { CreditCard, Trash2, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { getCustomerPaymentMethods } from "@/lib/passer-functions"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export interface PaymentMethod {
   id: string
@@ -37,6 +50,10 @@ export function PaymentMethodsList({
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [methodToDelete, setMethodToDelete] = useState<PaymentMethod | null>(null)
+  const [replaceDialogOpen, setReplaceDialogOpen] = useState(false)
+  const [methodToReplace, setMethodToReplace] = useState<PaymentMethod | null>(null)
 
   useEffect(() => {
     if (customerId) {
@@ -96,6 +113,44 @@ export function PaymentMethodsList({
     return <div className="text-sm text-muted-foreground py-4">No payment methods found</div>
   }
 
+  const handleDeleteClick = (method: PaymentMethod, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setMethodToDelete(method)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!methodToDelete) return
+
+    // TODO: Implement delete payment method API call
+    console.log("Delete payment method:", methodToDelete.id)
+
+    setDeleteDialogOpen(false)
+    setMethodToDelete(null)
+
+    // Refresh payment methods after delete
+    await fetchPaymentMethods()
+  }
+
+  const handleReplaceClick = (method: PaymentMethod, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setMethodToReplace(method)
+    setReplaceDialogOpen(true)
+  }
+
+  const handleReplaceConfirm = async () => {
+    if (!methodToReplace) return
+
+    // TODO: Implement replace payment method API call
+    console.log("Replace payment method:", methodToReplace.id)
+
+    setReplaceDialogOpen(false)
+    setMethodToReplace(null)
+
+    // Refresh payment methods after replace
+    await fetchPaymentMethods()
+  }
+
   if (variant === "selection") {
     return (
       <RadioGroup value={selectedMethodId} onValueChange={onMethodSelect}>
@@ -153,32 +208,109 @@ export function PaymentMethodsList({
 
   // Display variant
   return (
-    <div className="max-h-[240px] overflow-y-auto space-y-2">
-      {paymentMethods.map((method) => (
-        <div key={method.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-          <div className="flex items-center gap-3">
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-sm font-medium">{method.type}</p>
-              <p className="text-xs text-muted-foreground">
-                {method.last4 ? `****${method.last4}` : ""} {method.expiry || method.account || ""}
-              </p>
+    <>
+      <div className="max-h-[240px] overflow-y-auto space-y-2">
+        {paymentMethods.map((method) => (
+          <div key={method.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div className="flex items-center gap-3">
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">{method.type}</p>
+                <p className="text-xs text-muted-foreground">
+                  {method.last4 ? `****${method.last4}` : ""} {method.expiry || method.account || ""}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2 items-center">
+              {method.isDefault && (
+                <Badge variant="secondary" className="text-xs">
+                  Default
+                </Badge>
+              )}
+              {!method.valid && (
+                <Badge variant="destructive" className="text-xs">
+                  Invalid
+                </Badge>
+              )}
+              {!method.isDefault && (
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={(e) => handleReplaceClick(method, e)}
+                    title="Replace payment method"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-destructive hover:text-destructive"
+                    onClick={(e) => handleDeleteClick(method, e)}
+                    title="Delete payment method"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
-          <div className="flex gap-2">
-            {method.isDefault && (
-              <Badge variant="secondary" className="text-xs">
-                Default
-              </Badge>
-            )}
-            {!method.valid && (
-              <Badge variant="destructive" className="text-xs">
-                Invalid
-              </Badge>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+
+      <AlertDialog open={replaceDialogOpen} onOpenChange={setReplaceDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Replace Payment Method</AlertDialogTitle>
+            <AlertDialogDescription>
+              All future payments will be defaulted to this payment method.
+              {methodToReplace && (
+                <div className="mt-2 p-2 bg-muted rounded">
+                  <p className="text-sm font-medium text-foreground">{methodToReplace.type}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {methodToReplace.last4 ? `****${methodToReplace.last4}` : ""}{" "}
+                    {methodToReplace.expiry || methodToReplace.account || ""}
+                  </p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReplaceConfirm}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Payment Method</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this payment method? This action cannot be undone.
+              {methodToDelete && (
+                <div className="mt-2 p-2 bg-muted rounded">
+                  <p className="text-sm font-medium text-foreground">{methodToDelete.type}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {methodToDelete.last4 ? `****${methodToDelete.last4}` : ""}{" "}
+                    {methodToDelete.expiry || methodToDelete.account || ""}
+                  </p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
