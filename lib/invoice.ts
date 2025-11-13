@@ -421,6 +421,7 @@ export async function createInvoice(invoiceData) {
 }
 
 export async function createCheckout(invoiceData) {
+  console.log(invoiceData)
   try {
     if (!invoiceData) {
       throw new Error("No invoice data for checkout session")
@@ -434,17 +435,13 @@ export async function createCheckout(invoiceData) {
       throw new Error(`Checkout session failed: No access_token from token utility`)
     }
 
-    const requestBody = {
+    const requestBody = {      
+      description: invoiceData.description,
+      amount: {
+        currency: "AUD",
+        value: invoiceData.amount,
+      },
       customerId: invoiceData.memberId,
-      items: [
-        {
-          description: invoiceData.description,
-          amount: {
-            currency: "AUD",
-            value: invoiceData.amount,
-          },
-        },
-      ],
     }
 
     const response = await fetch(`${checkoutEndpoint}`, {

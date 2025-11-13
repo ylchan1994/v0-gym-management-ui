@@ -209,10 +209,10 @@ export function PaymentMethodsList({
                   <div className="flex items-center gap-3">
                     <CreditCard className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">{method.type}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <span className="text-sm font-medium">{method.type}</span>
+                      <span className="text-xs text-muted-foreground">
                         {method.last4 ? `****${method.last4}` : ""} {method.expiry || method.account || ""}
-                      </p>
+                      </span>
                     </div>
                   </div>
                   <div className="flex gap-2">

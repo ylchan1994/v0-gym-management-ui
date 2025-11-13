@@ -164,6 +164,7 @@ export function CreateInvoiceDialog({
           description: formData.description,
         })
         const checkoutUrl = response?.data
+        console.log(response)
 
         // Validate checkoutUrl is a proper URL and open it in a new tab
         try {
