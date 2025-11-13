@@ -57,7 +57,6 @@ export async function createCustomer(customer): Promise<any> {
 }
 
 export async function listCustomer(): Promise<any> {
-  console.log('Start list customer API', new Date().toISOString())
   try {      
     // Get token directly from utility function instead of HTTP request
     const tokenData = await getEzypayToken()
@@ -81,7 +80,6 @@ export async function listCustomer(): Promise<any> {
     }
 
     const data = await response.json()    
-    console.log('Completed listing the customer', new Date().toISOString())
     return data
   } catch (err) {
     console.error("List customer error:", err)

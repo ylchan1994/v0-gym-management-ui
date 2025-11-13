@@ -19,7 +19,6 @@ export default function MembersPage() {
 
   useEffect(() => {
     const member: any[] = []
-    console.log('Start Loading the customer page', new Date().toISOString())
     listCustomer().then(e => {
       let customers = e.data
 
@@ -38,7 +37,6 @@ export default function MembersPage() {
 
       setMembers(member);
       setIsLoading(false);
-      console.log('Complete Loading the customer page', new Date().toISOString())
     })
   }, [])
 
