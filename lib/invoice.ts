@@ -3,6 +3,7 @@
 import { getEzypayToken } from "./ezypay-token"
 
 const apiEndpoint = `${process.env.API_ENDPOINT}/v2/billing/invoices`
+const checkoutEndpoint = `${process.env.API_ENDPOINT}/v2/billing/checkout`
 const transactionEndpoint = `${process.env.API_ENDPOINT}/v2/billing/transactions`
 const merchantId = process.env.EZYPAY_MERCHANT_ID
 
@@ -416,5 +417,82 @@ export async function createInvoice(invoiceData) {
   } catch (err) {
     console.error("Create Invoice failed error:", err)
     throw err
+  }
+}
+
+export async function createCheckout(invoiceData) {
+  try {
+    if (!invoiceData) {
+      throw new Error("No invoice data for checkout session")
+    }
+
+    // Get token directly from utility function instead of HTTP request
+    const tokenData = await getEzypayToken()
+    const token = tokenData.access_token
+    if (!token) {
+      console.error("No access_token from token utility", tokenData)
+      throw new Error(`Checkout session failed: No access_token from token utility`)
+    }
+
+    const requestBody = {
+      customerId: invoiceData.memberId,
+      items: [
+        {
+          description: invoiceData.description,
+          amount: {
+            currency: "AUD",
+            value: invoiceData.amount,
+          },
+        },
+      ],
+    }
+
+    const response = await fetch(`${checkoutEndpoint}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        merchant: merchantId,
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    })
+
+    if (!response.ok) {
+      const text = await response.text()
+      console.error("Refund Invoice failed:", response.status, text)
+
+      try {
+        const errorData = JSON.parse(text)
+        return {
+          success: false,
+          error: {
+            type: errorData.type,
+            code: errorData.code,
+            message: errorData.message,
+          },
+        }
+      } catch (parseError) {
+        return {
+          success: false,
+          error: {
+            message: `Refund invoice failed: ${response.status}`,
+          },
+        }
+      }
+    }
+
+    const result = await response.json()
+    return {
+      success: true,
+      data: result.checkoutUrl,
+    }
+  } catch (err) {
+    console.error("Refund Invoice failed error:", err)
+    return {
+      success: false,
+      error: {
+        message: err.message || "An unexpected error occurred",
+      },
+    }
   }
 }

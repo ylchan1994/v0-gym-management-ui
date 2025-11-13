@@ -19,15 +19,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useToast } from "@/hooks/use-toast"
 import { TapToPayAnimation } from "./tap-to-pay-animation"
-import { listCustomer } from "@/lib/passer-functions"
+import { createCheckout, listCustomer, createInvoice } from "@/lib/passer-functions"
 import { Spinner } from "@/components/ui/spinner"
-import { createInvoice } from "@/lib/invoice"
 import { PaymentMethodsList } from "./payment-methods-list"
 
 interface CreateInvoiceDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSuccess?: (invoice: any) => void
+  onSuccess?: () => void
   customerId?: string
   customerName?: string
 }
@@ -144,34 +143,7 @@ export function CreateInvoiceDialog({
         console.log("[v0] Tap-to-pay completed successfully")
       }
 
-      const invoiceData = {
-        id: `INV-${String(Date.now()).slice(-3)}`,
-        customerId: formData.memberId,
-        member: selectedMemberName,
-        amount: `$${Number.parseFloat(formData.amount).toFixed(2)}`,
-        status: invoiceStatus,
-        date: new Date().toISOString().split("T")[0],
-        dueDate: new Date().toISOString().split("T")[0],
-        paymentMethod: "Visa ****4242",
-        description: formData.description,
-        terminal: formData.paymentMethod === "tap-to-pay" ? selectedTerminal?.name : undefined,
-        paymentAttempts:
-          invoiceStatus === "paid"
-            ? [
-                {
-                  id: "1",
-                  date: new Date().toISOString().split("T")[0],
-                  amount: `$${Number.parseFloat(formData.amount).toFixed(2)}`,
-                  status: "success" as const,
-                  method: "Visa ****4242",
-                  terminal: selectedTerminal?.name,
-                },
-              ]
-            : [],
-      }
-
       if (formData.paymentMethod === "ondemand") {
-          console.log('formData before submi', JSON.stringify(formData))
         await createInvoice({
           memberId: formData.memberId,
           amount: formData.amount,
@@ -185,6 +157,40 @@ export function CreateInvoiceDialog({
         })
       }
 
+      if (formData.paymentMethod === "checkout") {
+        const response = await createCheckout({
+          memberId: formData.memberId,
+          amount: formData.amount,
+          description: formData.description,
+        })
+        const checkoutUrl = response?.data
+
+        // Validate checkoutUrl is a proper URL and open it in a new tab
+        try {
+          if (typeof checkoutUrl !== "string") throw new Error("checkoutUrl is not a string")
+          // This will throw if the URL is invalid
+          // eslint-disable-next-line no-new
+          new URL(checkoutUrl)
+
+          toast({
+            title: "Invoice Created",
+            description: "Opening checkout page...",
+          })
+
+          // Open in a new tab/window; use noopener and noreferrer for security
+          if (typeof window !== "undefined") {
+            window.open(checkoutUrl, "_blank", "noopener,noreferrer")
+          }
+        } catch (err) {
+          console.error("[v0] Invalid checkout URL:", err, checkoutUrl)
+          toast({
+            title: "Checkout Error",
+            description: "Failed to open checkout URL.",
+            variant: "destructive",
+          })
+        }
+      }
+
       setFormData({
         memberId: customerId || "",
         amount: "",
@@ -194,7 +200,7 @@ export function CreateInvoiceDialog({
         paymentMethodId: "",
       })
       onOpenChange(false)
-      onSuccess?.(invoiceData)
+      onSuccess?.()
     } catch (error) {
       console.error("[v0] Error creating invoice:", error)
       toast({

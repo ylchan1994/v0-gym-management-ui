@@ -59,9 +59,8 @@ export function InvoicesTable({variant = 'billing', invoices, customerData = nul
     return String(val)
   }
 
-  const handleInvoiceCreated = (newInvoice: any) => {
-    console.log("[v0] Adding new invoice to list:", newInvoice)
-    //setInvoices((prev) => [newInvoice, ...prev])
+  const handleInvoiceCreated = () => {
+    console.log("[v0] Invoice created successfully")
   }
 
   return (

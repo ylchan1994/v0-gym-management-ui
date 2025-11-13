@@ -15,6 +15,7 @@ import {
   recordExternalInvoice as recordEzypayExternalInvoice,
   refundInvoice as refundEzypayInvoice,
   createInvoice as createEzypayInvoice,
+  createCheckout as createEzypayCheckout,
  } from "@/lib/invoice"
 import { getEzypayToken as innerGetEzypayToken } from './ezypay-token' 
 import { 
@@ -80,4 +81,8 @@ export async function replacePaymentMethod(customerId, paymentMethod, newPayment
 
 export async function deletePaymentMethod(customerId, paymentMethod ) {
   return await deleteEzypayPaymentMethod(customerId, paymentMethod)
+}
+
+export async function createCheckout(invoiceData) {
+  return await createEzypayCheckout(invoiceData)
 }
