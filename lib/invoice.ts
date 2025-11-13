@@ -9,6 +9,7 @@ const merchantId = process.env.EZYPAY_MERCHANT_ID
 
 function normalisedEzypayInvoice(invoices, customerName = null) {
   function extractPaymentMethodData(paymentMethodData) {
+    if (!paymentMethodData) return
     const type = paymentMethodData.type.toLowerCase()
 
     switch (type) {
@@ -76,7 +77,7 @@ export async function listInvoice(): Promise<any> {
       return []
     }
 
-    const invoiceResponse = await fetch(`${apiEndpoint}?limit=30&cursor=50`, {
+    const invoiceResponse = await fetch(`${apiEndpoint}?limit=30`, {
       headers: {
         Authorization: `Bearer ${token}`,
         merchant: merchantId,
