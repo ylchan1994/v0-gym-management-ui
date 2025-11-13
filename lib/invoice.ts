@@ -336,3 +336,52 @@ export async function refundInvoice(invoiceId, amount = null) {
     throw err
   } 
 }
+
+export async function createInvoice(invoiceData) {
+  try {      
+    if (!invoiceData) {
+      throw new Error("No invoice Data")
+    }
+
+    // Get token directly from utility function instead of HTTP request
+    const tokenData = await getEzypayToken()
+    const token = tokenData.access_token
+    if (!token) {
+      console.error("No access_token from token utility", tokenData)
+      throw new Error(`Create invoice failed: No access_token from token utility`)
+    }    
+
+    const requestBody = {
+      customerId: invoiceData.memberId,
+      items: [{
+        description: invoiceData.description,
+        amount: {
+          currency: 'AUD',
+          value: invoiceData.amount
+        }
+      }]
+    }
+
+    const response = await fetch(`${apiEndpoint}`, {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        merchant: merchantId ,
+        'Content-type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    })
+    
+    if (!response.ok) {
+      const text = await response.text()
+      console.log(response)
+      console.error("Create Invoice failed:", response.status, text)
+      throw new Error(`Create invoice failed: ${response.status}`)
+    }
+    
+    return await response.json()
+  } catch (err) {
+    console.error("Create Invoice failed error:", err)
+    throw err
+  } 
+}

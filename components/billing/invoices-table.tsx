@@ -13,7 +13,7 @@ import { CreateInvoiceDialog } from "./create-invoice-dialog"
 import { getStatusBadgeVariant } from "@/app/members/[id]/page"
 import type { Invoice } from "./invoice-detail-dialog"
 
-export function InvoicesTable({variant = 'billing', invoices}) {
+export function InvoicesTable({variant = 'billing', invoices, customerData = null}) {
   if (!invoices) {return ''}
   // const [invoices, setInvoices] = useState<Invoice[]>(invoices)
   const [statusFilter, setStatusFilter] = useState("all")
@@ -61,7 +61,7 @@ export function InvoicesTable({variant = 'billing', invoices}) {
 
   const handleInvoiceCreated = (newInvoice: any) => {
     console.log("[v0] Adding new invoice to list:", newInvoice)
-    setInvoices((prev) => [newInvoice, ...prev])
+    //setInvoices((prev) => [newInvoice, ...prev])
   }
 
   return (
@@ -156,7 +156,7 @@ export function InvoicesTable({variant = 'billing', invoices}) {
         />
       )}
 
-      <CreateInvoiceDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} onSuccess={handleInvoiceCreated} />
+      <CreateInvoiceDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} onSuccess={handleInvoiceCreated} customerId={customerData?.id ? customerData.id : null} customerName={customerData?.name ? customerData.name : null}/>
     </>
   )
 }

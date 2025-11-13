@@ -299,10 +299,10 @@ export default function MemberProfilePage() {
                 <TabsTrigger value="attendance">Attendance Logs</TabsTrigger>
               </TabsList>
               <TabsContent value="invoices">
-                <div className="flex justify-end mb-4">
+                {/* <div className="flex justify-end mb-4">
                   <Button onClick={() => setIsCreateInvoiceOpen(true)}>Create Invoice</Button>
-                </div>
-                <InvoicesTable variant="customer" invoices={memberDataState.invoices} />
+                </div> */}
+                <InvoicesTable variant="customer" invoices={memberDataState.invoices} customerData={memberDataState} />
               </TabsContent>
               <TabsContent value="upcoming">
                 <Card>
@@ -375,13 +375,13 @@ export default function MemberProfilePage() {
         </main>
       </div>
 
-      <CreateInvoiceDialog
+      {/* <CreateInvoiceDialog
         open={isCreateInvoiceOpen}
         onOpenChange={setIsCreateInvoiceOpen}
         customerId={memberDataState?.id}
         customerName={memberDataState?.name}
         onSuccess={handleInvoiceCreated}
-      />
+      /> */}
     </div>
   )
 }

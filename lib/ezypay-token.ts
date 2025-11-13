@@ -2,7 +2,7 @@
 
 // Shared utility to fetch Ezypay access token
 export async function getEzypayToken(): Promise<{ access_token: string; error?: string }> {
-
+  console.log('Start getting token', new Date().toISOString())
   try {
     const {
       EZYPAY_CLIENT_SECRET = 'eGiBZQZ2P7rkBFavu8xa89MINPsgaCgfWVeMupIhspyg9vY6pM8uD2Vl8pn-5Wxc',
@@ -45,6 +45,7 @@ export async function getEzypayToken(): Promise<{ access_token: string; error?: 
       console.error("No access_token in response:", data)
       throw new Error("No access_token in response")
     }
+    console.log('End of getting token', new Date().toISOString())
 
     return data
   } catch (err) {

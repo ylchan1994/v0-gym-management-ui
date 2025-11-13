@@ -14,6 +14,7 @@ import {
   writeOffInvoice as writeOffEzypayInvoice,
   recordExternalInvoice as recordEzypayExternalInvoice,
   refundInvoice as refundEzypayInvoice,
+  createInvoice as createEzypayInvoice,
  } from "@/lib/invoice"
 import { getEzypayToken as innerGetEzypayToken } from './ezypay-token' 
 
@@ -63,4 +64,8 @@ export async function recordExternalInvoice(invoiceId, method) {
 
 export async function refundInvoice(invoiceId, amount) {
   return await refundEzypayInvoice(invoiceId, amount)
+}
+
+export async function createInvoice(invoiceData) {
+  return await createEzypayInvoice(invoiceData)
 }

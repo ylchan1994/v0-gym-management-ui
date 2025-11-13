@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast"
 import { TapToPayAnimation } from "./tap-to-pay-animation"
 import { listCustomer } from "@/lib/passer-functions"
 import { Spinner } from "@/components/ui/spinner"
+import { createInvoice } from "@/lib/invoice"
 
 interface CreateInvoiceDialogProps {
   open: boolean
@@ -55,7 +56,7 @@ export function CreateInvoiceDialog({
       setLoadingCustomers(true)
       listCustomer()
         .then((response) => {
-          const customerList = response?.items || []
+          const customerList = response?.data || []
           setCustomers(customerList)
           sessionStorage.setItem("defaultCustomerList", JSON.stringify(customerList))
           setLoadingCustomers(false)
@@ -158,62 +159,66 @@ export function CreateInvoiceDialog({
             : [],
       }
 
+      if (formData.paymentMethod === 'ondemand') {
+        createInvoice(formData)
+      }
+
       console.log("[v0] Creating invoice with payment method:", formData.paymentMethod)
       console.log("[v0] Invoice data:", invoiceData)
 
       // Different logic for each payment method
-      switch (formData.paymentMethod) {
-        case "ondemand":
-          console.log("[v0] Processing on-demand payment...")
-          toast({
-            title: "Invoice Created - On Demand",
-            description: "Invoice created and ready for on-demand payment.",
-          })
-          break
-        case "tap-to-pay":
-          toast({
-            title: "Payment Successful",
-            description: `Payment processed successfully via ${selectedTerminal?.name}.`,
-          })
-          break
-        case "checkout":
-          try {
-            console.log("[v0] Generating checkout link...")
+      // switch (formData.paymentMethod) {
+      //   case "ondemand":
+      //     console.log("[v0] Processing on-demand payment...")
+      //     toast({
+      //       title: "Invoice Created - On Demand",
+      //       description: "Invoice created and ready for on-demand payment.",
+      //     })
+      //     break
+      //   case "tap-to-pay":
+      //     toast({
+      //       title: "Payment Successful",
+      //       description: `Payment processed successfully via ${selectedTerminal?.name}.`,
+      //     })
+      //     break
+      //   case "checkout":
+      //     try {
+      //       console.log("[v0] Generating checkout link...")
 
-            // POST to internal API which proxies to Ezypay Checkout
-            const res = await fetch(`/api/payment/checkout`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ amount: Number.parseFloat(formData.amount), desciption: formData.description }),
-            })
+      //       // POST to internal API which proxies to Ezypay Checkout
+      //       const res = await fetch(`/api/payment/checkout`, {
+      //         method: "POST",
+      //         headers: { "Content-Type": "application/json" },
+      //         body: JSON.stringify({ amount: Number.parseFloat(formData.amount), desciption: formData.description }),
+      //       })
 
-            const data = await res.json()
+      //       const data = await res.json()
 
-            const checkoutUrl = data?.checkoutUrl
+      //       const checkoutUrl = data?.checkoutUrl
 
-            if (checkoutUrl && typeof window !== "undefined") {
-              window.open(checkoutUrl, "_blank")
-              toast({
-                title: "Invoice Created - Checkout",
-                description: "Checkout opened in a new tab.",
-              })
-            } else {
-              console.warn("[v0] Checkout API did not return a URL", data)
-              toast({
-                title: "Invoice Created",
-                description: "Invoice created but no checkout URL was returned.",
-              })
-            }
-          } catch (err) {
-            console.error("[v0] Error generating checkout link:", err)
-            toast({
-              title: "Checkout Error",
-              description: "Failed to generate checkout link. Please try again.",
-              variant: "destructive",
-            })
-          }
-          break
-      }
+      //       if (checkoutUrl && typeof window !== "undefined") {
+      //         window.open(checkoutUrl, "_blank")
+      //         toast({
+      //           title: "Invoice Created - Checkout",
+      //           description: "Checkout opened in a new tab.",
+      //         })
+      //       } else {
+      //         console.warn("[v0] Checkout API did not return a URL", data)
+      //         toast({
+      //           title: "Invoice Created",
+      //           description: "Invoice created but no checkout URL was returned.",
+      //         })
+      //       }
+      //     } catch (err) {
+      //       console.error("[v0] Error generating checkout link:", err)
+      //       toast({
+      //         title: "Checkout Error",
+      //         description: "Failed to generate checkout link. Please try again.",
+      //         variant: "destructive",
+      //       })
+      //     }
+      //     break
+      // }
 
       // Reset form and close dialog
       setFormData({
@@ -274,7 +279,7 @@ export function CreateInvoiceDialog({
                       ) : (
                         customers.map((customer) => (
                           <SelectItem key={customer.id} value={customer.id}>
-                            {customer.firstName} {customer.lastName} ({customer.email})
+                            {customer.firstName} {customer.lastName}
                           </SelectItem>
                         ))
                       )}
