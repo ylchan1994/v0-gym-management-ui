@@ -159,6 +159,22 @@ export default function NewMemberPage() {
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-balance">Add New Member</h1>
                 <p className="text-muted-foreground">Create a new member profile</p>
+                {!iframeRef && <>
+                <br></br>
+                <p className="text-muted-foreground italic">
+                  You would want to&nbsp;
+                  <Link href={"https://developer.ezypay.com/docs/customer-creation#/"} className="underline">create customer with Ezypay</Link> 
+                  &nbsp;also at this step. The next step will be collecting payment methods from customer and an Ezypay customer ID is required. It you have a disjoined process on customer creation and payment method collecton, you could create the customer later.
+                </p>
+                </>}
+                {iframeRef && <>
+                <br></br>
+                <p className="text-muted-foreground italic">
+                  After you get the Ezypay customer ID, you could collect the payment method from customer by&nbsp;
+                  <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} className="underline">hosting Ezypay's payment capture page</Link> 
+                  &nbsp;as an iframe in your page
+                </p>
+                </>}
               </div>
             </div>
 

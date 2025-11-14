@@ -22,6 +22,7 @@ import { TapToPayAnimation } from "./tap-to-pay-animation"
 import { createCheckout, listCustomer, createInvoice } from "@/lib/passer-functions"
 import { Spinner } from "@/components/ui/spinner"
 import { PaymentMethodsList } from "./payment-methods-list"
+import Link from "next/link"
 
 interface CreateInvoiceDialogProps {
   open: boolean
@@ -220,12 +221,25 @@ export function CreateInvoiceDialog({
       <TapToPayAnimation open={showTapAnimation} />
 
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[700px]">
+        <DialogContent className="sm:max-w-[1000px]">
           <DialogHeader>
             <DialogTitle>Create New Invoice</DialogTitle>
             <DialogDescription>Create a new invoice with pending status</DialogDescription>
+            <DialogDescription className="italic">
+              You would create invoice in Ezypay with this also and depends on whether is&nbsp;
+              <Link href={"https://developer.ezypay.com/docs/on-demand#/"} className="underline">
+                on-demand invoice,
+              </Link>&nbsp;
+              <Link href={"https://developer.ezypay.com/docs/checkout#/"} className="underline">
+                tap to pay invoice,
+              </Link>&nbsp;
+              <Link href={"https://developer.ezypay.com/docs/terminal-integration#/"} className="underline">
+                checkout session,
+              </Link>
+              &nbsp;you would need to use different APIs to create the relevant session with Ezypay
+            </DialogDescription>  
           </DialogHeader>
-          <form onSubmit={handleSubmit}>
+          <form className="mt-9" onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="member">Member</Label>

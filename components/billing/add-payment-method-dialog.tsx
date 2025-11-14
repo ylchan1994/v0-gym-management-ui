@@ -14,6 +14,7 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
 import { getEzypayToken } from "@/lib/ezypay-token"
+import Link from "next/link"
 
 interface AddPaymentMethodDialogProps {
   customerId: string
@@ -102,8 +103,13 @@ export function AddPaymentMethodDialog({
       <DialogHeader className="p-2 pb-0">
         <DialogTitle>Add Payment Method</DialogTitle>
         <DialogDescription>Add a new payment method for automatic billing</DialogDescription>
-      </DialogHeader>
-  <div className="flex-1 p-4 pt-4">
+        <DialogDescription className="italic">
+          Host&nbsp;
+          <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} className="underline">Ezypay's Payment Capture Page</Link>
+          &nbsp;here and allow customer to update their payment method. This should be on the customer portal if available.
+        </DialogDescription>        
+      </DialogHeader>      
+  <div className="flex-1 p-4 mt-10">
         {isLoading ? (
           <div className="flex items-center justify-center">
             <Spinner className="h-8 w-8" />
