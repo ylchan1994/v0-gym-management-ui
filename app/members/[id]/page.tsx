@@ -275,6 +275,13 @@ export default function MemberProfilePage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Payment Methods</CardTitle>
+                  <CardDescription className="italic">
+                    This should appear in customer portal to allow customer to&nbsp;
+                    <Link href={'https://developer.ezypay.com/docs/payment-method-management#/'} className="underline">
+                      manage their payment methods
+                    </Link>
+                    .
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <PaymentMethodsList customerId={memberDataState?.id} variant="display" />

@@ -21,6 +21,7 @@ import {
 } from "@/lib/passer-functions"
 import { Spinner } from "../ui/spinner"
 import { PaymentMethodsList } from "./payment-methods-list"
+import Link from "next/link"
 
 interface PaymentAttempt {
   id: string
@@ -186,9 +187,12 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
           <DialogHeader>
             <DialogTitle>Invoice Details</DialogTitle>
             <DialogDescription>View invoice information and payment history</DialogDescription>
+            <DialogDescription className="italic">
+              Transparency on the invoice status and information is important to both customer and merchant. They should be able to view all the fees charged to the customer and the failed reasons.              
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-6 mt-12">
             {/* Invoice Summary */}
             <div className="grid gap-4 md:grid-cols-2">
               <div>
@@ -287,7 +291,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-2">Failed Reasons</p>
                 <div className="flex items-center gap-3 rounded-lg border border-border p-3">
-                  <p className="font-medium">{invoice.failedPaymentReason.code}</p>:
+                  <p className="font-medium">{invoice.failedPaymentReason.code}:</p>
                   <p className="font-medium">{invoice.paymentProviderResponse.description}</p>
                 </div>
               </div>
