@@ -18,7 +18,9 @@ export async function createCustomer(customer): Promise<any> {
       firstName: customer.firstName,
       lastName: customer.lastName,
       email: customer.email,
-      address: customer.address ?? null,
+      address: {
+        address1: customer.address ?? null,
+      },
       mobilePhone: customer.mobilePhone ?? null,
       dateOfBirth: customer.dateOfBirth ?? null,
       homePhone: customer.emergencyContact ?? null,
