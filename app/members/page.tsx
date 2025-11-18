@@ -20,6 +20,7 @@ export default function MembersPage() {
   useEffect(() => {
     const member: any[] = []
     listCustomer().then(e => {
+      console.log('Start listing customer in /members page')
       let customers = e.data
 
       customers?.forEach(customer => {

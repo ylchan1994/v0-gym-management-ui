@@ -23,7 +23,7 @@ export async function createCustomer(customer): Promise<any> {
       },
       mobilePhone: customer.mobilePhone ?? null,
       dateOfBirth: customer.dateOfBirth ?? null,
-      homePhone: customer.emergencyContact ?? null,
+      //homePhone: customer.emergencyContact ?? null,
       metadata: {
         plan: customer.plan ?? 'Trial',
         status: customer.status ?? 'trial',

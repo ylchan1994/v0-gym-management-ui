@@ -19,11 +19,22 @@ const navigation = [
 export function AppSidebar() {
   
   useEffect(() => {
-    listCustomer().then(res => {
-      const customers = res.data.map(customer => normalisedEzypayCustomer(customer) )
-      sessionStorage.setItem('defaultCustomerList', JSON.stringify(customers))
-    })
-  })
+    let mounted = true
+    listCustomer()
+      .then((res) => {
+        if (!mounted) return
+        const customers = res.data.map((customer) => normalisedEzypayCustomer(customer))
+        sessionStorage.setItem('defaultCustomerList', JSON.stringify(customers))
+      })
+      .catch((err) => {
+        // fail silently - sidebar should not break the app
+        console.error('[v0] Failed to load customer list for sidebar', err)
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const pathname = usePathname()
 
