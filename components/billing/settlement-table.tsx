@@ -55,7 +55,6 @@ export function SettlementTable() {
 
   useEffect(() => {
     listSettlements().then(settlements => {
-      console.log(settlements)
       setSettlements(settlements)
     })
   }, [])

@@ -108,7 +108,6 @@ export async function listSettlements(): Promise<any> {
     }
     
     const settlements = await response.json()  
-    console.log(settlements)
     return normalisedEzypaySettlement(settlements.data)
   } catch (err) {
     console.error("List settlement error:", err)

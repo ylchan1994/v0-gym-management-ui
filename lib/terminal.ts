@@ -163,7 +163,6 @@ export async function createTerminalInvoice(invoiceData, terminalId) {
         },
       ],
     }
-    console.log(JSON.stringify(invoiceData))
     if (invoiceData.paymentMethodId) {
       requestBody.paymentMethodToken = invoiceData.paymentMethodId
     }
@@ -180,7 +179,6 @@ export async function createTerminalInvoice(invoiceData, terminalId) {
 
     if (!response.ok) {
       const text = await response.text()
-      console.log(response)
       console.error("Create Invoice failed:", response.status, text)
       throw new Error(`Create invoice failed: ${response.status}`)
     }
@@ -193,7 +191,6 @@ export async function createTerminalInvoice(invoiceData, terminalId) {
 }
 
 export async function createCheckout(invoiceData) {
-  console.log(invoiceData)
   try {
     if (!invoiceData) {
       throw new Error("No invoice data for checkout session")

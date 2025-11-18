@@ -6,7 +6,6 @@ const apiEndpoint = `${process.env.API_ENDPOINT}/v2/billing/customers`
 const merchantId = process.env.EZYPAY_MERCHANT_ID  
 
 export async function replacePaymentMethod(customerId, paymentMethod, newPaymentMethod) {
-  console.log(customerId, paymentMethod, newPaymentMethod)
   try {
     if (!customerId || !paymentMethod || !newPaymentMethod) {
       throw new Error("Not enough information")
