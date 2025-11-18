@@ -5,57 +5,29 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
-import { Download, Search } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Download, Search, Loader2 } from 'lucide-react'
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
-import { listSettlements } from "@/lib/passer-functions"
-
-const initialSettlements = [
-  {
-    id: "STL-001",
-    date: "2024-10-15",
-    amount: "$12,450.00",
-    status: "completed" as const,
-    period: "Oct 1-15, 2024",
-  },
-  {
-    id: "STL-002",
-    date: "2024-09-30",
-    amount: "$18,920.00",
-    status: "completed" as const,
-    period: "Sep 16-30, 2024",
-  },
-  {
-    id: "STL-003",
-    date: "2024-09-15",
-    amount: "$15,680.00",
-    status: "completed" as const,
-    period: "Sep 1-15, 2024",
-  },
-  {
-    id: "STL-004",
-    date: "2024-08-31",
-    amount: "$21,340.00",
-    status: "completed" as const,
-    period: "Aug 16-31, 2024",
-  },
-  {
-    id: "STL-005",
-    date: "2024-08-15",
-    amount: "$19,560.00",
-    status: "completed" as const,
-    period: "Aug 1-15, 2024",
-  },
-]
+import { listSettlements, downloadDocument, type documentType } from "@/lib/passer-functions"
 
 export function SettlementTable() {
-  const [settlements, setSettlements] = useState(initialSettlements)
+  const [settlements, setSettlements] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
+  const [isDownloading, setIsDownloading] = useState<string | null>(null)
   const { toast } = useToast()
 
   useEffect(() => {
+    setIsLoading(true)
     listSettlements().then(settlements => {
       setSettlements(settlements)
+      setIsLoading(false)
     })
   }, [])
 
@@ -66,41 +38,40 @@ export function SettlementTable() {
     return matchesSearch
   })
 
-  const handleDownloadReport = (settlement: (typeof settlements)[0]) => {
-    // Generate CSV content for the settlement report
-    const csvContent = [
-      ["Settlement Report"],
-      ["Settlement ID", settlement.id],
-      ["Period", settlement.period],
-      ["Settlement Date", settlement.date],
-      ["Total Amount", settlement.amount],
-      ["Status", settlement.status],
-      [],
-      ["Transaction Details"],
-      ["Transaction ID", "Date", "Member", "Amount", "Type", "Status"],
-      // Mock transaction data
-      ["TXN-001", settlement.date, "John Doe", "$99.00", "Membership", "Completed"],
-      ["TXN-002", settlement.date, "Sarah Smith", "$149.00", "Personal Training", "Completed"],
-      ["TXN-003", settlement.date, "Mike Johnson", "$49.00", "Day Pass", "Completed"],
-    ]
-      .map((row) => row.join(","))
-      .join("\n")
+  const formatAmount = (amount: string | number) => {
+    const numAmount = typeof amount === 'string' ? parseFloat(amount.replace(/[^0-9.-]+/g, '')) : amount
+    return new Intl.NumberFormat('en-AU', {
+      style: 'currency',
+      currency: 'AUD',
+    }).format(numAmount)
+  }
 
-    // Create blob and download
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-    const link = document.createElement("a")
-    const url = URL.createObjectURL(blob)
-    link.setAttribute("href", url)
-    link.setAttribute("download", `settlement-report-${settlement.id}.csv`)
-    link.style.visibility = "hidden"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    toast({
-      title: "Report Downloaded",
-      description: `Settlement report ${settlement.id} has been downloaded successfully.`,
-    })
+  const handleDownloadDocument = async (settlementId: string, docType: documentType) => {
+    setIsDownloading(settlementId)
+    try {
+      const downloadUrl = await downloadDocument(settlementId, docType)
+      
+      window.open(downloadUrl, '_blank')
+      
+      const typeLabels = {
+        'tax_invoice': 'Tax Invoice',
+        'detail_report': 'Detail Report',
+        'summary_report': 'Summary Report'
+      }
+      
+      toast({
+        title: "Report Downloaded",
+        description: `${typeLabels[docType]} for settlement ${settlementId} is ready.`,
+      })
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Failed to download the settlement document. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsDownloading(null)
+    }
   }
 
   return (
@@ -134,22 +105,65 @@ export function SettlementTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredSettlements.map((settlement) => (
-              <TableRow key={settlement.id}>
-                <TableCell className="font-medium">{settlement.id}</TableCell>
-                <TableCell>{settlement.date}</TableCell>
-                <TableCell className="font-medium">{settlement.amount}</TableCell>
-                <TableCell>
-                  <Badge variant="default">{settlement.status}</Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <Download className="h-4 w-4" />
-                    Download Report
-                  </Button>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Loading settlements...</span>
+                  </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : filteredSettlements.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center">
+                  No settlements found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredSettlements.map((settlement) => (
+                <TableRow key={settlement.id}>
+                  <TableCell className="font-medium">{settlement.id}</TableCell>
+                  <TableCell>{settlement.date}</TableCell>
+                  <TableCell className="font-medium">{formatAmount(settlement.amount)}</TableCell>
+                  <TableCell>
+                    <Badge variant="default">{settlement.status}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="gap-2"
+                          disabled={isDownloading === settlement.id}
+                        >
+                          <Download className="h-4 w-4" />
+                          {isDownloading === settlement.id ? "Downloading..." : "Download Report"}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem 
+                          onClick={() => handleDownloadDocument(settlement.id, 'tax_invoice')}
+                        >
+                          Tax Invoice
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDownloadDocument(settlement.id, 'detail_report')}
+                        >
+                          Detail Report
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDownloadDocument(settlement.id, 'summary_report')}
+                        >
+                          Summary Report
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </CardContent>

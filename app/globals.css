@@ -58,8 +58,9 @@
   --accent-foreground: oklch(0.98 0 0);
   --destructive: oklch(0.5 0.2 27);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.22 0.02 250);
-  --input: oklch(0.22 0.02 250);
+  /* Increased border lightness from 0.22 to 0.35 for better contrast in dark mode */
+  --border: oklch(0.35 0.02 250);
+  --input: oklch(0.35 0.02 250);
   --ring: oklch(0.6 0.2 250);
   --chart-1: oklch(0.6 0.2 250);
   --chart-2: oklch(0.65 0.2 180);
@@ -72,7 +73,8 @@
   --sidebar-primary-foreground: oklch(0.98 0 0);
   --sidebar-accent: oklch(0.2 0.02 250);
   --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.22 0.02 250);
+  /* Increased sidebar border lightness from 0.22 to 0.35 for better contrast */
+  --sidebar-border: oklch(0.35 0.02 250);
   --sidebar-ring: oklch(0.6 0.2 250);
 }
 
