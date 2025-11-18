@@ -216,7 +216,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
                 <p className="text-base">{invoice.date}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Due Date</p>
+                <p className="text-sm font-medium text-muted-foreground">Scheduled Date</p>
                 <p className="text-base">{invoice.dueDate}</p>
               </div>
             </div>
@@ -426,7 +426,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
                   Refund Invoice
                 </Button>
               )}
-              {(invoice.status === "failed" || invoice.status === "past_due") && (
+              {(invoice.status === "failed" || invoice.status === "past_due" || invoice.status === "unpaid") && (
                 <>
                   <Button variant="secondary" onClick={handleRetry} disabled={isProcessing}>
                     <RefreshCw className="mr-2 h-4 w-4" />

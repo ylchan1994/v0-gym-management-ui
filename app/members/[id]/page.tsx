@@ -16,7 +16,6 @@ import { Spinner } from "@/components/ui/spinner"
 import { getCustomerIdFromPath, normalisedEzypayInvoice } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
 import { InvoicesTable } from "@/components/billing/invoices-table"
-import { CreateInvoiceDialog } from "@/components/billing/create-invoice-dialog"
 
 export const getStatusBadgeVariant = (status: string) => {
   if (status === "paid") return "default"

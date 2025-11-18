@@ -183,7 +183,7 @@ export function PaymentMethodsList({
 
   if (variant === "selection") {
     return (
-      <RadioGroup value={selectedMethodId} onValueChange={onMethodSelect}>
+      <RadioGroup value={selectedMethodId || defaultPaymentMethod.id} onValueChange={onMethodSelect}>
         <div className="space-y-2">
           {paymentMethods.map((method) => {
             const isInvalid = !method.valid

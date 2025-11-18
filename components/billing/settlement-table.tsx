@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Download, Search } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { listSettlements } from "@/lib/passer-functions"
 
 const initialSettlements = [
   {
@@ -48,9 +49,16 @@ const initialSettlements = [
 ]
 
 export function SettlementTable() {
-  const [settlements] = useState(initialSettlements)
+  const [settlements, setSettlements] = useState(initialSettlements)
   const [searchQuery, setSearchQuery] = useState("")
   const { toast } = useToast()
+
+  useEffect(() => {
+    listSettlements().then(settlements => {
+      console.log(settlements)
+      setSettlements(settlements)
+    })
+  }, [])
 
   const filteredSettlements = settlements.filter((settlement) => {
     const matchesSearch =
@@ -120,7 +128,6 @@ export function SettlementTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Settlement ID</TableHead>
-              <TableHead>Period</TableHead>
               <TableHead>Settlement Date</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
@@ -131,7 +138,6 @@ export function SettlementTable() {
             {filteredSettlements.map((settlement) => (
               <TableRow key={settlement.id}>
                 <TableCell className="font-medium">{settlement.id}</TableCell>
-                <TableCell>{settlement.period}</TableCell>
                 <TableCell>{settlement.date}</TableCell>
                 <TableCell className="font-medium">{settlement.amount}</TableCell>
                 <TableCell>

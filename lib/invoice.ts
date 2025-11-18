@@ -49,7 +49,7 @@ function normalisedEzypayInvoice(invoices, customerName = null) {
     amount: `$${invoice.amount.value}`,
     number: "IN" + Number.parseInt(invoice.documentNumber.substring(4)),
     date: invoice.date,
-    dueDate: invoice.dueDate,
+    dueDate: invoice.scheduledPaymentDate,
     paymentMethod: extractPaymentMethodData(invoice.paymentMethodData),
     items: mergeItemsByDescription(invoice.items),
     status: invoice.status.toLowerCase(),

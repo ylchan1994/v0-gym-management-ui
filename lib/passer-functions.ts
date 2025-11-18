@@ -22,6 +22,10 @@ import {
   replacePaymentMethod as replaceEzypayPaymentMethod,
   deletePaymentMethod as deleteEzypayPaymentMethod
  } from "@/lib/payment-methods"
+ import { 
+  listSettlements as listEzypaySettlements,
+  downloadDocument as downloadEzypayDocument
+ } from "@/lib/settlements"
 
 export async function createCustomer(customer) {
   return await createEzypayCustomer(customer)
@@ -85,4 +89,12 @@ export async function deletePaymentMethod(customerId, paymentMethod ) {
 
 export async function createCheckout(invoiceData) {
   return await createEzypayCheckout(invoiceData)
+}
+
+export async function listSettlements() {
+  return await listEzypaySettlements()
+}
+
+export async function downloadDocument(settlementId, documentType) {
+  return await downloadEzypayDocument(settlementId, documentType)
 }
