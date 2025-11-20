@@ -6,47 +6,45 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Download, Send, Search, Plus } from "lucide-react"
-import { useEffect, useState } from "react"
+import { Search, Plus } from "lucide-react"
+import { useState } from "react"
 import { InvoiceDetailDialog } from "./invoice-detail-dialog"
 import { CreateInvoiceDialog } from "./create-invoice-dialog"
 import { getStatusBadgeVariant } from "@/app/members/[id]/page"
-import type { Invoice } from "./invoice-detail-dialog"
 
-export function InvoicesTable({variant = 'billing', invoices, customerData = null}) {
-  if (!invoices) {return ''}
-  // const [invoices, setInvoices] = useState<Invoice[]>(invoices)
+export function InvoicesTable({ variant = "billing", invoices, customerData = null }) {
   const [statusFilter, setStatusFilter] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedInvoice, setSelectedInvoice] = useState<(typeof invoices)[0] | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
 
+  if (!invoices) {
+    return ""
+  }
+
   const filteredInvoices = invoices?.filter((invoice) => {
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter
-    const matchesSearch = variant == 'billing' ? (
-      invoice.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      invoice.member.toLowerCase().includes(searchQuery.toLowerCase())
-    ) : (
-      invoice.id.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    const matchesSearch =
+      variant == "billing"
+        ? invoice.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          invoice.member.toLowerCase().includes(searchQuery.toLowerCase())
+        : invoice.id.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesStatus && matchesSearch
   })
 
   const handleInvoiceClick = (invoice: (typeof invoices)[0]) => {
     if (!invoice.id) {
-      console.error('Invalid invoice data (missing id):', invoice)
+      console.error("Invalid invoice data (missing id):", invoice)
       return
     }
     setSelectedInvoice(invoice)
     setIsDetailOpen(true)
   }
 
-  // Safely format values for table cells to avoid rendering plain objects
   const formatCellValue = (val: any) => {
     if (val === null || val === undefined) return ""
     if (typeof val === "object") {
-      // Common API shapes might include { code, description }
       if (val.code || val.description) {
         return `${val.code ?? ""}${val.description ? ` - ${val.description}` : ""}`.trim()
       }
@@ -109,7 +107,7 @@ export function InvoicesTable({variant = 'billing', invoices, customerData = nul
             <TableHeader>
               <TableRow>
                 <TableHead>Invoice ID</TableHead>
-                {variant == 'billing' ? <TableHead>Member</TableHead> : ''}
+                {variant == "billing" ? <TableHead>Member</TableHead> : ""}
                 <TableHead>Amount</TableHead>
                 <TableHead>Payment Method</TableHead>
                 <TableHead>Status</TableHead>
@@ -124,18 +122,17 @@ export function InvoicesTable({variant = 'billing', invoices, customerData = nul
                   onClick={() => handleInvoiceClick(invoice)}
                 >
                   <TableCell className="font-medium">{formatCellValue(invoice.number ?? invoice.id)}</TableCell>
-                  {variant == 'billing' ? <TableCell>{formatCellValue(invoice.member)}</TableCell> : ''}
+                  {variant == "billing" ? <TableCell>{formatCellValue(invoice.member)}</TableCell> : ""}
                   <TableCell className="font-medium">{formatCellValue(invoice.amount)}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{formatCellValue(invoice.paymentMethod)}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {formatCellValue(invoice.paymentMethod)}
+                  </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={getStatusBadgeVariant(String(invoice.status))}
-                      // className={invoice.status === "refunded" ? "border-orange-500 text-orange-500" : ""}
-                    >
+                    <Badge variant={getStatusBadgeVariant(String(invoice.status))}>
                       {formatCellValue(invoice.status)}
                     </Badge>
                   </TableCell>
-                  <TableCell>{formatCellValue(invoice.date)}</TableCell>                  
+                  <TableCell>{formatCellValue(invoice.date)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -143,7 +140,6 @@ export function InvoicesTable({variant = 'billing', invoices, customerData = nul
         </CardContent>
       </Card>
 
-      
       {isDetailOpen && selectedInvoice && (
         <InvoiceDetailDialog
           invoiceProp={selectedInvoice}
@@ -155,7 +151,13 @@ export function InvoicesTable({variant = 'billing', invoices, customerData = nul
         />
       )}
 
-      <CreateInvoiceDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} onSuccess={handleInvoiceCreated} customerId={customerData?.id ? customerData.id : null} customerName={customerData?.name ? customerData.name : null}/>
+      <CreateInvoiceDialog
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        onSuccess={handleInvoiceCreated}
+        customerId={customerData?.id ? customerData.id : null}
+        customerName={customerData?.name ? customerData.name : null}
+      />
     </>
   )
 }

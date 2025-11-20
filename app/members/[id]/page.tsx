@@ -25,6 +25,20 @@ export const getStatusBadgeVariant = (status: string) => {
 }
 
 export default function MemberProfilePage() {
+  const [memberDataState, setMemberDataState] = useState<any>({})
+  const [selectedInvoice, setSelectedInvoice] = useState<any[] | null>(null)
+  const [isInvoiceDetailOpen, setIsInvoiceDetailOpen] = useState(false)
+  const [renewOpen, setRenewOpen] = useState(false)
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  const plans = [
+    { id: "1", name: "Basic", price: 49, duration: "Monthly" },
+    { id: "2", name: "Premium", price: 99, duration: "Monthly" },
+    { id: "3", name: "Annual", price: 999, duration: "Yearly" },
+    { id: "4", name: "Personal Training", price: 149, duration: "Monthly" },
+  ]
+
   useEffect(() => {
     const customerId = getCustomerIdFromPath()
 
@@ -35,40 +49,18 @@ export default function MemberProfilePage() {
         setIsLoading(false)
       } catch (error) {
         console.error(error)
-        setIsLoading(false) // Optional: ensure loading stops on error
+        setIsLoading(false)
       }
     }
 
     fetchData()
   }, [])
 
-  // memberData is loaded from fullMemberData based on URL id when available
-  const [memberDataState, setMemberDataState] = useState<any>({})
-  const [selectedInvoice, setSelectedInvoice] = useState<any[] | null>(null)
-  const [isInvoiceDetailOpen, setIsInvoiceDetailOpen] = useState(false)
-  const [renewOpen, setRenewOpen] = useState(false)
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false)
-
-  // Mock plans (keep in sync with /app/plans/page.tsx if needed)
-  const plans = [
-    { id: "1", name: "Basic", price: 49, duration: "Monthly" },
-    { id: "2", name: "Premium", price: 99, duration: "Monthly" },
-    { id: "3", name: "Annual", price: 999, duration: "Yearly" },
-    { id: "4", name: "Personal Training", price: 149, duration: "Monthly" },
-  ]
-
   const handleInvoiceClick = (invoice: any) => {
     setSelectedInvoice(invoice)
     setIsInvoiceDetailOpen(true)
   }
 
-  const handleInvoiceDialogOpenChange = (open: boolean) => {
-    setIsInvoiceDetailOpen(open)
-  }
-
-  // Handlers for AddPaymentMethodDialog
   const handleAddPaymentOpenChange = (open: boolean) => {
     if (!open) {
       const idFromPath = getCustomerIdFromPath() || memberDataState?.id
@@ -81,39 +73,16 @@ export default function MemberProfilePage() {
     if (idFromPath) setMemberDataState((prev) => ({ ...prev }))
   }
 
-  const handleInvoiceUpdate = () => {
-    const idFromPath = getCustomerIdFromPath() || memberDataState?.id
-    if (idFromPath) setMemberDataState((prev) => ({ ...prev }))
-  }
-
-  const handleInvoiceCreated = (invoice: any) => {
-    // Refresh member data to show new invoice
-    const idFromPath = getCustomerIdFromPath() || memberDataState?.id
-    if (idFromPath) {
-      const fetchData = async () => {
-        try {
-          const memberData = await normalisedEzypayInvoice(idFromPath)
-          setMemberDataState(memberData)
-        } catch (error) {
-          console.error(error)
-        }
-      }
-      fetchData()
-    }
-  }
-
   return (
     <div className="flex h-screen">
       <AppSidebar />
       <div className="flex flex-1 flex-col overflow-hidden relative">
         <TopBar />
         {isLoading ? (
-          <div className="flex justify-center items-center w-full h-full absolute">
-            <Spinner className="w-30 h-30" />
+          <div className="flex justify-center items-center w-full h-full absolute bg-background/80 z-10">
+            <Spinner className="w-20 h-20" />
           </div>
-        ) : (
-          ""
-        )}
+        ) : null}
         <main className="flex-1 overflow-y-auto p-6">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -244,7 +213,6 @@ export default function MemberProfilePage() {
                               onClick={() => {
                                 const plan = plans.find((p) => p.id === selectedPlanId)
                                 if (plan) {
-                                  // Update plan and expiry date (simple logic)
                                   const now = new Date()
                                   const newExpiry = new Date(now)
                                   if (plan.duration.toLowerCase().includes("year")) {
@@ -276,7 +244,7 @@ export default function MemberProfilePage() {
                   <CardTitle>Payment Methods</CardTitle>
                   <CardDescription className="italic">
                     This should appear in customer portal to allow customer to&nbsp;
-                    <Link href={'https://developer.ezypay.com/docs/payment-method-management#/'} className="underline">
+                    <Link href={"https://developer.ezypay.com/docs/payment-method-management#/"} className="underline">
                       manage their payment methods
                     </Link>
                     .

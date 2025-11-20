@@ -6,7 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { InvoiceDetailDialog } from "./invoice-detail-dialog"
 
-// Mock upcoming invoices data
 const upcomingInvoicesData = [
   {
     id: "INV-UP-001",
@@ -59,11 +58,6 @@ export function UpcomingInvoicesTable() {
     setIsDetailOpen(true)
   }
 
-  const handleCreateSuccess = () => {
-    console.log("[v0] Invoice created successfully")
-    // In a real app, refresh the invoices list here
-  }
-
   return (
     <>
       <Card>
@@ -72,7 +66,6 @@ export function UpcomingInvoicesTable() {
             <CardTitle>Upcoming Invoices</CardTitle>
             <CardDescription>Scheduled invoices pending payment</CardDescription>
           </div>
-          {/* <CreateInvoiceDialog onSuccess={handleCreateSuccess} /> */}
         </CardHeader>
         <CardContent>
           <Table>

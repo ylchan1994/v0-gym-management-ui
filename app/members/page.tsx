@@ -16,35 +16,35 @@ import { listCustomer } from "@/lib/passer-functions"
 import { Spinner } from "@/components/ui/spinner"
 
 export default function MembersPage() {
+  const router = useRouter()
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [members, setMembers] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const member: any[] = []
-    listCustomer().then(e => {
-      let customers = e.data
+    listCustomer().then((e) => {
+      const customers = e.data
 
-      customers?.forEach(customer => {
+      customers?.forEach((customer) => {
         member.push({
           id: customer.id,
           name: `${customer.firstName} ${customer.lastName}`,
           email: customer.email,
           phone: customer.mobilePhone,
-          status: customer.metadata?.status ?? 'trial',
-          plan: customer.metadata?.plan ?? 'Trial',
-          joinDate: customer.metadata?.joinDate ?? new Date(Date.now()).toISOString().split('T')[0],
-          expiryDate: customer.metadata?.expiryDate ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          status: customer.metadata?.status ?? "trial",
+          plan: customer.metadata?.plan ?? "Trial",
+          joinDate: customer.metadata?.joinDate ?? new Date(Date.now()).toISOString().split("T")[0],
+          expiryDate:
+            customer.metadata?.expiryDate ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         })
       })
 
-      setMembers(member);
-      setIsLoading(false);
+      setMembers(member)
+      setIsLoading(false)
     })
   }, [])
-
-  const router = useRouter()
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [members, setMembers] =useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
 
   const filteredMembers = members.filter((member) => {
     const matchesStatus = statusFilter === "all" || member.status === statusFilter
@@ -60,7 +60,7 @@ export default function MembersPage() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar />
         <main className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-6 relative">
+          <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-balance">Members</h1>
@@ -98,25 +98,31 @@ export default function MembersPage() {
               </Select>
             </div>
 
-            {isLoading? 
-              (<div className="absolute w-full h-full flex justify-center items-center pt-50">
-                <Spinner className="mr-2 h-20 w-20" />
-              </div>) : 
-              (<div className="rounded-lg border border-border bg-card relative">
-                <Table>
-                  <TableHeader>
+            <div className="rounded-lg border border-border bg-card">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Plan</TableHead>
+                    <TableHead>Join Date</TableHead>
+                    <TableHead>Expiry Date</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Plan</TableHead>
-                      <TableHead>Join Date</TableHead>
-                      <TableHead>Expiry Date</TableHead>
-                      <TableHead className="w-[50px]"></TableHead>
+                      <TableCell colSpan={7} className="h-24 text-center">
+                        <div className="flex items-center justify-center">
+                          <Spinner className="h-6 w-6 mr-2" />
+                          <span>Loading members...</span>
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredMembers.map((member) => (
+                  ) : (
+                    filteredMembers.map((member) => (
                       <TableRow
                         key={member.id}
                         className="cursor-pointer hover:bg-muted/50"
@@ -131,9 +137,7 @@ export default function MembersPage() {
                           }
                         }}
                       >
-                        <TableCell className="font-medium">
-                          {member.name}
-                        </TableCell>
+                        <TableCell className="font-medium">{member.name}</TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
                             <span className="text-sm">{member.email}</span>
@@ -159,7 +163,6 @@ export default function MembersPage() {
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              {/* Prevent trigger clicks from bubbling to the row */}
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -181,11 +184,11 @@ export default function MembersPage() {
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </main>
       </div>

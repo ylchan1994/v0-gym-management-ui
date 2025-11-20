@@ -110,10 +110,10 @@ export default function BillingPage() {
                 <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
                 <TabsTrigger value="settlement">Settlement</TabsTrigger>
               </TabsList>
-              <TabsContent value="invoices" className="relative">
+              <TabsContent value="invoices">
                 {isLoading ? (
-                  <div className="flex justify-center items-center w-full h-60 absolute pt-10">
-                    <Spinner className="w-30 h-30" />
+                  <div className="flex justify-center items-center w-full h-60">
+                    <Spinner className="w-20 h-20" />
                   </div>
                 ) : (
                   <InvoicesTable invoices={invoices} />
