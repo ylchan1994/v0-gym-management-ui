@@ -17,18 +17,17 @@ const navigation = [
 ]
 
 export function AppSidebar() {
-  
   useEffect(() => {
     let mounted = true
     listCustomer()
       .then((res) => {
         if (!mounted) return
         const customers = res.data.map((customer) => normalisedEzypayCustomer(customer))
-        sessionStorage.setItem('defaultCustomerList', JSON.stringify(customers))
+        sessionStorage.setItem("defaultCustomerList", JSON.stringify(customers))
       })
       .catch((err) => {
         // fail silently - sidebar should not break the app
-        console.error('[v0] Failed to load customer list for sidebar', err)
+        console.error("[v0] Failed to load customer list for sidebar", err)
       })
 
     return () => {
@@ -40,10 +39,13 @@ export function AppSidebar() {
 
   return (
     <div className="flex h-full w-64 flex-col border-r border-sidebar-border bg-sidebar">
-      <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
+      <Link
+        href="/"
+        className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6 transition-opacity hover:opacity-80"
+      >
         <Dumbbell className="h-6 w-6 text-sidebar-primary" />
         <span className="text-lg font-semibold text-sidebar-foreground">GymFlow</span>
-      </div>
+      </Link>
       <nav className="flex-1 space-y-1 p-4">
         {navigation.map((item) => {
           const isActive = pathname === item.href
