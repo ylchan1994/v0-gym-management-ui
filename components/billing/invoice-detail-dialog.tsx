@@ -21,7 +21,6 @@ import {
 } from "@/lib/passer-functions"
 import { Spinner } from "../ui/spinner"
 import { PaymentMethodsList } from "./payment-methods-list"
-import Link from "next/link"
 
 interface PaymentAttempt {
   id: string
@@ -49,6 +48,7 @@ export interface Invoice {
   customerId?: string
   failedPaymentReason?: any
   paymentProviderResponse?: any
+  payNowUrl?: string
 }
 
 interface InvoiceDetailDialogProps {
@@ -69,7 +69,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null)
   const [externalPaymentMethod, setExternalPaymentMethod] = useState<string>("")
   const [refundError, setRefundError] = useState<string | null>(null)
-
+  
   useEffect(() => {
     setInvoice(invoiceProp)
   }, [invoiceProp])
@@ -153,6 +153,27 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
     }
   }
 
+  const handlePayNow = async () => {
+    if (!invoice?.payNowUrl) {
+      toast.error("No Pay Now URL available for this invoice")
+      return
+    }
+
+    try {
+      if (typeof invoice.payNowUrl !== "string") throw new Error("Invalid URL")
+      // validate URL
+      // eslint-disable-next-line no-new
+      new URL(invoice.payNowUrl)
+
+      if (typeof window !== "undefined") {
+        window.open(invoice.payNowUrl, "_blank", "noopener,noreferrer")
+      }
+    } catch (err) {
+      console.error("[v0] Failed to open Pay Now URL", err, invoice.payNowUrl)
+      toast.error("Failed to open Pay Now URL")
+    }
+  }
+
   const handleTrackExternal = async () => {
     if (!invoice.id) {
       toast.error("No Invoice ID")
@@ -188,7 +209,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
             <DialogTitle>Invoice Details</DialogTitle>
             <DialogDescription>View invoice information and payment history</DialogDescription>
             <DialogDescription className="italic">
-              Transparency on the invoice status and information is important to both customer and merchant. They should be able to view all the fees charged to the customer and the failed reasons.              
+              Transparency on the invoice status and information is important to both customer and merchant. They should be able to view all the fees charged to the customer and the failed reasons.
             </DialogDescription>
           </DialogHeader>
 
@@ -432,6 +453,11 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Retry
                   </Button>
+
+                  {invoice.payNowUrl && <Button variant="secondary" onClick={handlePayNow} disabled={isProcessing}>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Pay Now
+                  </Button>}
 
                   <Button
                     variant="secondary"

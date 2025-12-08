@@ -18,7 +18,7 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
   const [selectedInvoice, setSelectedInvoice] = useState<(typeof invoices)[0] | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-
+  
   if (!invoices) {
     return ""
   }

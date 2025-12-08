@@ -57,6 +57,7 @@ function normalisedEzypayInvoice(invoices, customerName = null) {
     customerId: invoice.customerId,
     failedPaymentReason: invoice.failedPaymentReason,
     paymentProviderResponse: invoice.paymentProviderResponse,
+    payNowUrl: invoice.payNowUrl,
   }))
 
   return normalisedInvoice
