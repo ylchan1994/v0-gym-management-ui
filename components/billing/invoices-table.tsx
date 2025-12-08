@@ -11,6 +11,7 @@ import { useState } from "react"
 import { InvoiceDetailDialog } from "./invoice-detail-dialog"
 import { CreateInvoiceDialog } from "./create-invoice-dialog"
 import { getStatusBadgeVariant } from "@/app/members/[id]/page"
+import { PaymentMethodIcon } from "@/components/ui/payment-method-icon"
 
 export function InvoicesTable({ variant = "billing", invoices, customerData = null }) {
   const [statusFilter, setStatusFilter] = useState("all")
@@ -18,7 +19,7 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
   const [selectedInvoice, setSelectedInvoice] = useState<(typeof invoices)[0] | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  
+
   if (!invoices) {
     return ""
   }
@@ -125,7 +126,10 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
                   {variant == "billing" ? <TableCell>{formatCellValue(invoice.member)}</TableCell> : ""}
                   <TableCell className="font-medium">{formatCellValue(invoice.amount)}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {formatCellValue(invoice.paymentMethod)}
+                    <div className="flex items-center gap-2">
+                      <PaymentMethodIcon type={invoice.paymentMethod} className="h-4 w-4" />
+                      <span>{formatCellValue(invoice.paymentMethod)}</span>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Badge variant={getStatusBadgeVariant(String(invoice.status))}>

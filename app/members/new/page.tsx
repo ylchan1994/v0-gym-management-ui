@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { AppSidebar } from "@/components/app-sidebar"
 import { TopBar } from "@/components/top-bar"
 import { Button } from "@/components/ui/button"
@@ -8,24 +10,25 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import { toast } from "sonner"
 import { getEzypayToken, createCustomer } from "@/lib/passer-functions"
 
-const pcpEndpoint = process.env.NEXT_PUBLIC_PCP_ENDPOINT;
+const pcpEndpoint = process.env.NEXT_PUBLIC_PCP_ENDPOINT
 const defaultformData = {
-    firstName: "",
-    lastName: "",
-    email: "",
-    dateOfBirth: null,
-    address: null,
-    emergencyContact: null,
-    startDate: Date.now(),
-    plan: 'Trial',
-    status: "trial",
-  }
+  firstName: "",
+  lastName: "",
+  email: "",
+  dateOfBirth: null,
+  address: null,
+  emergencyContact: null,
+  startDate: Date.now(),
+  plan: "Trial",
+  status: "trial",
+}
 
 export default function NewMemberPage() {
   const [iframeUrl, setIframeUrl] = useState<string | null>(null)
@@ -35,18 +38,16 @@ export default function NewMemberPage() {
 
   const [formData, setFormData] = useState(defaultformData)
 
-  // Track selected values from Select components separately for easier UI updates 
+  // Track selected values from Select components separately for easier UI updates
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const iframeOriginRef = useRef<string | null>(null)
 
-  useEffect(() => {    
-    
+  useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       // Validate origin if we have it
       // if (iframeOriginRef.current && event.origin !== iframeOriginRef.current) {
       //   return
       // }
-
       // // Handle payment method added successfully
       // if (event.data) {
       //   console.log(event.data);
@@ -73,7 +74,7 @@ export default function NewMemberPage() {
       const token = await tokenRes.access_token
       // Use a temporary customer ID for new members
 
-      const pcpUrl = `${pcpEndpoint}/embed?token=${token}&feepricing=true&submitbutton=true${customerId? '&customerId=' + customerId : ""}`
+      const pcpUrl = `${pcpEndpoint}/embed?token=${token}&feepricing=true&submitbutton=true${customerId ? "&customerId=" + customerId : ""}`
       setIframeUrl(pcpUrl)
 
       try {
@@ -92,59 +93,55 @@ export default function NewMemberPage() {
   }
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const field = (e.target as HTMLInputElement).id;
-    const value = (e.target as HTMLInputElement).value;
-    setFormData(prev => ({ ...prev, [field]: value }))
+    const field = (e.target as HTMLInputElement).id
+    const value = (e.target as HTMLInputElement).value
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  function handleDateChange (e: React.ChangeEvent<HTMLInputElement>) {
-    const field = (e.target as HTMLInputElement).id;
-    const value = (e.target as HTMLInputElement).value;
-    setFormData(prev => ({ ...prev, [field]: new Date(value).getTime() }))
+  function handleDateChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const field = (e.target as HTMLInputElement).id
+    const value = (e.target as HTMLInputElement).value
+    setFormData((prev) => ({ ...prev, [field]: new Date(value).getTime() }))
   }
 
   function handlePlanChange(value: string) {
-    setFormData(prev => ({ ...prev, plan: value }))
+    setFormData((prev) => ({ ...prev, plan: value }))
   }
 
   function handleStatusChange(value: string) {
-    setFormData(prev => ({ ...prev, status: value }))
+    setFormData((prev) => ({ ...prev, status: value }))
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setIsSubmitting(true);
+    e.preventDefault()
+    setIsSubmitting(true)
     let customerId = ""
 
     try {
-      const response = await createCustomer(formData);
-      toast.success('Member created successfully');
+      const response = await createCustomer(formData)
+      toast.success("Member created successfully")
       if (!response?.id) {
         console.error("Failed to create customer")
         throw new Error("Failed to create customer")
       }
       customerId = response.id
     } catch (error) {
-      toast.error('Failed to create member');
-      console.error('Error creating member:', error);
-      setIsSubmitting(false);
+      toast.error("Failed to create member")
+      console.error("Error creating member:", error)
+      setIsSubmitting(false)
     }
 
-    await loadIframeUrl(customerId);
-    setIsSubmitting(false);
-    setIsCustomerCreated(true);
-    setFormData(defaultformData);
-
+    await loadIframeUrl(customerId)
+    setIsSubmitting(false)
+    setIsCustomerCreated(true)
+    setFormData(defaultformData)
   }
 
   return (
     <div className="flex h-screen">
       <AppSidebar />
       <div className="relative flex flex-1 flex-col overflow-hidden">
-        <div 
-          className="absolute w-full h-full bg-gray-900/50 z-10 flex items-center justify-center" 
-          hidden
-        >
+        <div className="absolute w-full h-full bg-gray-900/50 z-10 flex items-center justify-center" hidden>
           <Spinner className="mr-2 h-20 w-20" />
         </div>
         <TopBar />
@@ -159,26 +156,36 @@ export default function NewMemberPage() {
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-balance">Add New Member</h1>
                 <p className="text-muted-foreground">Create a new member profile</p>
-                {!iframeRef && <>
-                <br></br>
-                <p className="text-muted-foreground italic">
-                  You would want to&nbsp;
-                  <Link href={"https://developer.ezypay.com/docs/customer-creation#/"} className="underline">create customer with Ezypay</Link> 
-                  &nbsp;also at this step. The next step will be collecting payment methods from customer and an Ezypay customer ID is required. It you have a disjoined process on customer creation and payment method collecton, you could create the customer later.
-                </p>
-                </>}
-                {iframeRef && <>
-                <br></br>
-                <p className="text-muted-foreground italic">
-                  After you get the Ezypay customer ID, you could collect the payment method from customer by&nbsp;
-                  <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} className="underline">hosting Ezypay's payment capture page</Link> 
-                  &nbsp;as an iframe in your page
-                </p>
-                </>}
+                {!iframeRef && (
+                  <>
+                    <br></br>
+                    <p className="text-muted-foreground italic">
+                      You would want to&nbsp;
+                      <Link href={"https://developer.ezypay.com/docs/customer-creation#/"} className="underline">
+                        create customer with Ezypay
+                      </Link>
+                      &nbsp;also at this step. The next step will be collecting payment methods from customer and an
+                      Ezypay customer ID is required. It you have a disjoined process on customer creation and payment
+                      method collecton, you could create the customer later.
+                    </p>
+                  </>
+                )}
+                {iframeRef && (
+                  <>
+                    <br></br>
+                    <p className="text-muted-foreground italic">
+                      After you get the Ezypay customer ID, you could collect the payment method from customer by&nbsp;
+                      <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} className="underline">
+                        hosting Ezypay's payment capture page
+                      </Link>
+                      &nbsp;as an iframe in your page
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 
-            {!isCustomerCreated? (
+            {!isCustomerCreated ? (
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <Card>
                   <CardHeader>
@@ -188,48 +195,54 @@ export default function NewMemberPage() {
                   <CardContent className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="firstName">First Name<span className="text-red-500">*</span></Label>
-                        <Input id="firstName" placeholder="John" required
-                          onChange={handleInputChange}
-                        />
+                        <Label htmlFor="firstName">
+                          First Name<span className="text-red-500">*</span>
+                        </Label>
+                        <Input id="firstName" placeholder="John" required onChange={handleInputChange} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="lastName">Last Name<span className="text-red-500">*</span></Label>
-                        <Input id="lastName" placeholder="Doe" required
-                          onChange={handleInputChange}                      
-                        />
+                        <Label htmlFor="lastName">
+                          Last Name<span className="text-red-500">*</span>
+                        </Label>
+                        <Input id="lastName" placeholder="Doe" required onChange={handleInputChange} />
                       </div>
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="email">Email<span className="text-red-500">*</span></Label>
-                        <Input id="email" type="email" placeholder="john.doe@example.com" required
-                          onChange={handleInputChange}                      
+                        <Label htmlFor="email">
+                          Email<span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="john.doe@example.com"
+                          required
+                          onChange={handleInputChange}
                         />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="mobilePhone">Phone</Label>
-                        <Input id="phone" type="tel" placeholder="+61 412 345 678" 
-                          onChange={handleInputChange}                      
-                        />
+                        <Input id="phone" type="tel" placeholder="+61 412 345 678" onChange={handleInputChange} />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                      <Input id="dateOfBirth" type="date" 
-                          onChange={handleInputChange}                      
-                      />
+                      <Input id="dateOfBirth" type="date" onChange={handleInputChange} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="address">Address</Label>
-                      <Input id="address" placeholder="123 Collins Street, Melbourne VIC 3000, Australia" 
-                          onChange={handleInputChange}                      
+                      <Input
+                        id="address"
+                        placeholder="123 Collins Street, Melbourne VIC 3000, Australia"
+                        onChange={handleInputChange}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="emergencyContact">Emergency Contact</Label>
-                      <Input id="emergencyContact" placeholder="Jane Doe - +61 498 765 432" 
-                          onChange={handleInputChange}                      
+                      <Input
+                        id="emergencyContact"
+                        placeholder="Jane Doe - +61 498 765 432"
+                        onChange={handleInputChange}
                       />
                     </div>
                   </CardContent>
@@ -248,17 +261,17 @@ export default function NewMemberPage() {
                           <SelectValue placeholder="Select a plan" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="basic" >Basic - $49/month</SelectItem>
-                          <SelectItem value="premium" >Premium - $99/month</SelectItem>
-                          <SelectItem value="annual" >Annual - $999/year</SelectItem>
-                          <SelectItem value="personal" >Personal Training - $149/month</SelectItem>
+                          <SelectItem value="basic">Basic - $49/month</SelectItem>
+                          <SelectItem value="premium">Premium - $99/month</SelectItem>
+                          <SelectItem value="annual">Annual - $999/year</SelectItem>
+                          <SelectItem value="personal">Personal Training - $149/month</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="startDate">Start Date</Label>
-                        <Input id="startDate" type="date"  onChange={handleDateChange}/>
+                        <Input id="startDate" type="date" onChange={handleDateChange} />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="status">Status</Label>
@@ -267,58 +280,68 @@ export default function NewMemberPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="active" >Active</SelectItem>
-                            <SelectItem value="trial" >Trial</SelectItem>
-                            <SelectItem value="expired" >Expired</SelectItem>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="trial">Trial</SelectItem>
+                            <SelectItem value="expired">Expired</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
                   </CardContent>
-                </Card>             
+                </Card>
 
                 <div className="flex justify-end gap-4">
                   <Link href="/members">
                     <Button variant="outline">Cancel</Button>
                   </Link>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Spinner className="mr-2 h-4 w-4" />
-                        Creating...
-                      </>
-                    ) : (
-                      'Create Member'
-                    )}
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button type="submit" disabled={isSubmitting}>
+                          {isSubmitting ? (
+                            <>
+                              <Spinner className="mr-2 h-4 w-4" />
+                              Creating...
+                            </>
+                          ) : (
+                            "Create Member"
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Create a new member and proceed to payment setup</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
-              </form>) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Payment Information</CardTitle>
-                    <CardDescription>Add payment method for recurring billing</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {isLoadingIframe ? (
-                      <div className="flex h-[500px] items-center justify-center">
-                        <Spinner className="h-8 w-8" />
-                      </div>
-                    ) : iframeUrl ? (
-                      <iframe
-                        ref={iframeRef}
-                        src={iframeUrl}
-                        className="h-[70vh] w-full rounded-lg border border-border"
-                        title="Add Payment Method"
-                        sandbox="allow-scripts allow-same-origin allow-forms"
-                      />
-                    ) : (
-                      <div className="flex h-[500px] items-center justify-center text-muted-foreground">
-                        Failed to load payment form
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
+              </form>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Payment Information</CardTitle>
+                  <CardDescription>Add payment method for recurring billing</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingIframe ? (
+                    <div className="flex h-[500px] items-center justify-center">
+                      <Spinner className="h-8 w-8" />
+                    </div>
+                  ) : iframeUrl ? (
+                    <iframe
+                      ref={iframeRef}
+                      src={iframeUrl}
+                      className="h-[70vh] w-full rounded-lg border border-border"
+                      title="Add Payment Method"
+                      sandbox="allow-scripts allow-same-origin allow-forms"
+                    />
+                  ) : (
+                    <div className="flex h-[500px] items-center justify-center text-muted-foreground">
+                      Failed to load payment form
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
         </main>
       </div>

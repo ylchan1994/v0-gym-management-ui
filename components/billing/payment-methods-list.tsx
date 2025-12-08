@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { CreditCard, Trash2, RefreshCw, AlertCircle } from "lucide-react"
+import { Trash2, RefreshCw, AlertCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { PaymentMethodIcon } from "@/components/ui/payment-method-icon"
 
 export interface PaymentMethod {
   id: string
@@ -146,7 +147,6 @@ export function PaymentMethodsList({
       return
     }
 
-    //setDeleteDialogOpen(false)
     setMethodToDelete(null)
 
     await fetchPaymentMethods()
@@ -174,7 +174,6 @@ export function PaymentMethodsList({
       return
     }
 
-    //setReplaceDialogOpen(false)
     setDefaultPaymentMethod(methodToReplace)
     setMethodToReplace(null)
 
@@ -207,7 +206,7 @@ export function PaymentMethodsList({
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <CreditCard className="h-4 w-4 text-muted-foreground" />
+                    <PaymentMethodIcon type={method.type} className="h-4 w-4" />
                     <div>
                       <span className="text-sm font-medium">{method.type}</span>
                       <span className="text-xs text-muted-foreground">
@@ -242,7 +241,7 @@ export function PaymentMethodsList({
         {paymentMethods.map((method) => (
           <div key={method.id} className="flex items-center justify-between rounded-lg border border-border p-3">
             <div className="flex items-center gap-3">
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
+              <PaymentMethodIcon type={method.type} className="h-4 w-4" />
               <div>
                 <p className="text-sm font-medium">{method.type}</p>
                 <p className="text-xs text-muted-foreground">

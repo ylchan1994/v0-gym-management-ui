@@ -1,9 +1,10 @@
 "use server"
 
 import { getEzypayToken } from "./ezypay-token"
+import { logApiCall } from "./api-logger"
 
 const apiEndpoint = `${process.env.API_ENDPOINT}/v2/billing/customers`
-const merchantId = process.env.EZYPAY_MERCHANT_ID  
+const merchantId = process.env.EZYPAY_MERCHANT_ID
 
 export async function replacePaymentMethod(customerId, paymentMethod, newPaymentMethod) {
   try {
@@ -19,7 +20,8 @@ export async function replacePaymentMethod(customerId, paymentMethod, newPayment
       throw new Error(`Replace Payment Method failed: No access_token from token utility`)
     }
 
-    const response = await fetch(`${apiEndpoint}/${customerId}/paymentmethods/${paymentMethod}/new`, {
+    const url = `${apiEndpoint}/${customerId}/paymentmethods/${paymentMethod}/new`
+    const response = await fetch(url, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -29,12 +31,14 @@ export async function replacePaymentMethod(customerId, paymentMethod, newPayment
       body: `{"newPaymentMethodToken":"${newPaymentMethod}"}`,
     })
 
+    const data = response.ok ? await response.json() : await response.text()
+    await logApiCall("PUT", url, data, response.status)
+
     if (!response.ok) {
-      const text = await response.text()
-      console.error("Replace Payment Method failed:", response.status, text)
+      console.error("Replace Payment Method failed:", response.status, data)
 
       try {
-        const errorData = JSON.parse(text)
+        const errorData = typeof data === "string" ? JSON.parse(data) : data
         return {
           success: false,
           error: {
@@ -53,10 +57,9 @@ export async function replacePaymentMethod(customerId, paymentMethod, newPayment
       }
     }
 
-    const result = await response.json()
     return {
       success: true,
-      data: result,
+      data: data,
     }
   } catch (err) {
     console.error("Replace Payment Method failed error:", err)
@@ -83,7 +86,8 @@ export async function deletePaymentMethod(customerId, paymentMethod) {
       throw new Error(`Delete Payment Method failed: No access_token from token utility`)
     }
 
-    const response = await fetch(`${apiEndpoint}/${customerId}/paymentmethods/${paymentMethod}`, {
+    const url = `${apiEndpoint}/${customerId}/paymentmethods/${paymentMethod}`
+    const response = await fetch(url, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -91,12 +95,14 @@ export async function deletePaymentMethod(customerId, paymentMethod) {
       },
     })
 
+    const data = response.ok ? await response.json() : await response.text()
+    await logApiCall("DELETE", url, data, response.status)
+
     if (!response.ok) {
-      const text = await response.text()
-      console.error("Delete Payment Method failed:", response.status, text)
+      console.error("Delete Payment Method failed:", response.status, data)
 
       try {
-        const errorData = JSON.parse(text)
+        const errorData = typeof data === "string" ? JSON.parse(data) : data
         return {
           success: false,
           error: {
@@ -115,10 +121,9 @@ export async function deletePaymentMethod(customerId, paymentMethod) {
       }
     }
 
-    const result = await response.json()
     return {
       success: true,
-      data: result,
+      data: data,
     }
   } catch (err) {
     console.error("Delete Payment Method failed error:", err)

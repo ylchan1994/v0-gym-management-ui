@@ -1,79 +1,82 @@
-'use server'
+"use server"
 import { getEzypayToken } from "./passer-functions"
+import { logApiCall } from "./api-logger"
 
 const apiEndpoint = `${process.env.API_ENDPOINT}/v2/billing/settlements`
 const fileEndpoint = `${process.env.API_ENDPOINT}/v2/files`
 const merchantId = process.env.EZYPAY_MERCHANT_ID
 
 export type Settlement = {
-  id: string,
-  date: string,
-  amount: string,
-  status: string,
+  id: string
+  date: string
+  amount: string
+  status: string
 }
 
 export type SettlementList = Settlement[]
 
-export type documentType = 'tax_invoice' | 'detail_report' | 'summary_report'
+export type documentType = "tax_invoice" | "detail_report" | "summary_report"
 
 function normalisedEzypaySettlement(settlements) {
-  const normalisedSettlements: SettlementList = settlements.map(settlement =>( {
+  const normalisedSettlements: SettlementList = settlements.map((settlement) => ({
     id: settlement.number,
     date: settlement.date,
-    amount: '$' + settlement.amount.value,
-    status: settlement.status
+    amount: "$" + settlement.amount.value,
+    status: settlement.status,
   }))
 
-  return normalisedSettlements.filter(settlement => settlement.amount != '$0' && settlement.amount != '$0.00')
+  return normalisedSettlements.filter((settlement) => settlement.amount != "$0" && settlement.amount != "$0.00")
 }
 
 export async function downloadDocument(settlementId, documentType): Promise<any> {
-  try {    
+  try {
     // Get token directly from utility function instead of HTTP request
     const tokenData = await getEzypayToken()
     const token = tokenData.access_token
     if (!token) {
       console.error("No access_token from token utility", tokenData)
       throw new Error(`Generate file failed: No access_token from token utility`)
-    }   
+    }
 
-    const body = {documentType: documentType}
+    const body = { documentType: documentType }
 
-    const response = await fetch(`${apiEndpoint}/${settlementId}/file`, {
+    const url = `${apiEndpoint}/${settlementId}/file`
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-        merchant: merchantId ,
+        Authorization: `Bearer ${token}`,
+        merchant: merchantId,
       },
       body: JSON.stringify(body),
     })
 
+    const settlementDoc = response.ok ? await response.json() : await response.text()
+    await logApiCall("POST", url, settlementDoc, response.status)
+
     if (!response.ok) {
-      const text = await response.text()
-      console.error("Created settlement file failed:", response.status, text)
+      console.error("Created settlement file failed:", response.status, settlementDoc)
       throw new Error(`Create settlement file failed: ${response.status}`)
     }
 
-    const settlementDoc = await response.json()    
-
     const fileId = settlementDoc.fileId
 
-    const getFile = await fetch(`${fileEndpoint}/${fileId}`, {
+    const fileUrl = `${fileEndpoint}/${fileId}`
+    const getFile = await fetch(fileUrl, {
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-        merchant: merchantId ,
+        Authorization: `Bearer ${token}`,
+        merchant: merchantId,
       },
     })
 
-    if (!getFile.ok) {
-      const text = await response.text()
-      console.error("Download settlement file failed:", response.status, text)
-      throw new Error(`Download settlement file failed: ${response.status}`)
-    }
+    const fileData = getFile.ok ? await getFile.json() : await getFile.text()
+    await logApiCall("GET", fileUrl, fileData, getFile.status)
 
-    const fileData = await getFile.json()
+    if (!getFile.ok) {
+      console.error("Download settlement file failed:", getFile.status, fileData)
+      throw new Error(`Download settlement file failed: ${getFile.status}`)
+    }
 
     const downloadUrl = fileData.url
 
@@ -85,29 +88,31 @@ export async function downloadDocument(settlementId, documentType): Promise<any>
 }
 
 export async function listSettlements(): Promise<any> {
-  try {      
+  try {
     // Get token directly from utility function instead of HTTP request
     const tokenData = await getEzypayToken()
     const token = tokenData.access_token
     if (!token) {
       console.error("No access_token from token utility", tokenData)
       throw new Error(`List settlement failed: No access_token from token utility`)
-    }    
+    }
 
-    const response = await fetch(`${apiEndpoint}?limit=100`, {
+    const url = `${apiEndpoint}?limit=100`
+    const response = await fetch(url, {
       headers: {
-        "Authorization": `Bearer ${token}`,
-        merchant: merchantId ,
+        Authorization: `Bearer ${token}`,
+        merchant: merchantId,
       },
     })
 
+    const settlements = response.ok ? await response.json() : await response.text()
+    await logApiCall("GET", url, settlements, response.status)
+
     if (!response.ok) {
-      const text = await response.text()
-      console.error("List settlement failed:", response.status, text)
+      console.error("List settlement failed:", response.status, settlements)
       throw new Error(`List settlement failed: ${response.status}`)
     }
-    
-    const settlements = await response.json()  
+
     return normalisedEzypaySettlement(settlements.data)
   } catch (err) {
     console.error("List settlement error:", err)

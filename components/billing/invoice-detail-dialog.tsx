@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { CreditCard, CheckCircle, XCircle, DollarSign, RefreshCw } from "lucide-react"
+import { CheckCircle, XCircle, DollarSign, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 import { RefundDialog } from "./refund-dialog"
 import { getStatusBadgeVariant } from "@/app/members/[id]/page"
@@ -21,6 +21,7 @@ import {
 } from "@/lib/passer-functions"
 import { Spinner } from "../ui/spinner"
 import { PaymentMethodsList } from "./payment-methods-list"
+import { PaymentMethodIcon } from "@/components/ui/payment-method-icon"
 
 interface PaymentAttempt {
   id: string
@@ -69,7 +70,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null)
   const [externalPaymentMethod, setExternalPaymentMethod] = useState<string>("")
   const [refundError, setRefundError] = useState<string | null>(null)
-  
+
   useEffect(() => {
     setInvoice(invoiceProp)
   }, [invoiceProp])
@@ -209,7 +210,8 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
             <DialogTitle>Invoice Details</DialogTitle>
             <DialogDescription>View invoice information and payment history</DialogDescription>
             <DialogDescription className="italic">
-              Transparency on the invoice status and information is important to both customer and merchant. They should be able to view all the fees charged to the customer and the failed reasons.
+              Transparency on the invoice status and information is important to both customer and merchant. They should
+              be able to view all the fees charged to the customer and the failed reasons.
             </DialogDescription>
           </DialogHeader>
 
@@ -326,7 +328,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-2">Payment Method</p>
               <div className="flex items-center gap-3 rounded-lg border border-border p-3">
-                <CreditCard className="h-5 w-5 text-muted-foreground" />
+                <PaymentMethodIcon type={invoice.paymentMethod} className="h-5 w-5" />
                 <span className="font-medium">{invoice.paymentMethod}</span>
               </div>
             </div>
@@ -357,7 +359,12 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
                       <TableRow key={attempt.id}>
                         <TableCell>{attempt.date}</TableCell>
                         <TableCell className="font-medium">{attempt.amount}</TableCell>
-                        <TableCell>{attempt.method}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <PaymentMethodIcon type={attempt.method} className="h-4 w-4" />
+                            <span>{attempt.method}</span>
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {attempt.status === "success" || attempt.status === "settled" ? (
@@ -454,10 +461,12 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
                     Retry
                   </Button>
 
-                  {invoice.payNowUrl && <Button variant="secondary" onClick={handlePayNow} disabled={isProcessing}>
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Pay Now
-                  </Button>}
+                  {invoice.payNowUrl && (
+                    <Button variant="secondary" onClick={handlePayNow} disabled={isProcessing}>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Pay Now
+                    </Button>
+                  )}
 
                   <Button
                     variant="secondary"

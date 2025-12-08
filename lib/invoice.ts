@@ -1,6 +1,7 @@
 "use server"
 
 import { getEzypayToken } from "./ezypay-token"
+import { logApiCall } from "./api-logger"
 
 const apiEndpoint = `${process.env.API_ENDPOINT}/v2/billing/invoices`
 const checkoutEndpoint = `${process.env.API_ENDPOINT}/v2/billing/checkout`
@@ -78,7 +79,8 @@ export async function listInvoice(): Promise<any> {
       return []
     }
 
-    const invoiceResponse = await fetch(`${apiEndpoint}?limit=30`, {
+    const url = `${apiEndpoint}?limit=30`
+    const invoiceResponse = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         merchant: merchantId,
@@ -87,6 +89,7 @@ export async function listInvoice(): Promise<any> {
 
     if (!invoiceResponse.ok) {
       const text = await invoiceResponse.text()
+      await logApiCall("GET", url, text, invoiceResponse.status)
       console.error("List invoice failed:", invoiceResponse.status, text)
       return []
     }
@@ -94,11 +97,13 @@ export async function listInvoice(): Promise<any> {
     const contentType = invoiceResponse.headers.get("content-type")
     if (!contentType || !contentType.includes("application/json")) {
       const text = await invoiceResponse.text()
+      await logApiCall("GET", url, text, invoiceResponse.status)
       console.error("List invoice error: Expected JSON but received:", contentType, text.substring(0, 200))
       return []
     }
 
     const invoiceData = await invoiceResponse.json()
+    await logApiCall("GET", url, invoiceData, invoiceResponse.status)
 
     const normalisedInvoice = normalisedEzypayInvoice(invoiceData)
 
@@ -123,20 +128,21 @@ export async function listInvoiceByCustomer(customerId, customerName): Promise<a
       throw new Error(`List customer failed: No access_token from token utility`)
     }
 
-    const invoiceResponse = await fetch(`${apiEndpoint}?customerId=${customerId}&limit=30`, {
+    const url = `${apiEndpoint}?customerId=${customerId}&limit=30`
+    const invoiceResponse = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         merchant: merchantId,
       },
     })
 
+    const invoiceData = invoiceResponse.ok ? await invoiceResponse.json() : await invoiceResponse.text()
+    await logApiCall("GET", url, invoiceData, invoiceResponse.status)
+
     if (!invoiceResponse.ok) {
-      const text = await invoiceResponse.text()
-      console.error("List Customer invoice failed:", invoiceResponse.status, text)
+      console.error("List Customer invoice failed:", invoiceResponse.status, invoiceData)
       throw new Error(`List Customer invoice failed: ${invoiceResponse.status}`)
     }
-
-    const invoiceData = await invoiceResponse.json()
 
     const normalisedInvoice = normalisedEzypayInvoice(invoiceData, customerName)
 
@@ -161,20 +167,21 @@ export async function listTransactionByInvoice(invoiceId, paymentMethod): Promis
       throw new Error(`List customer failed: No access_token from token utility`)
     }
 
-    const transactionResponse = await fetch(`${transactionEndpoint}?documentId=${invoiceId}&limit=10`, {
+    const url = `${transactionEndpoint}?documentId=${invoiceId}&limit=10`
+    const transactionResponse = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         merchant: merchantId,
       },
     })
 
+    const transactionData = transactionResponse.ok ? await transactionResponse.json() : await transactionResponse.text()
+    await logApiCall("GET", url, transactionData, transactionResponse.status)
+
     if (!transactionResponse.ok) {
-      const text = await transactionResponse.text()
-      console.error("List transaction failed:", transactionResponse.status, text)
+      console.error("List transaction failed:", transactionResponse.status, transactionData)
       throw new Error(`List transaction failed: ${transactionResponse.status}`)
     }
-
-    const transactionData = await transactionResponse.json()
 
     const transactions = transactionData.data.map((transaction) => ({
       id: transaction.id,
@@ -205,7 +212,8 @@ export async function retryInvoice(invoiceId, paymentMethodId) {
       throw new Error(`List customer failed: No access_token from token utility`)
     }
 
-    const response = await fetch(`${apiEndpoint}/${invoiceId}/retrypayment`, {
+    const url = `${apiEndpoint}/${invoiceId}/retrypayment`
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -216,13 +224,15 @@ export async function retryInvoice(invoiceId, paymentMethodId) {
         "oneOff": true}`,
     })
 
+    const data = response.ok ? await response.json() : await response.text()
+    await logApiCall("POST", url, data, response.status)
+
     if (!response.ok) {
-      const text = await response.text()
-      console.error("Retry Invoice failed:", response.status, text)
+      console.error("Retry Invoice failed:", response.status, data)
       throw new Error(`Retry invoice failed: ${response.status}`)
     }
 
-    return await response.json()
+    return data
   } catch (err) {
     console.error("Retry Invoice failed error:", err)
     throw err
@@ -243,7 +253,8 @@ export async function writeOffInvoice(invoiceId) {
       throw new Error(`List customer failed: No access_token from token utility`)
     }
 
-    const response = await fetch(`${apiEndpoint}/${invoiceId}/writeoff`, {
+    const url = `${apiEndpoint}/${invoiceId}/writeoff`
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -253,13 +264,15 @@ export async function writeOffInvoice(invoiceId) {
       body: "{}",
     })
 
+    const data = response.ok ? await response.json() : await response.text()
+    await logApiCall("POST", url, data, response.status)
+
     if (!response.ok) {
-      const text = await response.text()
-      console.error("Write off Invoice failed:", response.status, text)
+      console.error("Write off Invoice failed:", response.status, data)
       throw new Error(`Write off invoice failed: ${response.status}`)
     }
 
-    return await response.json()
+    return data
   } catch (err) {
     console.error("Write off Invoice failed error:", err)
     throw err
@@ -280,7 +293,8 @@ export async function recordExternalInvoice(invoiceId, method) {
       throw new Error(`List customer failed: No access_token from token utility`)
     }
 
-    const response = await fetch(`${apiEndpoint}/${invoiceId}/recordpayment`, {
+    const url = `${apiEndpoint}/${invoiceId}/recordpayment`
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -290,13 +304,15 @@ export async function recordExternalInvoice(invoiceId, method) {
       body: `{"paymentMethodType": "${method}"}`,
     })
 
+    const data = response.ok ? await response.json() : await response.text()
+    await logApiCall("POST", url, data, response.status)
+
     if (!response.ok) {
-      const text = await response.text()
-      console.error("Record External Invoice failed:", response.status, text)
+      console.error("Record External Invoice failed:", response.status, data)
       throw new Error(`Record External invoice failed: ${response.status}`)
     }
 
-    return await response.json()
+    return data
   } catch (err) {
     console.error("Record External Invoice failed error:", err)
     throw err
@@ -317,7 +333,8 @@ export async function refundInvoice(invoiceId, amount = null) {
       throw new Error(`Refund failed: No access_token from token utility`)
     }
 
-    const response = await fetch(`${apiEndpoint}/${invoiceId}/refund`, {
+    const url = `${apiEndpoint}/${invoiceId}/refund`
+    const response = await fetch(url, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -327,12 +344,14 @@ export async function refundInvoice(invoiceId, amount = null) {
       body: amount ? `{"amount": "${amount}"}` : "{}",
     })
 
+    const data = response.ok ? await response.json() : await response.text()
+    await logApiCall("PUT", url, data, response.status)
+
     if (!response.ok) {
-      const text = await response.text()
-      console.error("Refund Invoice failed:", response.status, text)
+      console.error("Refund Invoice failed:", response.status, data)
 
       try {
-        const errorData = JSON.parse(text)
+        const errorData = typeof data === "string" ? JSON.parse(data) : data
         return {
           success: false,
           error: {
@@ -351,10 +370,9 @@ export async function refundInvoice(invoiceId, amount = null) {
       }
     }
 
-    const result = await response.json()
     return {
       success: true,
-      data: result,
+      data: data,
     }
   } catch (err) {
     console.error("Refund Invoice failed error:", err)
@@ -397,7 +415,7 @@ export async function createInvoice(invoiceData) {
       requestBody.paymentMethodToken = invoiceData.paymentMethodId
     }
 
-    const response = await fetch(`${apiEndpoint}`, {
+    const response = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -407,13 +425,15 @@ export async function createInvoice(invoiceData) {
       body: JSON.stringify(requestBody),
     })
 
+    const data = response.ok ? await response.json() : await response.text()
+    await logApiCall("POST", apiEndpoint, data, response.status)
+
     if (!response.ok) {
-      const text = await response.text()
-      console.error("Create Invoice failed:", response.status, text)
+      console.error("Create Invoice failed:", response.status, data)
       throw new Error(`Create invoice failed: ${response.status}`)
     }
 
-    return await response.json()
+    return data
   } catch (err) {
     console.error("Create Invoice failed error:", err)
     throw err
@@ -434,7 +454,7 @@ export async function createCheckout(invoiceData) {
       throw new Error(`Checkout session failed: No access_token from token utility`)
     }
 
-    const requestBody = {      
+    const requestBody = {
       description: invoiceData.description,
       amount: {
         currency: "AUD",
@@ -443,7 +463,7 @@ export async function createCheckout(invoiceData) {
       customerId: invoiceData.memberId,
     }
 
-    const response = await fetch(`${checkoutEndpoint}`, {
+    const response = await fetch(checkoutEndpoint, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -453,12 +473,14 @@ export async function createCheckout(invoiceData) {
       body: JSON.stringify(requestBody),
     })
 
+    const data = response.ok ? await response.json() : await response.text()
+    await logApiCall("POST", checkoutEndpoint, data, response.status)
+
     if (!response.ok) {
-      const text = await response.text()
-      console.error("Refund Invoice failed:", response.status, text)
+      console.error("Refund Invoice failed:", response.status, data)
 
       try {
-        const errorData = JSON.parse(text)
+        const errorData = typeof data === "string" ? JSON.parse(data) : data
         return {
           success: false,
           error: {
@@ -477,10 +499,9 @@ export async function createCheckout(invoiceData) {
       }
     }
 
-    const result = await response.json()
     return {
       success: true,
-      data: result.checkoutUrl,
+      data: data.checkoutUrl,
     }
   } catch (err) {
     console.error("Refund Invoice failed error:", err)
