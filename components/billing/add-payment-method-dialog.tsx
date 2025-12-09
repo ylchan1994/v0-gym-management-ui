@@ -68,7 +68,7 @@ export function AddPaymentMethodDialog({
         throw new Error(`Token endpoint failed`)
       }
 
-      const pcpUrl = `${process.env.NEXT_PUBLIC_PCP_ENDPOINT}/embed?token=${token}&feepricing=true&submitbutton=true&customerId=${customerId}`
+      const pcpUrl = `${process.env.NEXT_PUBLIC_PCP_ENDPOINT}/paymentmethod/embed?token=${token}&feepricing=true&submitbutton=true&customerId=${customerId}`
       setIframeUrl(pcpUrl)
       await logApiCall("GET", pcpUrl, "truncated response", 200)
 
@@ -98,13 +98,13 @@ export function AddPaymentMethodDialog({
   }
 
   const content = (
-    <DialogContent className="min-w-[80vw] h-[90vh]">
+    <DialogContent className="min-w-[50vw] h-[90vh]">
       <DialogHeader className="p-2 pb-0">
         <DialogTitle>Add Payment Method</DialogTitle>
         <DialogDescription>Add a new payment method for automatic billing</DialogDescription>
         <DialogDescription className="italic">
           Host&nbsp;
-          <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} className="underline">
+          <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} target="_blank" className="underline">
             Ezypay's Payment Capture Page
           </Link>
           &nbsp;here and allow customer to update their payment method. This should be on the customer portal if
@@ -120,7 +120,7 @@ export function AddPaymentMethodDialog({
           <iframe
             ref={iframeRef}
             src={iframeUrl}
-            className="h-full w-full rounded-lg border border-border"
+            className="h-full w-full rounded-lg border border-border p-4"
             title="Add Payment Method"
             sandbox="allow-scripts allow-same-origin allow-forms"
           />

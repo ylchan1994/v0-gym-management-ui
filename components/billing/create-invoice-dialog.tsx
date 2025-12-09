@@ -227,15 +227,15 @@ export function CreateInvoiceDialog({
             <DialogDescription className="text-sm">Create a new invoice with pending status</DialogDescription>
             <DialogDescription className="italic text-xs md:text-sm">
               You would create invoice in Ezypay with this also and depends on whether is&nbsp;
-              <Link href={"https://developer.ezypay.com/docs/on-demand#/"} className="underline">
+              <Link href={"https://developer.ezypay.com/docs/on-demand#/"} target="_blank" className="underline">
                 on-demand invoice,
               </Link>
               &nbsp;
-              <Link href={"https://developer.ezypay.com/docs/checkout#/"} className="underline">
+              <Link href={"https://developer.ezypay.com/docs/checkout#/"} target="_blank" className="underline">
                 tap to pay invoice,
               </Link>
               &nbsp;
-              <Link href={"https://developer.ezypay.com/docs/terminal-integration#/"} className="underline">
+              <Link href={"https://developer.ezypay.com/docs/terminal-integration#/"} target="_blank" className="underline">
                 checkout session,
               </Link>
               &nbsp;you would need to use different APIs to create the relevant session with Ezypay

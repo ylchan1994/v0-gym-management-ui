@@ -82,7 +82,7 @@ export function SettlementTable() {
         <CardDescription>View and download past settlement reports</CardDescription>
         <CardDescription className="italic">
           This page allows merchant to quickly check their&nbsp;
-          <Link href={"https://developer.ezypay.com/docs/reports-1#retrieve-settlement-reports"} className="underline">
+          <Link href={"https://developer.ezypay.com/docs/reports-1#retrieve-settlement-reports"} target="_blank" className="underline">
             settlement summary
           </Link>
           &nbsp;and allows them to download the settlement report.

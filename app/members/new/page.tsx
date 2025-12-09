@@ -74,7 +74,7 @@ export default function NewMemberPage() {
       const token = await tokenRes.access_token
       // Use a temporary customer ID for new members
 
-      const pcpUrl = `${pcpEndpoint}/embed?token=${token}&feepricing=true&submitbutton=true${customerId ? "&customerId=" + customerId : ""}`
+      const pcpUrl = `${pcpEndpoint}/paymentmethod/embed?token=${token}&feepricing=true&submitbutton=true${customerId ? "&customerId=" + customerId : ""}`
       setIframeUrl(pcpUrl)
       await logApiCall("GET", pcpUrl, "truncated response", 200)
 
@@ -160,7 +160,7 @@ export default function NewMemberPage() {
                   <br></br>
                   <p className="text-sm text-muted-foreground italic">
                     You would want to&nbsp;
-                    <Link href={"https://developer.ezypay.com/docs/customer-creation#/"} className="underline">
+                    <Link href={"https://developer.ezypay.com/docs/customer-creation#/"} target="_blank" className="underline">
                       create customer with Ezypay
                     </Link>
                     &nbsp;also at this step. The next step will be collecting payment methods from customer and an
@@ -174,7 +174,7 @@ export default function NewMemberPage() {
                   <br></br>
                   <p className="text-sm text-muted-foreground italic">
                     After you get the Ezypay customer ID, you could collect the payment method from customer by&nbsp;
-                    <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} className="underline">
+                    <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} target="_blank" className="underline">
                       hosting Ezypay's payment capture page
                     </Link>
                     &nbsp;as an iframe in your page
