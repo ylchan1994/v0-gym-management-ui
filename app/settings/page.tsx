@@ -1,6 +1,5 @@
 "use client"
 
-import { AppSidebar } from "@/components/app-sidebar"
 import { TopBar } from "@/components/top-bar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -172,227 +171,225 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex h-screen">
-      <AppSidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <TopBar />
-        <main className="flex-1 overflow-y-auto p-6">
-          {isSaving && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-              <div className="rounded-md bg-white p-6 shadow-lg">
-                <div className="flex items-center space-x-3">
-                  <svg
-                    className="h-6 w-6 animate-spin text-primary"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                    ></path>
-                  </svg>
-                  <div className="text-sm font-medium">Saving credentials…</div>
-                </div>
-              </div>
+    <div className="flex flex-col h-full">
+      <TopBar />
+      {isSaving && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="rounded-md bg-white p-6 shadow-lg">
+            <div className="flex items-center space-x-3">
+              <svg
+                className="h-6 w-6 animate-spin text-primary"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+              </svg>
+              <div className="text-sm font-medium">Saving credentials…</div>
             </div>
-          )}
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-balance">Settings</h1>
-              <p className="text-muted-foreground">Manage integrations and device registrations</p>
-            </div>
-
-            <Tabs defaultValue="ezypay" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="ezypay">Ezypay Integration</TabsTrigger>
-                <TabsTrigger value="terminals">Terminal Registration</TabsTrigger>
-                <TabsTrigger value="auto-billing">Auto-Billing</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="ezypay">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Ezypay Integration</CardTitle>
-                    <CardDescription>Configure your Ezypay payment gateway credentials</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="ezypay-username">Username</Label>
-                      <Input
-                        id="ezypay-username"
-                        type="text"
-                        placeholder="Enter Ezypay username"
-                        value={ezypayUsername}
-                        onChange={(e) => setEzypayUsername(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="ezypay-password">Password</Label>
-                      <Input
-                        id="ezypay-password"
-                        type="password"
-                        placeholder="Enter Ezypay password"
-                        value={ezypayPassword}
-                        onChange={(e) => setEzypayPassword(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="ezypay-merchant-id">Merchant ID</Label>
-                      <Input
-                        id="ezypay-merchant-id"
-                        type="text"
-                        placeholder="Enter Merchant ID"
-                        value={ezypayMerchantId}
-                        onChange={(e) => setEzypayMerchantId(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="pt-4">
-                      <Button onClick={handleSaveEzypay} size="lg" disabled={isSaving}>
-                        {isSaving ? "Saving..." : "Save Credentials"}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="terminals">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle>Terminal Registration</CardTitle>
-                      <CardDescription>Manage registered payment terminals and devices</CardDescription>
-                    </div>
-                    <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
-                      <DialogTrigger asChild>
-                          <Button disabled={isSaving}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Add Device
-                          </Button>
-                        </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Add New Device</DialogTitle>
-                          <DialogDescription>Register a new payment terminal or device</DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="device-name">Device Name</Label>
-                            <Input
-                              id="device-name"
-                              placeholder="e.g., Front Desk Terminal"
-                              value={newDeviceName}
-                              onChange={(e) => setNewDeviceName(e.target.value)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="device-id">Device ID</Label>
-                            <Input
-                              id="device-id"
-                              placeholder="e.g., TERM-004"
-                              value={newDeviceId}
-                              onChange={(e) => setNewDeviceId(e.target.value)}
-                            />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => setIsAddDeviceOpen(false)} disabled={isSaving}>
-                            Cancel
-                          </Button>
-                          <Button onClick={handleAddDevice} disabled={isSaving}>Add Device</Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-
-                    <Dialog open={isRegistrationCodeOpen} onOpenChange={setIsRegistrationCodeOpen}>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Device Registration Code</DialogTitle>
-                          <DialogDescription>
-                            Use this code to complete the device registration on your terminal
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="flex flex-col items-center justify-center py-8">
-                          <p className="text-sm text-muted-foreground mb-4">Registration Code</p>
-                          <div className="text-5xl font-bold tracking-wider text-primary mb-2">{registrationCode}</div>
-                          <p className="text-sm text-muted-foreground mt-4 text-center">
-                            Enter this code on your device to complete registration
-                          </p>
-                        </div>
-                        <DialogFooter>
-                          <Button onClick={() => setIsRegistrationCodeOpen(false)} disabled={isSaving}>Close</Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Device Name</TableHead>
-                          <TableHead>Device ID</TableHead>
-                          <TableHead>Code</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Last Seen</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {devices.map((device) => (
-                          <TableRow key={device.id}>
-                            <TableCell className="font-medium">{device.name}</TableCell>
-                            <TableCell>{device.deviceId}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono">
-                                  {visibleCodes.has(device.id) ? device.code : "••••••"}
-                                </span>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleCodeVisibility(device.id)}
-                                  className="h-6 w-6 p-0"
-                                  disabled={isSaving}
-                                >
-                                  {visibleCodes.has(device.id) ? (
-                                    <EyeOff className="h-4 w-4" />
-                                  ) : (
-                                    <Eye className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={getStatusBadgeVariant(device.status)}>
-                                {getStatusText(device.status)}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">{device.lastSeen}</TableCell>
-                            <TableCell className="text-right">
-                              <Button variant="ghost" size="sm" onClick={() => handleDeleteDevice(device.id)} disabled={isSaving}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="auto-billing">
-                <AutoBillingSettings />
-              </TabsContent>
-            </Tabs>
           </div>
-        </main>
-      </div>
+        </div>
+      )}
+      <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-balance">Settings</h1>
+            <p className="text-muted-foreground">Manage integrations and device registrations</p>
+          </div>
+
+          <Tabs defaultValue="ezypay" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="ezypay">Ezypay Integration</TabsTrigger>
+              <TabsTrigger value="terminals">Terminal Registration</TabsTrigger>
+              <TabsTrigger value="auto-billing">Auto-Billing</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="ezypay">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Ezypay Integration</CardTitle>
+                  <CardDescription>Configure your Ezypay payment gateway credentials</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="ezypay-username">Username</Label>
+                    <Input
+                      id="ezypay-username"
+                      type="text"
+                      placeholder="Enter Ezypay username"
+                      value={ezypayUsername}
+                      onChange={(e) => setEzypayUsername(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="ezypay-password">Password</Label>
+                    <Input
+                      id="ezypay-password"
+                      type="password"
+                      placeholder="Enter Ezypay password"
+                      value={ezypayPassword}
+                      onChange={(e) => setEzypayPassword(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="ezypay-merchant-id">Merchant ID</Label>
+                    <Input
+                      id="ezypay-merchant-id"
+                      type="text"
+                      placeholder="Enter Merchant ID"
+                      value={ezypayMerchantId}
+                      onChange={(e) => setEzypayMerchantId(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="pt-4">
+                    <Button onClick={handleSaveEzypay} size="lg" disabled={isSaving}>
+                      {isSaving ? "Saving..." : "Save Credentials"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="terminals">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Terminal Registration</CardTitle>
+                    <CardDescription>Manage registered payment terminals and devices</CardDescription>
+                  </div>
+                  <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
+                    <DialogTrigger asChild>
+                      <Button disabled={isSaving}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Device
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add New Device</DialogTitle>
+                        <DialogDescription>Register a new payment terminal or device</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="device-name">Device Name</Label>
+                          <Input
+                            id="device-name"
+                            placeholder="e.g., Front Desk Terminal"
+                            value={newDeviceName}
+                            onChange={(e) => setNewDeviceName(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="device-id">Device ID</Label>
+                          <Input
+                            id="device-id"
+                            placeholder="e.g., TERM-004"
+                            value={newDeviceId}
+                            onChange={(e) => setNewDeviceId(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsAddDeviceOpen(false)} disabled={isSaving}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleAddDevice} disabled={isSaving}>
+                          Add Device
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog open={isRegistrationCodeOpen} onOpenChange={setIsRegistrationCodeOpen}>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Device Registration Code</DialogTitle>
+                        <DialogDescription>
+                          Use this code to complete the device registration on your terminal
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="flex flex-col items-center justify-center py-8">
+                        <p className="text-sm text-muted-foreground mb-4">Registration Code</p>
+                        <div className="text-5xl font-bold tracking-wider text-primary mb-2">{registrationCode}</div>
+                        <p className="text-sm text-muted-foreground mt-4 text-center">
+                          Enter this code on your device to complete registration
+                        </p>
+                      </div>
+                      <DialogFooter>
+                        <Button onClick={() => setIsRegistrationCodeOpen(false)} disabled={isSaving}>
+                          Close
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Device Name</TableHead>
+                        <TableHead>Device ID</TableHead>
+                        <TableHead>Code</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Last Seen</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {devices.map((device) => (
+                        <TableRow key={device.id}>
+                          <TableCell className="font-medium">{device.name}</TableCell>
+                          <TableCell>{device.deviceId}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono">{visibleCodes.has(device.id) ? device.code : "••••••"}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleCodeVisibility(device.id)}
+                                className="h-6 w-6 p-0"
+                                disabled={isSaving}
+                              >
+                                {visibleCodes.has(device.id) ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusBadgeVariant(device.status)}>{getStatusText(device.status)}</Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{device.lastSeen}</TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteDevice(device.id)}
+                              disabled={isSaving}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="auto-billing">
+              <AutoBillingSettings />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
     </div>
   )
 }

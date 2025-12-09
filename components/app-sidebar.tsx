@@ -1,11 +1,21 @@
 "use client"
 
-import { Home, Users, CreditCard, FileText, BarChart3, Settings, Dumbbell } from "lucide-react"
+import { Home, Users, CreditCard, FileText, BarChart3, Settings, Dumbbell, Menu } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn, normalisedEzypayCustomer } from "@/lib/utils"
 import { useEffect } from "react"
 import { listCustomer } from "@/lib/passer-functions"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar"
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
@@ -17,6 +27,8 @@ const navigation = [
 ]
 
 export function AppSidebar() {
+  const { setOpenMobile, isMobile } = useSidebar()
+
   useEffect(() => {
     let mounted = true
     listCustomer()
@@ -26,7 +38,6 @@ export function AppSidebar() {
         sessionStorage.setItem("defaultCustomerList", JSON.stringify(customers))
       })
       .catch((err) => {
-        // fail silently - sidebar should not break the app
         console.error("[v0] Failed to load customer list for sidebar", err)
       })
 
@@ -37,35 +48,59 @@ export function AppSidebar() {
 
   const pathname = usePathname()
 
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }
+
   return (
-    <div className="flex h-full w-64 flex-col border-r border-sidebar-border bg-sidebar">
-      <Link
-        href="/"
-        className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6 transition-opacity hover:opacity-80"
-      >
-        <Dumbbell className="h-6 w-6 text-sidebar-primary" />
-        <span className="text-lg font-semibold text-sidebar-foreground">GymFlow</span>
-      </Link>
-      <nav className="flex-1 space-y-1 p-4">
-        {navigation.map((item) => {
-          const isActive = pathname === item.href
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              {item.name}
-            </Link>
-          )
-        })}
-      </nav>
-    </div>
+    <>
+      <div className="fixed left-4 top-4 z-50 md:hidden">
+        <SidebarTrigger className="h-10 w-10">
+          <Menu className="h-6 w-6" />
+        </SidebarTrigger>
+      </div>
+
+      <Sidebar collapsible="offcanvas">
+        <SidebarHeader className="border-b border-sidebar-border">
+          <Link
+            href="/"
+            className="flex h-16 items-center gap-2 px-6 transition-opacity hover:opacity-80"
+            onClick={handleNavClick}
+          >
+            <Dumbbell className="h-6 w-6 text-sidebar-primary" />
+            <span className="text-lg font-semibold text-sidebar-foreground">GymFlow</span>
+          </Link>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu className="space-y-1 p-4">
+            {navigation.map((item) => {
+              const isActive = pathname === item.href
+              return (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                    )}
+                    onClick={handleNavClick}
+                  >
+                    <Link href={item.href} className="flex items-center gap-3">
+                      <item.icon className="h-5 w-5" />
+                      {item.name}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )
+            })}
+          </SidebarMenu>
+        </SidebarContent>
+      </Sidebar>
+    </>
   )
 }
