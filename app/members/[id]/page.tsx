@@ -254,24 +254,25 @@ export default function MemberProfilePage() {
                 <CardContent className="space-y-3">
                   <PaymentMethodsList customerId={memberDataState?.id} variant="display" />
 
-                  <AddPaymentMethodDialog
-                    customerId={memberDataState?.id}
-                    onSuccess={handleAddPaymentSuccess}
-                    onOpenChange={handleAddPaymentOpenChange}
-                  >
-                    <TooltipProvider>
-                      <Tooltip>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <AddPaymentMethodDialog
+                        customerId={memberDataState?.id}
+                        onSuccess={handleAddPaymentSuccess}
+                        onOpenChange={handleAddPaymentOpenChange}
+                      >
                         <TooltipTrigger asChild>
                           <Button className="w-full bg-transparent" variant="outline" size="sm">
                             Add Payment Method
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Show the Ezypay's payment capture page</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </AddPaymentMethodDialog>
+                      </AddPaymentMethodDialog>
+
+                      <TooltipContent>
+                        <p>Show the Ezypay's payment capture page</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </CardContent>
               </Card>
             </div>
