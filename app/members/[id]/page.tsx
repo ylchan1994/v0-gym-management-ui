@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Edit, Mail, Phone, Calendar } from "lucide-react"
 import Link from "next/link"
 import { AddPaymentMethodDialog } from "@/components/billing/add-payment-method-dialog"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { PaymentMethodsList } from "@/components/billing/payment-methods-list"
 import { useState, useEffect } from "react"
 import { Spinner } from "@/components/ui/spinner"
@@ -258,9 +259,18 @@ export default function MemberProfilePage() {
                     onSuccess={handleAddPaymentSuccess}
                     onOpenChange={handleAddPaymentOpenChange}
                   >
-                    <Button className="w-full bg-transparent" variant="outline" size="sm">
-                      Add Payment Method
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button className="w-full bg-transparent" variant="outline" size="sm">
+                            Add Payment Method
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Show the Ezypay's payment capture page</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </AddPaymentMethodDialog>
                 </CardContent>
               </Card>

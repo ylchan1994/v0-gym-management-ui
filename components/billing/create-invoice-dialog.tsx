@@ -23,6 +23,7 @@ import { createCheckout, listCustomer, createInvoice } from "@/lib/passer-functi
 import { Spinner } from "@/components/ui/spinner"
 import { PaymentMethodsList } from "./payment-methods-list"
 import Link from "next/link"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface CreateInvoiceDialogProps {
   open: boolean
@@ -236,7 +237,7 @@ export function CreateInvoiceDialog({
                 checkout session,
               </Link>
               &nbsp;you would need to use different APIs to create the relevant session with Ezypay
-            </DialogDescription>  
+            </DialogDescription>
           </DialogHeader>
           <form className="mt-9" onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
@@ -333,7 +334,7 @@ export function CreateInvoiceDialog({
 
               {formData.paymentMethod === "ondemand" && formData.memberId && (
                 <div className="space-y-2 pt-2 border-t">
-                  <Label>Select Payment Method</Label>
+                  <Label>Select Payment Channel</Label>
                   <PaymentMethodsList
                     customerId={formData.memberId}
                     variant="selection"
@@ -371,9 +372,19 @@ export function CreateInvoiceDialog({
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading || loadingCustomers}>
-                {loading ? "Creating..." : "Create"}
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button type="submit" disabled={loading || loadingCustomers}>
+                      {loading ? "Creating..." : "Create"}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Each payment channel will trigger different Ezypay API</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
             </DialogFooter>
           </form>
         </DialogContent>

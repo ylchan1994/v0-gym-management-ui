@@ -29,7 +29,7 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
     const matchesSearch =
       variant == "billing"
         ? invoice.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          invoice.member.toLowerCase().includes(searchQuery.toLowerCase())
+        invoice.member.toLowerCase().includes(searchQuery.toLowerCase())
         : invoice.id.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesStatus && matchesSearch
   })

@@ -14,7 +14,8 @@ import {
 import { Download, Search, Loader2 } from 'lucide-react'
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
-import { listSettlements, downloadDocument, type documentType } from "@/lib/passer-functions"
+import { listSettlements, downloadDocument } from "@/lib/passer-functions"
+import Link from 'next/link'
 
 export function SettlementTable() {
   const [settlements, setSettlements] = useState<any[]>([])
@@ -50,15 +51,15 @@ export function SettlementTable() {
     setIsDownloading(settlementId)
     try {
       const downloadUrl = await downloadDocument(settlementId, docType)
-      
+
       window.open(downloadUrl, '_blank')
-      
+
       const typeLabels = {
         'tax_invoice': 'Tax Invoice',
         'detail_report': 'Detail Report',
         'summary_report': 'Summary Report'
       }
-      
+
       toast({
         title: "Report Downloaded",
         description: `${typeLabels[docType]} for settlement ${settlementId} is ready.`,
@@ -79,6 +80,13 @@ export function SettlementTable() {
       <CardHeader>
         <CardTitle>Settlement History</CardTitle>
         <CardDescription>View and download past settlement reports</CardDescription>
+        <CardDescription className="italic">
+          This page allows merchant to quickly check their&nbsp;
+          <Link href={"https://developer.ezypay.com/docs/reports-1#retrieve-settlement-reports"} className="underline">
+            settlement summary
+          </Link>
+          &nbsp;and allows them to download the settlement report.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center gap-4">
@@ -132,9 +140,9 @@ export function SettlementTable() {
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="gap-2"
                           disabled={isDownloading === settlement.id}
                         >
@@ -143,17 +151,17 @@ export function SettlementTable() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleDownloadDocument(settlement.id, 'tax_invoice')}
                         >
                           Tax Invoice
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleDownloadDocument(settlement.id, 'detail_report')}
                         >
                           Detail Report
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleDownloadDocument(settlement.id, 'summary_report')}
                         >
                           Summary Report

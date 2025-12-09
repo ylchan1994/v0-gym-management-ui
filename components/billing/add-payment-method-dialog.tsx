@@ -15,6 +15,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
 import { getEzypayToken } from "@/lib/ezypay-token"
 import Link from "next/link"
+import { logApiCall } from '@/lib/api-logger'
 
 interface AddPaymentMethodDialogProps {
   customerId: string
@@ -71,6 +72,7 @@ export function AddPaymentMethodDialog({
 
       const pcpUrl = `${process.env.NEXT_PUBLIC_PCP_ENDPOINT}/embed?token=${token}&feepricing=true&submitbutton=true&customerId=${customerId}`
       setIframeUrl(pcpUrl);
+      await logApiCall("GET", pcpUrl, "truncated response", 200)
 
       try {
         // Record origin from the iframe URL so we can validate messages
@@ -107,9 +109,9 @@ export function AddPaymentMethodDialog({
           Host&nbsp;
           <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} className="underline">Ezypay's Payment Capture Page</Link>
           &nbsp;here and allow customer to update their payment method. This should be on the customer portal if available.
-        </DialogDescription>        
-      </DialogHeader>      
-  <div className="flex-1 p-4 mt-10">
+        </DialogDescription>
+      </DialogHeader>
+      <div className="flex-1 p-4 mt-10">
         {isLoading ? (
           <div className="flex items-center justify-center">
             <Spinner className="h-8 w-8" />

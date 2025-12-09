@@ -89,7 +89,6 @@ export async function listInvoice(): Promise<any> {
 
     if (!invoiceResponse.ok) {
       const text = await invoiceResponse.text()
-      await logApiCall("GET", url, text, invoiceResponse.status)
       console.error("List invoice failed:", invoiceResponse.status, text)
       return []
     }
@@ -97,13 +96,11 @@ export async function listInvoice(): Promise<any> {
     const contentType = invoiceResponse.headers.get("content-type")
     if (!contentType || !contentType.includes("application/json")) {
       const text = await invoiceResponse.text()
-      await logApiCall("GET", url, text, invoiceResponse.status)
       console.error("List invoice error: Expected JSON but received:", contentType, text.substring(0, 200))
       return []
     }
 
     const invoiceData = await invoiceResponse.json()
-    await logApiCall("GET", url, invoiceData, invoiceResponse.status)
 
     const normalisedInvoice = normalisedEzypayInvoice(invoiceData)
 
@@ -137,7 +134,6 @@ export async function listInvoiceByCustomer(customerId, customerName): Promise<a
     })
 
     const invoiceData = invoiceResponse.ok ? await invoiceResponse.json() : await invoiceResponse.text()
-    await logApiCall("GET", url, invoiceData, invoiceResponse.status)
 
     if (!invoiceResponse.ok) {
       console.error("List Customer invoice failed:", invoiceResponse.status, invoiceData)
@@ -176,7 +172,6 @@ export async function listTransactionByInvoice(invoiceId, paymentMethod): Promis
     })
 
     const transactionData = transactionResponse.ok ? await transactionResponse.json() : await transactionResponse.text()
-    await logApiCall("GET", url, transactionData, transactionResponse.status)
 
     if (!transactionResponse.ok) {
       console.error("List transaction failed:", transactionResponse.status, transactionData)

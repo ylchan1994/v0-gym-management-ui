@@ -108,18 +108,14 @@ export function ApiLoggerViewer() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div className="px-3 pb-3 space-y-2">
-                        <div>
-                          <p className="text-xs font-semibold mb-1">URL:</p>
-                          <p className="text-xs font-mono break-all">{log.url}</p>
-                        </div>
+                      <div className="px-3 pb-3 space-y-2">                        
                         <div>
                           <p className="text-xs font-semibold mb-1">Response:</p>
-                          <ScrollArea className="max-h-[400px] w-full rounded border">
+                          <div className="max-h-[400px] w-full rounded border overflow-auto">
                             <pre className="text-xs font-mono bg-muted/30 p-3 whitespace-pre-wrap break-words">
                               {JSON.stringify(log.response, null, 2)}
                             </pre>
-                          </ScrollArea>
+                          </div>
                         </div>
                       </div>
                     </AccordionContent>

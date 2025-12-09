@@ -80,7 +80,6 @@ export async function listCustomer(): Promise<any> {
     })
 
     const data = response.ok ? await response.json() : await response.text()
-    await logApiCall("GET", url, data, response.status)
 
     if (!response.ok) {
       console.error("List customer failed:", response.status, data)
@@ -117,7 +116,6 @@ export async function getCustomer(customerId: string | null): Promise<any> {
     })
 
     const data = response.ok ? await response.json() : await response.text()
-    await logApiCall("GET", url, data, response.status)
 
     if (!response.ok) {
       console.error("List customer failed:", response.status, data)

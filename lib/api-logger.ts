@@ -21,8 +21,8 @@ export async function logApiCall(method: string, url: string, response: any, sta
     status,
   }
   apiLogs.push(log)
-  // Keep only last 50 logs
-  if (apiLogs.length > 50) {
+  // Keep only last 100 logs
+  if (apiLogs.length > 100) {
     apiLogs.shift()
   }
 }

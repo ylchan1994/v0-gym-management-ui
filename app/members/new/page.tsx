@@ -16,6 +16,7 @@ import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import { toast } from "sonner"
 import { getEzypayToken, createCustomer } from "@/lib/passer-functions"
+import { logApiCall } from '@/lib/api-logger'
 
 const pcpEndpoint = process.env.NEXT_PUBLIC_PCP_ENDPOINT
 const defaultformData = {
@@ -76,6 +77,8 @@ export default function NewMemberPage() {
 
       const pcpUrl = `${pcpEndpoint}/embed?token=${token}&feepricing=true&submitbutton=true${customerId ? "&customerId=" + customerId : ""}`
       setIframeUrl(pcpUrl)
+      await logApiCall("GET", pcpUrl, "truncated response", 200)
+
 
       try {
         // Record origin from the iframe URL so we can validate messages
@@ -309,7 +312,7 @@ export default function NewMemberPage() {
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Create a new member and proceed to payment setup</p>
+                        <p>It will simultanenously called Ezypay create customer API. Then, Ezypay payment method capture page is called with the customer ID returned from the API</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
