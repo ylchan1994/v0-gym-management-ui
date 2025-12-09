@@ -99,6 +99,7 @@ export function PaymentMethodsList({
       })
 
       setPaymentMethods(sorted)
+      onMethodSelect(sorted.find((pm) => pm.isDefault).id || null)
       setDefaultPaymentMethod(sorted.find((pm) => pm.isDefault) || null)
     } catch (error: any) {
       const msg = error?.message || String(error)

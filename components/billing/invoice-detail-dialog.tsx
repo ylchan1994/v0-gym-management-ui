@@ -145,7 +145,6 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
       toast.success("Payment retry initiated successfully")
       onUpdate?.()
       onOpenChange(false)
-      window.location.reload()
     } catch (error) {
       toast.error("Failed to retry payment")
     } finally {
