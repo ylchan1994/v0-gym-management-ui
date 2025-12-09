@@ -207,6 +207,11 @@ export async function retryInvoice(invoiceId, paymentMethodId) {
       throw new Error(`List customer failed: No access_token from token utility`)
     }
 
+    const requestBody = {
+      paymentMethodToken: paymentMethodId,
+      oneOff: true,
+    }
+
     const url = `${apiEndpoint}/${invoiceId}/retrypayment`
     const response = await fetch(url, {
       method: "POST",
@@ -215,12 +220,11 @@ export async function retryInvoice(invoiceId, paymentMethodId) {
         merchant: merchantId,
         "Content-type": "application/json",
       },
-      body: `{"paymentMethodToken": "${paymentMethodId}",
-        "oneOff": true}`,
+      body: JSON.stringify(requestBody),
     })
 
     const data = response.ok ? await response.json() : await response.text()
-    await logApiCall("POST", url, data, response.status)
+    await logApiCall("POST", url, data, response.status, requestBody)
 
     if (!response.ok) {
       console.error("Retry Invoice failed:", response.status, data)
@@ -260,7 +264,7 @@ export async function writeOffInvoice(invoiceId) {
     })
 
     const data = response.ok ? await response.json() : await response.text()
-    await logApiCall("POST", url, data, response.status)
+    await logApiCall("POST", url, data, response.status, {})
 
     if (!response.ok) {
       console.error("Write off Invoice failed:", response.status, data)
@@ -288,6 +292,8 @@ export async function recordExternalInvoice(invoiceId, method) {
       throw new Error(`List customer failed: No access_token from token utility`)
     }
 
+    const requestBody = { paymentMethodType: method }
+
     const url = `${apiEndpoint}/${invoiceId}/recordpayment`
     const response = await fetch(url, {
       method: "POST",
@@ -296,11 +302,11 @@ export async function recordExternalInvoice(invoiceId, method) {
         merchant: merchantId,
         "Content-type": "application/json",
       },
-      body: `{"paymentMethodType": "${method}"}`,
+      body: JSON.stringify(requestBody),
     })
 
     const data = response.ok ? await response.json() : await response.text()
-    await logApiCall("POST", url, data, response.status)
+    await logApiCall("POST", url, data, response.status, requestBody)
 
     if (!response.ok) {
       console.error("Record External Invoice failed:", response.status, data)
@@ -328,6 +334,8 @@ export async function refundInvoice(invoiceId, amount = null) {
       throw new Error(`Refund failed: No access_token from token utility`)
     }
 
+    const requestBody = amount ? { amount: amount } : {}
+
     const url = `${apiEndpoint}/${invoiceId}/refund`
     const response = await fetch(url, {
       method: "PUT",
@@ -336,11 +344,11 @@ export async function refundInvoice(invoiceId, amount = null) {
         merchant: merchantId,
         "Content-type": "application/json",
       },
-      body: amount ? `{"amount": "${amount}"}` : "{}",
+      body: JSON.stringify(requestBody),
     })
 
     const data = response.ok ? await response.json() : await response.text()
-    await logApiCall("PUT", url, data, response.status)
+    await logApiCall("PUT", url, data, response.status, requestBody)
 
     if (!response.ok) {
       console.error("Refund Invoice failed:", response.status, data)
@@ -421,7 +429,7 @@ export async function createInvoice(invoiceData) {
     })
 
     const data = response.ok ? await response.json() : await response.text()
-    await logApiCall("POST", apiEndpoint, data, response.status)
+    await logApiCall("POST", apiEndpoint, data, response.status, requestBody)
 
     if (!response.ok) {
       console.error("Create Invoice failed:", response.status, data)
@@ -469,7 +477,7 @@ export async function createCheckout(invoiceData) {
     })
 
     const data = response.ok ? await response.json() : await response.text()
-    await logApiCall("POST", checkoutEndpoint, data, response.status)
+    await logApiCall("POST", checkoutEndpoint, data, response.status, requestBody)
 
     if (!response.ok) {
       console.error("Refund Invoice failed:", response.status, data)

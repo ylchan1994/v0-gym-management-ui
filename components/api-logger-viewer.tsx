@@ -72,7 +72,7 @@ export function ApiLoggerViewer() {
     <>
       <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsOpen(false)} />
 
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[1200px] h-[80vh] bg-background border rounded-lg shadow-xl flex flex-col z-50">
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[1400px] h-[85vh] bg-background border rounded-lg shadow-xl flex flex-col z-50">
         <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
           <div className="flex items-center gap-2">
             <Bug className="h-5 w-5" />
@@ -108,13 +108,27 @@ export function ApiLoggerViewer() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div className="px-3 pb-3 space-y-2">                        
-                        <div>
-                          <p className="text-xs font-semibold mb-1">Response:</p>
-                          <div className="max-h-[400px] w-full rounded border overflow-auto">
-                            <pre className="text-xs font-mono bg-muted/30 p-3 whitespace-pre-wrap break-words">
-                              {JSON.stringify(log.response, null, 2)}
-                            </pre>
+                      <div className="px-3 pb-3">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          {log.requestBody && (
+                            <div>
+                              <p className="text-xs font-semibold mb-2 text-blue-600 dark:text-blue-400">
+                                Request Body:
+                              </p>
+                              <ScrollArea className="h-[400px] w-full rounded border bg-muted/30">
+                                <pre className="text-xs font-mono p-3 whitespace-pre-wrap break-words">
+                                  {JSON.stringify(log.requestBody, null, 2)}
+                                </pre>
+                              </ScrollArea>
+                            </div>
+                          )}
+                          <div className={log.requestBody ? "" : "lg:col-span-2"}>
+                            <p className="text-xs font-semibold mb-2 text-green-600 dark:text-green-400">Response:</p>
+                            <ScrollArea className="h-[400px] w-full rounded border bg-muted/30">
+                              <pre className="text-xs font-mono p-3 whitespace-pre-wrap break-words">
+                                {JSON.stringify(log.response, null, 2)}
+                              </pre>
+                            </ScrollArea>
                           </div>
                         </div>
                       </div>

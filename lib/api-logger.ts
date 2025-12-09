@@ -5,18 +5,20 @@ export type ApiLog = {
   timestamp: string
   method: string
   url: string
+  requestBody?: any
   response: any
   status: number
 }
 
 const apiLogs: ApiLog[] = []
 
-export async function logApiCall(method: string, url: string, response: any, status: number) {
+export async function logApiCall(method: string, url: string, response: any, status: number, requestBody?: any) {
   const log: ApiLog = {
     id: `${Date.now()}-${Math.random()}`,
     timestamp: new Date().toISOString(),
     method,
     url,
+    requestBody,
     response,
     status,
   }
