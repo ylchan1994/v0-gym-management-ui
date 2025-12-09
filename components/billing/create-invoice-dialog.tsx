@@ -221,28 +221,32 @@ export function CreateInvoiceDialog({
       <TapToPayAnimation open={showTapAnimation} />
 
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[1000px]">
+        <DialogContent className="w-[95vw] max-w-[1000px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Invoice</DialogTitle>
-            <DialogDescription>Create a new invoice with pending status</DialogDescription>
-            <DialogDescription className="italic">
+            <DialogTitle className="text-lg md:text-xl">Create New Invoice</DialogTitle>
+            <DialogDescription className="text-sm">Create a new invoice with pending status</DialogDescription>
+            <DialogDescription className="italic text-xs md:text-sm">
               You would create invoice in Ezypay with this also and depends on whether is&nbsp;
               <Link href={"https://developer.ezypay.com/docs/on-demand#/"} className="underline">
                 on-demand invoice,
-              </Link>&nbsp;
+              </Link>
+              &nbsp;
               <Link href={"https://developer.ezypay.com/docs/checkout#/"} className="underline">
                 tap to pay invoice,
-              </Link>&nbsp;
+              </Link>
+              &nbsp;
               <Link href={"https://developer.ezypay.com/docs/terminal-integration#/"} className="underline">
                 checkout session,
               </Link>
               &nbsp;you would need to use different APIs to create the relevant session with Ezypay
             </DialogDescription>
           </DialogHeader>
-          <form className="mt-9" onSubmit={handleSubmit}>
+          <form className="mt-4 md:mt-9" onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="member">Member</Label>
+                <Label htmlFor="member" className="text-sm">
+                  Member
+                </Label>
                 {customerId ? (
                   <Input id="member" value={customerName || ""} disabled className="bg-muted" />
                 ) : (
@@ -275,7 +279,9 @@ export function CreateInvoiceDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="amount">Amount</Label>
+                <Label htmlFor="amount" className="text-sm">
+                  Amount
+                </Label>
                 <Input
                   id="amount"
                   type="number"
@@ -288,7 +294,9 @@ export function CreateInvoiceDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description (Optional)</Label>
+                <Label htmlFor="description" className="text-sm">
+                  Description (Optional)
+                </Label>
                 <Textarea
                   id="description"
                   placeholder="Monthly membership fee"
@@ -304,7 +312,7 @@ export function CreateInvoiceDialog({
               </div>
 
               <div className="space-y-3">
-                <Label>Payment Method</Label>
+                <Label className="text-sm">Payment Method</Label>
                 <RadioGroup
                   value={formData.paymentMethod}
                   onValueChange={(value: any) =>
@@ -368,23 +376,28 @@ export function CreateInvoiceDialog({
               )}
             </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+            <DialogFooter className="flex-col-reverse sm:flex-row gap-2 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={loading}
+                className="w-full sm:w-auto"
+              >
                 Cancel
               </Button>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button type="submit" disabled={loading || loadingCustomers}>
+                    <Button type="submit" disabled={loading || loadingCustomers} className="w-full sm:w-auto">
                       {loading ? "Creating..." : "Create"}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Each payment channel will trigger different Ezypay API</p>
+                    <p className="text-sm">Each payment channel will trigger different Ezypay API</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-
             </DialogFooter>
           </form>
         </DialogContent>

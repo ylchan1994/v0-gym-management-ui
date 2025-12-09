@@ -59,22 +59,24 @@ export default function MembersPage() {
       <AppSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className="space-y-4 md:space-y-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-balance">Members</h1>
-                <p className="text-muted-foreground">Manage your gym members and their memberships</p>
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-balance">Members</h1>
+                <p className="text-sm md:text-base text-muted-foreground">
+                  Manage your gym members and their memberships
+                </p>
               </div>
               <Link href="/members/new">
-                <Button>
+                <Button className="w-full sm:w-auto">
                   <Plus className="mr-2 h-4 w-4" />
                   Add Member
                 </Button>
               </Link>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -86,7 +88,7 @@ export default function MembersPage() {
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -98,16 +100,16 @@ export default function MembersPage() {
               </Select>
             </div>
 
-            <div className="rounded-lg border border-border bg-card">
+            <div className="rounded-lg border border-border bg-card overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Plan</TableHead>
-                    <TableHead>Join Date</TableHead>
-                    <TableHead>Expiry Date</TableHead>
+                    <TableHead className="min-w-[150px]">Name</TableHead>
+                    <TableHead className="min-w-[200px]">Contact</TableHead>
+                    <TableHead className="min-w-[100px]">Status</TableHead>
+                    <TableHead className="min-w-[120px]">Plan</TableHead>
+                    <TableHead className="min-w-[110px]">Join Date</TableHead>
+                    <TableHead className="min-w-[110px]">Expiry Date</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>

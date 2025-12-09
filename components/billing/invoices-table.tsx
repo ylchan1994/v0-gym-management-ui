@@ -29,7 +29,7 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
     const matchesSearch =
       variant == "billing"
         ? invoice.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        invoice.member.toLowerCase().includes(searchQuery.toLowerCase())
+          invoice.member.toLowerCase().includes(searchQuery.toLowerCase())
         : invoice.id.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesStatus && matchesSearch
   })
@@ -66,31 +66,31 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle>Invoices</CardTitle>
-              <CardDescription>Generate, send, and manage member invoices</CardDescription>
+              <CardTitle className="text-base md:text-lg">Invoices</CardTitle>
+              <CardDescription className="text-sm">Generate, send, and manage member invoices</CardDescription>
             </div>
-            <Button onClick={() => setIsCreateOpen(true)}>
+            <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Create Invoice
             </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search by invoice ID or member..."
-                className="pl-9"
+                className="pl-9 text-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px] text-sm">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -104,43 +104,51 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
             </Select>
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Invoice ID</TableHead>
-                {variant == "billing" ? <TableHead>Member</TableHead> : ""}
-                <TableHead>Amount</TableHead>
-                <TableHead>Payment Method</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInvoices?.map((invoice) => (
-                <TableRow
-                  key={invoice.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleInvoiceClick(invoice)}
-                >
-                  <TableCell className="font-medium">{formatCellValue(invoice.number ?? invoice.id)}</TableCell>
-                  {variant == "billing" ? <TableCell>{formatCellValue(invoice.member)}</TableCell> : ""}
-                  <TableCell className="font-medium">{formatCellValue(invoice.amount)}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <PaymentMethodIcon type={invoice.paymentMethod} className="h-4 w-4" />
-                      <span>{formatCellValue(invoice.paymentMethod)}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(String(invoice.status))}>
-                      {formatCellValue(invoice.status)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{formatCellValue(invoice.date)}</TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[120px]">Invoice ID</TableHead>
+                  {variant == "billing" ? <TableHead className="min-w-[150px]">Member</TableHead> : ""}
+                  <TableHead className="min-w-[100px]">Amount</TableHead>
+                  <TableHead className="min-w-[150px]">Payment Method</TableHead>
+                  <TableHead className="min-w-[100px]">Status</TableHead>
+                  <TableHead className="min-w-[110px]">Date</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredInvoices?.map((invoice) => (
+                  <TableRow
+                    key={invoice.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleInvoiceClick(invoice)}
+                  >
+                    <TableCell className="font-medium text-sm">
+                      {formatCellValue(invoice.number ?? invoice.id)}
+                    </TableCell>
+                    {variant == "billing" ? (
+                      <TableCell className="text-sm">{formatCellValue(invoice.member)}</TableCell>
+                    ) : (
+                      ""
+                    )}
+                    <TableCell className="font-medium text-sm">{formatCellValue(invoice.amount)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <PaymentMethodIcon type={invoice.paymentMethod} className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">{formatCellValue(invoice.paymentMethod)}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusBadgeVariant(String(invoice.status))} className="text-xs">
+                        {formatCellValue(invoice.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">{formatCellValue(invoice.date)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 

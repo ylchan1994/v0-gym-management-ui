@@ -16,7 +16,7 @@ import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import { toast } from "sonner"
 import { getEzypayToken, createCustomer } from "@/lib/passer-functions"
-import { logApiCall } from '@/lib/api-logger'
+import { logApiCall } from "@/lib/api-logger"
 
 const pcpEndpoint = process.env.NEXT_PUBLIC_PCP_ENDPOINT
 const defaultformData = {
@@ -78,7 +78,6 @@ export default function NewMemberPage() {
       const pcpUrl = `${pcpEndpoint}/embed?token=${token}&feepricing=true&submitbutton=true${customerId ? "&customerId=" + customerId : ""}`
       setIframeUrl(pcpUrl)
       await logApiCall("GET", pcpUrl, "truncated response", 200)
-
 
       try {
         // Record origin from the iframe URL so we can validate messages
@@ -148,21 +147,21 @@ export default function NewMemberPage() {
           <Spinner className="mr-2 h-20 w-20" />
         </div>
         <TopBar />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="mx-auto max-w-5xl space-y-6">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className="mx-auto max-w-5xl space-y-4 md:space-y-6">
             <div className="flex items-center gap-4">
               <Link href="/members">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="flex-shrink-0">
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               </Link>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight text-balance">Add New Member</h1>
-                <p className="text-muted-foreground">Create a new member profile</p>
+              <div className="min-w-0">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-balance">Add New Member</h1>
+                <p className="text-sm md:text-base text-muted-foreground">Create a new member profile</p>
                 {!iframeRef && (
                   <>
                     <br></br>
-                    <p className="text-muted-foreground italic">
+                    <p className="text-sm text-muted-foreground italic">
                       You would want to&nbsp;
                       <Link href={"https://developer.ezypay.com/docs/customer-creation#/"} className="underline">
                         create customer with Ezypay
@@ -176,7 +175,7 @@ export default function NewMemberPage() {
                 {iframeRef && (
                   <>
                     <br></br>
-                    <p className="text-muted-foreground italic">
+                    <p className="text-sm text-muted-foreground italic">
                       After you get the Ezypay customer ID, you could collect the payment method from customer by&nbsp;
                       <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} className="underline">
                         hosting Ezypay's payment capture page
@@ -189,14 +188,14 @@ export default function NewMemberPage() {
             </div>
 
             {!isCustomerCreated ? (
-              <form className="space-y-6" onSubmit={handleSubmit}>
+              <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
                 <Card>
                   <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>Basic member details</CardDescription>
+                    <CardTitle className="text-base md:text-lg">Personal Information</CardTitle>
+                    <CardDescription className="text-sm">Basic member details</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="firstName">
                           First Name<span className="text-red-500">*</span>
@@ -210,7 +209,7 @@ export default function NewMemberPage() {
                         <Input id="lastName" placeholder="Doe" required onChange={handleInputChange} />
                       </div>
                     </div>
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="email">
                           Email<span className="text-red-500">*</span>
@@ -253,8 +252,8 @@ export default function NewMemberPage() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Membership Details</CardTitle>
-                    <CardDescription>Select membership plan and start date</CardDescription>
+                    <CardTitle className="text-base md:text-lg">Membership Details</CardTitle>
+                    <CardDescription className="text-sm">Select membership plan and start date</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
@@ -271,7 +270,7 @@ export default function NewMemberPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="startDate">Start Date</Label>
                         <Input id="startDate" type="date" onChange={handleDateChange} />
@@ -293,14 +292,16 @@ export default function NewMemberPage() {
                   </CardContent>
                 </Card>
 
-                <div className="flex justify-end gap-4">
-                  <Link href="/members">
-                    <Button variant="outline">Cancel</Button>
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
+                  <Link href="/members" className="w-full sm:w-auto">
+                    <Button variant="outline" className="w-full bg-transparent">
+                      Cancel
+                    </Button>
                   </Link>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button type="submit" disabled={isSubmitting}>
+                        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
                           {isSubmitting ? (
                             <>
                               <Spinner className="mr-2 h-4 w-4" />
@@ -312,7 +313,10 @@ export default function NewMemberPage() {
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>It will simultanenously called Ezypay create customer API. Then, Ezypay payment method capture page is called with the customer ID returned from the API</p>
+                        <p>
+                          It will simultanenously called Ezypay create customer API. Then, Ezypay payment method capture
+                          page is called with the customer ID returned from the API
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -321,8 +325,8 @@ export default function NewMemberPage() {
             ) : (
               <Card>
                 <CardHeader>
-                  <CardTitle>Payment Information</CardTitle>
-                  <CardDescription>Add payment method for recurring billing</CardDescription>
+                  <CardTitle className="text-base md:text-lg">Payment Information</CardTitle>
+                  <CardDescription className="text-sm">Add payment method for recurring billing</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {isLoadingIframe ? (

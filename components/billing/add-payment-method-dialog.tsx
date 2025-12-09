@@ -15,7 +15,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
 import { getEzypayToken } from "@/lib/ezypay-token"
 import Link from "next/link"
-import { logApiCall } from '@/lib/api-logger'
+import { logApiCall } from "@/lib/api-logger"
 
 interface AddPaymentMethodDialogProps {
   customerId: string
@@ -38,18 +38,16 @@ export function AddPaymentMethodDialog({
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const iframeOriginRef = useRef<string | null>(null)
 
-  // Use controlled state if provided, otherwise use internal state
-  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
 
-  // Only call parent's onOpenChange when the component is actually controlled via `open` prop.
-  // If parent passed an onOpenChange without supplying `open`, treat the component as uncontrolled
-  // and update internal state instead. This prevents the DialogTrigger from invoking the
-  // parent's handler while the internal `open` remains false (which would make the dialog not open).
   const setOpen = (newOpen: boolean) => {
-    if (controlledOpen !== undefined) {
+    if (isControlled) {
       controlledOnOpenChange?.(newOpen)
     } else {
       setInternalOpen(newOpen)
+      // Call onOpenChange even in uncontrolled mode if provided
+      controlledOnOpenChange?.(newOpen)
     }
   }
 
@@ -71,7 +69,7 @@ export function AddPaymentMethodDialog({
       }
 
       const pcpUrl = `${process.env.NEXT_PUBLIC_PCP_ENDPOINT}/embed?token=${token}&feepricing=true&submitbutton=true&customerId=${customerId}`
-      setIframeUrl(pcpUrl);
+      setIframeUrl(pcpUrl)
       await logApiCall("GET", pcpUrl, "truncated response", 200)
 
       try {
@@ -81,7 +79,6 @@ export function AddPaymentMethodDialog({
       } catch (e) {
         iframeOriginRef.current = null
       }
-
     } catch (error) {
       console.error("[v0] Error loading iframe URL:", error)
       toast.error("Failed to load payment form")
@@ -107,8 +104,11 @@ export function AddPaymentMethodDialog({
         <DialogDescription>Add a new payment method for automatic billing</DialogDescription>
         <DialogDescription className="italic">
           Host&nbsp;
-          <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} className="underline">Ezypay's Payment Capture Page</Link>
-          &nbsp;here and allow customer to update their payment method. This should be on the customer portal if available.
+          <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} className="underline">
+            Ezypay's Payment Capture Page
+          </Link>
+          &nbsp;here and allow customer to update their payment method. This should be on the customer portal if
+          available.
         </DialogDescription>
       </DialogHeader>
       <div className="flex-1 p-4 mt-10">

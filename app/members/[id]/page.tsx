@@ -84,55 +84,55 @@ export default function MemberProfilePage() {
             <Spinner className="w-20 h-20" />
           </div>
         ) : null}
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className="space-y-4 md:space-y-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-balance">{memberDataState?.name}</h1>
-                <p className="text-muted-foreground">Member profile and activity</p>
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-balance">{memberDataState?.name}</h1>
+                <p className="text-sm md:text-base text-muted-foreground">Member profile and activity</p>
               </div>
               <Link href={`/members/${memberDataState?.id}/edit`}>
-                <Button>
+                <Button className="w-full sm:w-auto">
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Profile
                 </Button>
               </Link>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-4 md:gap-6 lg:grid-cols-3">
               <Card>
                 <CardHeader>
-                  <CardTitle>Personal Information</CardTitle>
+                  <CardTitle className="text-base md:text-lg">Personal Information</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 md:space-y-4">
                   <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <div>
+                    <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div className="min-w-0">
                       <p className="text-sm font-medium">Email</p>
-                      <p className="text-sm text-muted-foreground">{memberDataState?.email}</p>
+                      <p className="text-sm text-muted-foreground truncate">{memberDataState?.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <div>
+                    <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div className="min-w-0">
                       <p className="text-sm font-medium">Phone</p>
                       <p className="text-sm text-muted-foreground">{memberDataState?.phone}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
+                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div className="min-w-0">
                       <p className="text-sm font-medium">Date of Birth</p>
                       <p className="text-sm text-muted-foreground">{memberDataState?.dateOfBirth}</p>
                     </div>
                   </div>
                   <div>
                     <p className="text-sm font-medium">Address</p>
-                    <p className="text-sm text-muted-foreground">{memberDataState?.address}</p>
+                    <p className="text-sm text-muted-foreground break-words">{memberDataState?.address}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium">Emergency Contact</p>
-                    <p className="text-sm text-muted-foreground">{memberDataState?.emergencyContact}</p>
+                    <p className="text-sm text-muted-foreground break-words">{memberDataState?.emergencyContact}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -277,10 +277,16 @@ export default function MemberProfilePage() {
             </div>
 
             <Tabs defaultValue="invoices" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="invoices">Invoices</TabsTrigger>
-                <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-                <TabsTrigger value="attendance">Attendance Logs</TabsTrigger>
+              <TabsList className="w-full justify-start overflow-x-auto">
+                <TabsTrigger value="invoices" className="flex-shrink-0">
+                  Invoices
+                </TabsTrigger>
+                <TabsTrigger value="upcoming" className="flex-shrink-0">
+                  Upcoming
+                </TabsTrigger>
+                <TabsTrigger value="attendance" className="flex-shrink-0">
+                  Attendance Logs
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="invoices">
                 <InvoicesTable variant="customer" invoices={memberDataState.invoices} customerData={memberDataState} />
