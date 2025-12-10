@@ -49,7 +49,7 @@ export function PaymentMethodsList({
   onMethodSelect,
   showInvalid = false,
 }: PaymentMethodsListProps) {
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[] | null>([])
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -99,8 +99,9 @@ export function PaymentMethodsList({
       })
 
       setPaymentMethods(sorted)
-      onMethodSelect(sorted.find((pm) => pm.isDefault).id || null)
-      setDefaultPaymentMethod(sorted.find((pm) => pm.isDefault) || null)
+      const foundDefault = sorted.find((pm) => pm.isDefault) || null
+      setDefaultPaymentMethod(foundDefault)
+      if (onMethodSelect && foundDefault?.id) onMethodSelect(foundDefault.id)
     } catch (error: any) {
       const msg = error?.message || String(error)
       console.error("Error fetching payment methods", msg)
@@ -183,7 +184,8 @@ export function PaymentMethodsList({
 
   if (variant === "selection") {
     return (
-      <RadioGroup value={selectedMethodId || defaultPaymentMethod.id} onValueChange={onMethodSelect}>
+      <RadioGroup value={selectedMethodId || defaultPaymentMethod?.id || ""} onValueChange={onMethodSelect}
+      >
         <div className="space-y-2">
           {paymentMethods.map((method) => {
             const isInvalid = !method.valid
