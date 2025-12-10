@@ -154,7 +154,6 @@ export async function getCustomerPaymentMethods(customerId: string): Promise<any
     })
 
     const data = await res.json()
-    await logApiCall("GET", url, data, res.status)
 
     return data
   } catch (err) {

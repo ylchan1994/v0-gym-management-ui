@@ -32,7 +32,7 @@ export async function replacePaymentMethod(customerId, paymentMethod, newPayment
     })
 
     const data = response.ok ? await response.json() : await response.text()
-    await logApiCall("PUT", url, data, response.status)
+    await logApiCall("PUT", url, data, response.status, {newPaymentMethodToken: newPaymentMethod})
 
     if (!response.ok) {
       console.error("Replace Payment Method failed:", response.status, data)
