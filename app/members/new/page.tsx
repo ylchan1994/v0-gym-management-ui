@@ -177,7 +177,7 @@ export default function NewMemberPage() {
                     <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} target="_blank" className="underline">
                       hosting Ezypay's payment capture page
                     </Link>
-                    &nbsp;as an iframe in your page
+                    &nbsp;as an iframe in your page. You could also email this page to customer for them to fill in their payment method.
                   </p>
                 </>
               )}
