@@ -145,7 +145,7 @@ export async function getCustomerPaymentMethods(customerId: string): Promise<any
 
     const merchantId = process.env.EZYPAY_MERCHANT_ID || "5ee1dffe-70ab-43a9-bc1c-d8b7bd66586d"
 
-    const url = `https://api-sandbox.ezypay.com/v2/billing/customers/${customerId}/paymentmethods`
+    const url = `${apiEndpoint}/${customerId}/paymentmethods`
     const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
