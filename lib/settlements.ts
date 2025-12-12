@@ -52,7 +52,7 @@ export async function downloadDocument(settlementId, documentType): Promise<any>
     })
 
     const settlementDoc = response.ok ? await response.json() : await response.text()
-    await logApiCall("POST", url, settlementDoc, response.status)
+    await logApiCall("POST", url, settlementDoc, response.status, body)
 
     if (!response.ok) {
       console.error("Created settlement file failed:", response.status, settlementDoc)

@@ -47,7 +47,7 @@ export async function createCustomer(customer): Promise<any> {
     })
 
     const data = response.ok ? await response.json() : await response.text()
-    await logApiCall("POST", apiEndpoint, data, response.status)
+    await logApiCall("POST", apiEndpoint, data, response.status, body)
 
     if (!response.ok) {
       console.error("Created customer failed:", response.status, data)

@@ -5,7 +5,7 @@ import { Bug, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { getApiLogs, clearApiLogs, type ApiLog } from "@/lib/api-logger"
+import { getApiLogs, clearApiLogs, type ApiLog, getApiLogFromLocal } from "@/lib/api-logger"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 export function ApiLoggerViewer() {
@@ -32,6 +32,10 @@ export function ApiLoggerViewer() {
       return () => clearInterval(interval)
     }
   }, [isOpen])
+
+  useEffect(() =>{
+    getApiLogFromLocal()
+  }, [])
 
   const getStatusColor = (status: number) => {
     if (status >= 200 && status < 300) return "bg-green-500/10 text-green-600 dark:text-green-400"

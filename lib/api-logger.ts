@@ -1,5 +1,7 @@
 "use server"
 
+import { setItem, getItem, clearStore } from './json-store'
+
 export type ApiLog = {
   id: string
   timestamp: string
@@ -10,7 +12,7 @@ export type ApiLog = {
   status: number
 }
 
-const apiLogs: ApiLog[] = []
+let apiLogs: ApiLog[] = []
 
 export async function logApiCall(method: string, url: string, response: any, status: number, requestBody?: any) {
   const log: ApiLog = {
@@ -27,6 +29,13 @@ export async function logApiCall(method: string, url: string, response: any, sta
   if (apiLogs.length > 100) {
     apiLogs.shift()
   }
+  await setItem('apiLog', JSON.stringify(apiLogs))
+}
+
+export async function getApiLogFromLocal() {
+  const localApiLog = await getItem('apiLog')
+  if (!localApiLog) return
+  apiLogs = JSON.parse(localApiLog)
 }
 
 export async function getApiLogs(): Promise<ApiLog[]> {
@@ -35,4 +44,5 @@ export async function getApiLogs(): Promise<ApiLog[]> {
 
 export async function clearApiLogs() {
   apiLogs.length = 0
+  await clearStore()
 }

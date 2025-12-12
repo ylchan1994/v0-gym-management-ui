@@ -406,7 +406,7 @@ export async function createInvoice(invoiceData) {
       customerId: invoiceData.memberId,
       items: [
         {
-          description: invoiceData.description,
+          description: invoiceData.description || "On demand Invoice",
           amount: {
             currency: "AUD",
             value: invoiceData.amount,
@@ -417,7 +417,7 @@ export async function createInvoice(invoiceData) {
     if (invoiceData.paymentMethodId) {
       requestBody.paymentMethodToken = invoiceData.paymentMethodId
     }
-
+    console.log(JSON.stringify(requestBody))
     const response = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
@@ -430,7 +430,7 @@ export async function createInvoice(invoiceData) {
 
     const data = response.ok ? await response.json() : await response.text()
     await logApiCall("POST", apiEndpoint, data, response.status, requestBody)
-
+    console.log(data)
     if (!response.ok) {
       console.error("Create Invoice failed:", response.status, data)
       throw new Error(`Create invoice failed: ${response.status}`)
@@ -458,7 +458,7 @@ export async function createCheckout(invoiceData) {
     }
 
     const requestBody = {
-      description: invoiceData.description,
+      description: invoiceData.description || 'Checkout',
       amount: {
         currency: "AUD",
         value: invoiceData.amount,
