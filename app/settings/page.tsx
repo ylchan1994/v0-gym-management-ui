@@ -20,6 +20,7 @@ import {
 import { Trash2, Plus, Eye, EyeOff } from "lucide-react"
 import { useState } from "react"
 import { AutoBillingSettings } from "@/components/billing/auto-billing-settings"
+import { logApiCall } from '@/lib/api-logger'
 
 type DeviceStatus = "active" | "inactive" | "pending"
 
@@ -116,6 +117,18 @@ export default function SettingsPage() {
       }),
     }
 
+    const url = 'https://api-sandbox.ezypay.com/v2/billing/terminal/invoices'
+    const requestBody = {
+      appDeviceId: newDeviceId,
+      deviceName: newDeviceName
+    }
+    const responseBody = {
+      code: code,
+      deviceName: newDeviceName,
+      appDeviceId: newDeviceId,
+      message: "New activation code sent"
+    }
+    logApiCall('POST', url, responseBody, 200, requestBody)
     setDevices([...devices, newDevice])
     setNewDeviceName("")
     setNewDeviceId("")
@@ -146,11 +159,11 @@ export default function SettingsPage() {
 
   const getStatusBadgeVariant = (status: DeviceStatus) => {
     switch (status) {
-      case "active":
+      case 'active':
         return "default"
-      case "inactive":
+      case 'inactive':
         return "secondary"
-      case "pending":
+      case 'pending':
         return "outline"
       default:
         return "secondary"
@@ -159,11 +172,11 @@ export default function SettingsPage() {
 
   const getStatusText = (status: DeviceStatus) => {
     switch (status) {
-      case "active":
+      case 'active':
         return "Active"
-      case "inactive":
+      case 'inactive':
         return "Inactive"
-      case "pending":
+      case 'pending':
         return "Pending Registration"
       default:
         return status
