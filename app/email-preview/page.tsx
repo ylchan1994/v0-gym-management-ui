@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from 'next/navigation'
 
-export default function EmailPreviewPage() {
+function EmailPreviewContent() {
   const [customerName, setCustomerName] = useState("John Doe")
   const [customerId, setCustomerId] = useState("MEMBER-001")
   const searchParams = useSearchParams()
@@ -11,8 +11,8 @@ export default function EmailPreviewPage() {
   useEffect(() => {
     const id = searchParams.get("id")
     const name = searchParams.get("name")
-    setCustomerId(id)
-    setCustomerName(name)    
+    if (id) setCustomerId(id)
+    if (name) setCustomerName(name)    
   }, [searchParams])
 
   const memberPageUrl = `${typeof window !== "undefined" ? window.location.origin : "https://example.com"}/members/${customerId}?addPayment=true`
@@ -151,5 +151,13 @@ export default function EmailPreviewPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function EmailPreviewPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center"><div className="text-white">Loading...</div></div>}>
+      <EmailPreviewContent />
+    </Suspense>
   )
 }
