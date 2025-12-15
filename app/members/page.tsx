@@ -65,12 +65,10 @@ export default function MembersPage() {
                 Manage your gym members and their memberships
               </p>
             </div>
-            <Link href="/members/new">
-              <Button className="w-full sm:w-auto">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Member
-              </Button>
-            </Link>
+            <Button className="w-full sm:w-auto" onClick={() => router.push("/members/new")}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Member
+            </Button>
           </div>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">

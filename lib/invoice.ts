@@ -59,6 +59,7 @@ function normalisedEzypayInvoice(invoices, customerName = null) {
     failedPaymentReason: invoice.failedPaymentReason,
     paymentProviderResponse: invoice.paymentProviderResponse,
     payNowUrl: invoice.payNowUrl,
+    accountingCode: invoice.items?.[0]?.accountingCode || null,
   }))
 
   return normalisedInvoice
@@ -249,7 +250,7 @@ export async function writeOffInvoice(invoiceId) {
     const token = tokenData.access_token
     if (!token) {
       console.error("No access_token from token utility", tokenData)
-      throw new Error(`List customer failed: No access_token from token utility`)
+      throw new Error(`Write off failed: No access_token from token utility`)
     }
 
     const url = `${apiEndpoint}/${invoiceId}/writeoff`
@@ -402,21 +403,27 @@ export async function createInvoice(invoiceData) {
       throw new Error(`Create invoice failed: No access_token from token utility`)
     }
 
+    const itemData: any = {
+      description: invoiceData.description || "On demand Invoice",
+      amount: {
+        currency: "AUD",
+        value: invoiceData.amount,
+      },
+    }
+
+    if (invoiceData.accountingCode) {
+      itemData.accountingCode = invoiceData.accountingCode
+    }
+
     const requestBody = {
       customerId: invoiceData.memberId,
-      items: [
-        {
-          description: invoiceData.description || "On demand Invoice",
-          amount: {
-            currency: "AUD",
-            value: invoiceData.amount,
-          },
-        },
-      ],
+      items: [itemData],
     }
+
     if (invoiceData.paymentMethodId) {
       requestBody.paymentMethodToken = invoiceData.paymentMethodId
     }
+
     console.log(JSON.stringify(requestBody))
     const response = await fetch(apiEndpoint, {
       method: "POST",
@@ -458,7 +465,7 @@ export async function createCheckout(invoiceData) {
     }
 
     const requestBody = {
-      description: invoiceData.description || 'Checkout',
+      description: invoiceData.description || "Checkout",
       amount: {
         currency: "AUD",
         value: invoiceData.amount,

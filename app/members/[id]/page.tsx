@@ -16,6 +16,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { getCustomerIdFromPath, normalisedEzypayInvoice } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
 import { InvoicesTable } from "@/components/billing/invoices-table"
+import { useSearchParams, useRouter } from "next/navigation"
 
 export const getStatusBadgeVariant = (status: string) => {
   if (status === "paid") return "default"
@@ -25,12 +26,17 @@ export const getStatusBadgeVariant = (status: string) => {
 }
 
 export default function MemberProfilePage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
   const [memberDataState, setMemberDataState] = useState<any>({})
   const [selectedInvoice, setSelectedInvoice] = useState<any[] | null>(null)
   const [isInvoiceDetailOpen, setIsInvoiceDetailOpen] = useState(false)
   const [renewOpen, setRenewOpen] = useState(false)
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [paymentMethodsRefreshTrigger, setPaymentMethodsRefreshTrigger] = useState(0)
+  const [addPaymentDialogOpen, setAddPaymentDialogOpen] = useState(false)
 
   const plans = [
     { id: "1", name: "Basic", price: 49, duration: "Monthly" },
@@ -38,6 +44,14 @@ export default function MemberProfilePage() {
     { id: "3", name: "Annual", price: 999, duration: "Yearly" },
     { id: "4", name: "Personal Training", price: 149, duration: "Monthly" },
   ]
+
+  useEffect(() => {
+    const addPayment = searchParams.get("addPayment")
+    if (addPayment === "true") {
+      setAddPaymentDialogOpen(true)
+      router.replace(`/members/${getCustomerIdFromPath()}`, { scroll: false })
+    }
+  }, [searchParams, router])
 
   useEffect(() => {
     const customerId = getCustomerIdFromPath()
@@ -62,9 +76,9 @@ export default function MemberProfilePage() {
   }
 
   const handleAddPaymentOpenChange = (open: boolean) => {
+    setAddPaymentDialogOpen(open)
     if (!open) {
-      const idFromPath = getCustomerIdFromPath() || memberDataState?.id
-      if (idFromPath) setMemberDataState((prev) => ({ ...prev }))
+      setPaymentMethodsRefreshTrigger((prev) => prev + 1)
     }
   }
 
@@ -242,21 +256,32 @@ export default function MemberProfilePage() {
                 <CardTitle>Payment Methods</CardTitle>
                 <CardDescription className="italic">
                   This should appear in customer portal to allow customer to&nbsp;
-                  <Link href={"https://developer.ezypay.com/docs/payment-method-management#/"} target="_blank" className="underline">
+                  <Link
+                    href={"https://developer.ezypay.com/docs/payment-method-management#/"}
+                    target="_blank"
+                    className="underline"
+                  >
                     manage their payment methods
                   </Link>
                   .
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <PaymentMethodsList customerId={memberDataState?.id} variant="display" />
+                <PaymentMethodsList
+                  customerId={memberDataState?.id}
+                  variant="display"
+                  refreshTrigger={paymentMethodsRefreshTrigger}
+                />
 
                 <TooltipProvider>
                   <Tooltip>
                     <AddPaymentMethodDialog
                       customerId={memberDataState?.id}
                       onSuccess={handleAddPaymentSuccess}
+                      open={addPaymentDialogOpen}
                       onOpenChange={handleAddPaymentOpenChange}
+                      customerEmail={memberDataState?.email}
+                      customerName={memberDataState?.name}
                     >
                       <TooltipTrigger asChild>
                         <Button className="w-full bg-transparent" variant="outline" size="sm">

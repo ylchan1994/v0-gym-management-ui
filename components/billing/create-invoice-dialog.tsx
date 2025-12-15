@@ -24,7 +24,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { PaymentMethodsList } from "./payment-methods-list"
 import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { logApiCall } from '@/lib/api-logger'
+import { logApiCall } from "@/lib/api-logger"
 
 interface CreateInvoiceDialogProps {
   open: boolean
@@ -53,6 +53,7 @@ export function CreateInvoiceDialog({
     paymentMethod: "ondemand" as "ondemand" | "tap-to-pay" | "checkout",
     terminalId: "",
     paymentMethodId: "",
+    accountingCode: "",
   })
 
   useEffect(() => {
@@ -144,20 +145,20 @@ export function CreateInvoiceDialog({
         invoiceStatus = "paid"
 
         console.log("[v0] Tap-to-pay completed successfully")
-        const url = 'https://api-sandbox.ezypay.com/v2/billing/terminal/invoices'
+        const url = "https://api-sandbox.ezypay.com/v2/billing/terminal/invoices"
         const requestBody = {
           items: [
             {
               amount: {
                 currency: "AUD",
-                value: formData.amount
+                value: formData.amount,
               },
-              description: formData.description
-            }
+              description: formData.description,
+            },
           ],
-          customerId: formData.memberId
+          customerId: formData.memberId,
         }
-        const todayDate = new Date(Date.now()).toISOString().split('T')[0]
+        const todayDate = new Date(Date.now()).toISOString().split("T")[0]
         const responseBody = {
           id: "c911a6ca-8318-45b7-a165-a955c053448a",
           creditNoteId: null,
@@ -173,66 +174,66 @@ export function CreateInvoiceDialog({
               amount: {
                 currency: "AUD",
                 value: formData.amount,
-                type: null
+                type: null,
               },
               tax: {
-                rate: 0
+                rate: 0,
               },
               id: "d71a77a1-bdda-488a-90b6-b1d9e3670b3f",
               type: "on_demand_payment",
               discounted: {
                 currency: "AUD",
                 value: 0,
-                type: null
+                type: null,
               },
               accountingCode: null,
-              reference: null
+              reference: null,
             },
             {
               description: "Transaction fee Terminal",
               amount: {
                 currency: "AUD",
                 value: 2,
-                type: null
+                type: null,
               },
               tax: {
-                rate: 10
+                rate: 10,
               },
               id: "38946064-cc28-46b3-93f0-3f77b81ae1b1",
               type: "transaction_fee",
               discounted: {
                 currency: "AUD",
                 value: 0,
-                type: null
+                type: null,
               },
               accountingCode: null,
-              reference: null
-            }
+              reference: null,
+            },
           ],
           amount: {
             currency: "AUD",
             value: formData.amount + 2,
-            type: null
+            type: null,
           },
           amountWithoutDiscount: {
             currency: "AUD",
             value: formData.amount + 2,
-            type: null
+            type: null,
           },
           totalDiscounted: {
             currency: "AUD",
             value: 0,
-            type: null
+            type: null,
           },
           totalRefunded: {
             currency: "AUD",
             value: 0,
-            type: null
+            type: null,
           },
           totalTax: {
             currency: "AUD",
             value: 0.45,
-            type: null
+            type: null,
           },
           customerId: formData.memberId,
           subscriptionId: null,
@@ -251,10 +252,10 @@ export function CreateInvoiceDialog({
           customerLastName: null,
           terminalId: "0dea8104-02cd-4931-bca0-ea34bb7eac8b",
           invoiceCategory: "ONE_OFF",
-          invoiceSubCategory: "TERMINAL"
+          invoiceSubCategory: "TERMINAL",
         }
-        logApiCall('POST', url, requestBody, 200, responseBody)
-        console.log('POST', url, requestBody, 200, responseBody)
+        logApiCall("POST", url, requestBody, 200, responseBody)
+        console.log("POST", url, requestBody, 200, responseBody)
       }
 
       if (formData.paymentMethod === "ondemand") {
@@ -263,6 +264,7 @@ export function CreateInvoiceDialog({
           amount: formData.amount,
           description: formData.description,
           paymentMethodId: formData.paymentMethodId,
+          ...(formData.accountingCode && { accountingCode: formData.accountingCode }),
         })
 
         toast({
@@ -312,6 +314,7 @@ export function CreateInvoiceDialog({
         paymentMethod: "ondemand",
         terminalId: "",
         paymentMethodId: "",
+        accountingCode: "",
       })
       onOpenChange(false)
       onSuccess?.()
@@ -347,7 +350,11 @@ export function CreateInvoiceDialog({
                 tap to pay invoice,
               </Link>
               &nbsp;
-              <Link href={"https://developer.ezypay.com/docs/terminal-integration#/"} target="_blank" className="underline">
+              <Link
+                href={"https://developer.ezypay.com/docs/terminal-integration#/"}
+                target="_blank"
+                className="underline"
+              >
                 checkout session,
               </Link>
               &nbsp;you would need to use different APIs to create the relevant session with Ezypay
@@ -453,15 +460,32 @@ export function CreateInvoiceDialog({
               </div>
 
               {formData.paymentMethod === "ondemand" && formData.memberId && (
-                <div className="space-y-2 pt-2 border-t">
-                  <Label>Select Payment Channel</Label>
-                  <PaymentMethodsList
-                    customerId={formData.memberId}
-                    variant="selection"
-                    selectedMethodId={formData.paymentMethodId}
-                    onMethodSelect={(methodId) => setFormData((prev) => ({ ...prev, paymentMethodId: methodId }))}
-                  />
-                </div>
+                <>
+                  <div className="space-y-2 pt-2 border-t">
+                    <Label>Select Payment Channel</Label>
+                    <PaymentMethodsList
+                      customerId={formData.memberId}
+                      variant="selection"
+                      selectedMethodId={formData.paymentMethodId}
+                      onMethodSelect={(methodId) => setFormData((prev) => ({ ...prev, paymentMethodId: methodId }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="accountingCode" className="text-sm">
+                      Accounting Code (Optional)
+                    </Label>
+                    <Input
+                      id="accountingCode"
+                      placeholder="Enter accounting code"
+                      value={formData.accountingCode}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, accountingCode: e.target.value }))}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Used for tracking and reconciliation in your accounting system
+                    </p>
+                  </div>
+                </>
               )}
 
               {formData.paymentMethod === "tap-to-pay" && (
