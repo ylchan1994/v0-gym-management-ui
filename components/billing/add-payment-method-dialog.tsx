@@ -93,42 +93,10 @@ export function AddPaymentMethodDialog({
   }
 
   const handleEmailCustomer = () => {
-    if (!customerEmail) {
-      toast.error("Customer email not available")
-      return
-    }
 
-    const memberPageUrl = `${window.location.origin}/members/${customerId}?addPayment=true`
+    const emailPreviewLink = `${window.location.origin}/email-preview?id=${customerId}&name=${customerName}`
 
-    const subject = "Update Your Payment Method - GymFlow"
-    const body = `Dear ${customerName || "Valued Member"},
-
-We hope this message finds you well!
-
-We noticed that your payment method may need to be updated. To ensure uninterrupted service and avoid any disruption to your membership, please take a moment to update your payment information.
-
-You can securely add or update your payment method by clicking the link below:
-${memberPageUrl}
-
-Why update your payment method?
-• Keep your membership active without interruption
-• Ensure automatic billing for your convenience
-• Secure and PCI-compliant payment processing
-
-If you have any questions or need assistance, please don't hesitate to contact us.
-
-Thank you for being a valued member of GymFlow!
-
-Best regards,
-The GymFlow Team
-
----
-This is an automated message. Please do not reply to this email.
-For support, contact us at support@gymflow.com`
-
-    const mailtoLink = `mailto:${encodeURIComponent(customerEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-
-    window.open(mailtoLink, "_blank")
+    window.open(emailPreviewLink, "_blank")
     toast.success("Email draft opened in new tab")
   }
 
@@ -174,14 +142,12 @@ For support, contact us at support@gymflow.com`
         )}
       </div>
       {/* Moved email button to dialog footer */}
-      {customerEmail && (
-        <DialogFooter>
-          <Button variant="outline" onClick={handleEmailCustomer} className="gap-2 bg-transparent">
-            <Mail className="h-4 w-4" />
-            Email Customer
-          </Button>
-        </DialogFooter>
-      )}
+      <DialogFooter>
+        <Button variant="outline" onClick={handleEmailCustomer} className="gap-2 bg-transparent">
+          <Mail className="h-4 w-4" />
+          Email Customer
+        </Button>
+      </DialogFooter>
     </DialogContent>
   )
 

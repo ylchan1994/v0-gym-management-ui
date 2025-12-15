@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Mail } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import { toast } from "sonner"
@@ -35,7 +35,7 @@ export default function NewMemberPage() {
   const [isLoadingIframe, setIsLoadingIframe] = useState(false)
   const [isCustomerCreated, setIsCustomerCreated] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-
+  const [emailPreviewLink, setEmailPreviewLink] = useState('')
   const [formData, setFormData] = useState(defaultformData)
 
   // Track selected values from Select components separately for easier UI updates
@@ -132,10 +132,16 @@ export default function NewMemberPage() {
       setIsSubmitting(false)
     }
 
+    setEmailPreviewLink(`${window.location.origin}/email-preview?id=${customerId}&name=${formData.firstName} ${formData.lastName}`)
     await loadIframeUrl(customerId)
     setIsSubmitting(false)
     setIsCustomerCreated(true)
     setFormData(defaultformData)
+  }
+
+  const handleEmailCustomer = () => {
+    window.open(emailPreviewLink, "_blank")
+    toast.success("Email draft opened in new tab")
   }
 
   return (
@@ -324,6 +330,10 @@ export default function NewMemberPage() {
               <CardHeader>
                 <CardTitle className="text-base md:text-lg">Payment Information</CardTitle>
                 <CardDescription className="text-sm">Add payment method for recurring billing</CardDescription>
+                <Button variant="outline" onClick={handleEmailCustomer} className="gap-2 bg-transparent">
+                  <Mail className="h-4 w-4" />
+                  Email Customer
+                </Button>
               </CardHeader>
               <CardContent>
                 {isLoadingIframe ? (
