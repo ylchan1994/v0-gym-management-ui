@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Trash2, RefreshCw, AlertCircle } from "lucide-react"
+import { Trash2, Star, AlertCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
@@ -40,6 +40,7 @@ interface PaymentMethodsListProps {
   selectedMethodId?: string
   onMethodSelect?: (methodId: string) => void
   showInvalid?: boolean
+  refreshTrigger?: number
 }
 
 export function PaymentMethodsList({
@@ -48,6 +49,7 @@ export function PaymentMethodsList({
   selectedMethodId,
   onMethodSelect,
   showInvalid = false,
+  refreshTrigger,
 }: PaymentMethodsListProps) {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -64,7 +66,7 @@ export function PaymentMethodsList({
     if (customerId) {
       fetchPaymentMethods()
     }
-  }, [customerId])
+  }, [customerId, refreshTrigger])
 
   async function fetchPaymentMethods() {
     setIsLoading(true)
@@ -184,8 +186,7 @@ export function PaymentMethodsList({
 
   if (variant === "selection") {
     return (
-      <RadioGroup value={selectedMethodId || defaultPaymentMethod?.id || ""} onValueChange={onMethodSelect}
-      >
+      <RadioGroup value={selectedMethodId || defaultPaymentMethod?.id || ""} onValueChange={onMethodSelect}>
         <div className="space-y-2">
           {paymentMethods.map((method) => {
             const isInvalid = !method.valid
@@ -263,16 +264,16 @@ export function PaymentMethodsList({
                   Invalid
                 </Badge>
               )}
-              {!method.isDefault && (
+              {!method.isDefault && method.valid && (
                 <div className="flex gap-1">
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7"
                     onClick={(e) => handleReplaceClick(method, e)}
-                    title="Replace payment method"
+                    title="Make Default"
                   >
-                    <RefreshCw className="h-3.5 w-3.5" />
+                    <Star className="h-3.5 w-3.5" />
                   </Button>
                   <Button
                     variant="ghost"
@@ -293,7 +294,7 @@ export function PaymentMethodsList({
       <AlertDialog open={replaceDialogOpen} onOpenChange={setReplaceDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Replace Payment Method</AlertDialogTitle>
+            <AlertDialogTitle>Make Default Payment Method</AlertDialogTitle>
             <AlertDialogDescription>
               All future payments will be defaulted to this payment method.
               {methodToReplace && (

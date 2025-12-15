@@ -17,6 +17,8 @@ import { getCustomerIdFromPath, normalisedEzypayInvoice } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
 import { InvoicesTable } from "@/components/billing/invoices-table"
 
+// ** rest of code here **
+
 export const getStatusBadgeVariant = (status: string) => {
   if (status === "paid") return "default"
   if (status.includes("refund") || status.includes("written")) return "warning"
@@ -31,6 +33,7 @@ export default function MemberProfilePage() {
   const [renewOpen, setRenewOpen] = useState(false)
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [paymentMethodsRefreshTrigger, setPaymentMethodsRefreshTrigger] = useState(0)
 
   const plans = [
     { id: "1", name: "Basic", price: 49, duration: "Monthly" },
@@ -63,8 +66,7 @@ export default function MemberProfilePage() {
 
   const handleAddPaymentOpenChange = (open: boolean) => {
     if (!open) {
-      const idFromPath = getCustomerIdFromPath() || memberDataState?.id
-      if (idFromPath) setMemberDataState((prev) => ({ ...prev }))
+      setPaymentMethodsRefreshTrigger((prev) => prev + 1)
     }
   }
 
@@ -242,14 +244,22 @@ export default function MemberProfilePage() {
                 <CardTitle>Payment Methods</CardTitle>
                 <CardDescription className="italic">
                   This should appear in customer portal to allow customer to&nbsp;
-                  <Link href={"https://developer.ezypay.com/docs/payment-method-management#/"} target="_blank" className="underline">
+                  <Link
+                    href={"https://developer.ezypay.com/docs/payment-method-management#/"}
+                    target="_blank"
+                    className="underline"
+                  >
                     manage their payment methods
                   </Link>
                   .
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <PaymentMethodsList customerId={memberDataState?.id} variant="display" />
+                <PaymentMethodsList
+                  customerId={memberDataState?.id}
+                  variant="display"
+                  refreshTrigger={paymentMethodsRefreshTrigger}
+                />
 
                 <TooltipProvider>
                   <Tooltip>
