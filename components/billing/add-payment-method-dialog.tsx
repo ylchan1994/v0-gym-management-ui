@@ -7,15 +7,18 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Mail } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
 import { getEzypayToken } from "@/lib/ezypay-token"
 import Link from "next/link"
 import { logApiCall } from "@/lib/api-logger"
+import { Button } from "@/components/ui/button"
 
 interface AddPaymentMethodDialogProps {
   customerId: string
@@ -23,6 +26,8 @@ interface AddPaymentMethodDialogProps {
   children?: React.ReactNode
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  customerEmail?: string
+  customerName?: string
 }
 
 export function AddPaymentMethodDialog({
@@ -31,6 +36,8 @@ export function AddPaymentMethodDialog({
   children,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
+  customerEmail,
+  customerName,
 }: AddPaymentMethodDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const [iframeUrl, setIframeUrl] = useState<string | null>(null)
@@ -46,7 +53,6 @@ export function AddPaymentMethodDialog({
       controlledOnOpenChange?.(newOpen)
     } else {
       setInternalOpen(newOpen)
-      // Call onOpenChange even in uncontrolled mode if provided
       controlledOnOpenChange?.(newOpen)
     }
   }
@@ -60,7 +66,6 @@ export function AddPaymentMethodDialog({
   const loadIframeUrl = async () => {
     setIsLoading(true)
     try {
-      // Request access token from our server-side token route
       const tokenRes = await getEzypayToken()
       const token = tokenRes.access_token
 
@@ -73,7 +78,6 @@ export function AddPaymentMethodDialog({
       await logApiCall("GET", pcpUrl, "Payment Capture Page UI", 200)
 
       try {
-        // Record origin from the iframe URL so we can validate messages
         const url = new URL(pcpUrl)
         iframeOriginRef.current = url.origin
       } catch (e) {
@@ -88,10 +92,49 @@ export function AddPaymentMethodDialog({
     }
   }
 
+  const handleEmailCustomer = () => {
+    if (!customerEmail) {
+      toast.error("Customer email not available")
+      return
+    }
+
+    const memberPageUrl = `${window.location.origin}/members/${customerId}?addPayment=true`
+
+    const subject = "Update Your Payment Method - GymFlow"
+    const body = `Dear ${customerName || "Valued Member"},
+
+We hope this message finds you well!
+
+We noticed that your payment method may need to be updated. To ensure uninterrupted service and avoid any disruption to your membership, please take a moment to update your payment information.
+
+You can securely add or update your payment method by clicking the link below:
+${memberPageUrl}
+
+Why update your payment method?
+• Keep your membership active without interruption
+• Ensure automatic billing for your convenience
+• Secure and PCI-compliant payment processing
+
+If you have any questions or need assistance, please don't hesitate to contact us.
+
+Thank you for being a valued member of GymFlow!
+
+Best regards,
+The GymFlow Team
+
+---
+This is an automated message. Please do not reply to this email.
+For support, contact us at support@gymflow.com`
+
+    const mailtoLink = `mailto:${encodeURIComponent(customerEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+
+    window.open(mailtoLink, "_blank")
+    toast.success("Email draft opened in new tab")
+  }
+
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen)
     if (!newOpen) {
-      // Reset iframe URL when dialog closes
       setIframeUrl(null)
       onSuccess?.()
     }
@@ -130,10 +173,18 @@ export function AddPaymentMethodDialog({
           </div>
         )}
       </div>
+      {/* Moved email button to dialog footer */}
+      {customerEmail && (
+        <DialogFooter>
+          <Button variant="outline" onClick={handleEmailCustomer} className="gap-2 bg-transparent">
+            <Mail className="h-4 w-4" />
+            Email Customer
+          </Button>
+        </DialogFooter>
+      )}
     </DialogContent>
   )
 
-  // If children are provided, use them as the trigger
   if (children) {
     return (
       <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -143,7 +194,6 @@ export function AddPaymentMethodDialog({
     )
   }
 
-  // Otherwise, render as a controlled dialog
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {content}

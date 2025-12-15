@@ -50,6 +50,7 @@ export interface Invoice {
   failedPaymentReason?: any
   paymentProviderResponse?: any
   payNowUrl?: string
+  accountingCode?: string | null
 }
 
 interface InvoiceDetailDialogProps {
@@ -241,6 +242,12 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
                 <p className="text-sm font-medium text-muted-foreground">Scheduled Date</p>
                 <p className="text-base">{invoice.dueDate}</p>
               </div>
+              {invoice.accountingCode && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Accounting Code</p>
+                  <p className="text-base font-mono">{invoice.accountingCode}</p>
+                </div>
+              )}
             </div>
 
             {invoice.status === "refunded" && invoice.refundAmount && (
