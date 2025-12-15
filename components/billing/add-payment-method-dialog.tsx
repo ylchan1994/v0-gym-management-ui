@@ -105,7 +105,7 @@ export function AddPaymentMethodDialog({
         <DialogDescription className="italic">
           Host&nbsp;
           <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} target="_blank" className="underline">
-            Ezypay's Payment Capture Page
+            Ezypay's Payment capture page
           </Link>
           &nbsp;here and allow customer to update their payment method. This should be on the customer portal if
           available.

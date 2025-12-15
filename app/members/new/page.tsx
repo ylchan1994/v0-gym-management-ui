@@ -175,7 +175,7 @@ export default function NewMemberPage() {
                   <p className="text-sm text-muted-foreground italic">
                     After you get the Ezypay customer ID, you could collect the payment method from customer by&nbsp;
                     <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} target="_blank" className="underline">
-                      hosting Ezypay's payment capture page
+                      hosting Ezypay's Payment capture page
                     </Link>
                     &nbsp;as an iframe in your page. You could also email this page to customer for them to fill in their payment method.
                   </p>

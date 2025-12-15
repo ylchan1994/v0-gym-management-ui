@@ -266,7 +266,7 @@ export default function MemberProfilePage() {
                     </AddPaymentMethodDialog>
 
                     <TooltipContent>
-                      <p>Use the Ezypay's payment capture page to collect new payment methods</p>
+                      <p>Use the Ezypay's Payment capture page to collect new payment methods</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
