@@ -2,17 +2,24 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from 'next/navigation'
+import { PaymentMethodIcon } from '@/components/ui/payment-method-icon'
 
 function EmailPreviewContent() {
   const [customerName, setCustomerName] = useState("John Doe")
   const [customerId, setCustomerId] = useState("MEMBER-001")
   const searchParams = useSearchParams()
+  const [paymentMethodInvalid, setPaymentMethodInvalid] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState(``)
+  const [failedReason, setFailedReason] = useState('')
 
   useEffect(() => {
     const id = searchParams.get("id")
     const name = searchParams.get("name")
+    setPaymentMethod(searchParams.get('paymentMethod'))
+    setPaymentMethodInvalid(searchParams.get('paymentMethodInvalid') === 'true')
+    setFailedReason(searchParams.get('reason'))
     if (id) setCustomerId(id)
-    if (name) setCustomerName(name)    
+    if (name) setCustomerName(name)
   }, [searchParams])
 
   const memberPageUrl = `${typeof window !== "undefined" ? window.location.origin : "https://example.com"}/members/${customerId}?addPayment=true`
@@ -50,10 +57,22 @@ function EmailPreviewContent() {
             </p>
 
             <div className="bg-blue-50 border-l-4 border-blue-600 p-4 mb-8 rounded">
-              <p className="text-slate-800 leading-relaxed">
-                We noticed that your payment method may need to be updated. To ensure uninterrupted service and avoid
-                any disruption to your membership, please take a moment to update your payment information.
-              </p>
+              {paymentMethodInvalid ? (
+                <>
+                  <p className="text-slate-800 leading-relaxed">
+                    We noticed your payment method has become invalid. To ensure uninterrupted service and avoid any disruption to your membership, please take a moment to update your payment information.
+                  </p>
+                  <p className="text-slate-800 leading-relaxed m-2 font-bold">
+                    Payment Method: <PaymentMethodIcon type={paymentMethod} className="h-5 w-5" style={{ display: 'inline-block' }} /> {paymentMethod} 
+                  </p>
+                  <p className="text-slate-800 leading-relaxed m-2 font-bold">
+                    Invalid Reason: {failedReason}
+                  </p>
+                </>
+              ) : (
+                <p className="text-slate-800 leading-relaxed">
+                  We noticed that you do not have any payment method yet. To ensure uninterrupted service and avoid any disruption to your membership, please take a moment to add your payment information.
+                </p>)}
             </div>
 
             {/* CTA Button */}

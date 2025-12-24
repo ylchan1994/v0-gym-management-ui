@@ -80,10 +80,9 @@ export function PaymentMethodsList({
       else if (Array.isArray(response?.results)) items = response.results
       else if (Array.isArray(response?.data)) items = response.data
       else if (response) items = [response]
-
       const normalized = (items || []).map((pm: any) => ({
         id: pm.paymentMethodToken ?? pm.id,
-        type: pm.type ?? "",
+        type: pm.card?.type ?? (pm.type ?? ""),
         last4: pm.card?.last4 ?? pm.bank?.last4 ?? pm.last4 ?? null,
         expiry: pm.card ? `${pm.card.expiryMonth}/${pm.card.expiryYear}` : (pm.expiry ?? null),
         isDefault: pm.primary ?? false,
@@ -212,7 +211,7 @@ export function PaymentMethodsList({
                   <div className="flex items-center gap-3">
                     <PaymentMethodIcon type={method.type} className="h-4 w-4" />
                     <div>
-                      <span className="text-sm font-medium">{method.type}</span>
+                      <span className="text-sm font-medium">{(method.type == 'MASTERCARD' || method.type == 'VISA' || method.type == 'AMEX') ? 'CARD' : method.type}</span>
                       <span className="text-xs text-muted-foreground">
                         {method.last4 ? `****${method.last4}` : ""} {method.expiry || method.account || ""}
                       </span>
@@ -247,7 +246,7 @@ export function PaymentMethodsList({
             <div className="flex items-center gap-3">
               <PaymentMethodIcon type={method.type} className="h-4 w-4" />
               <div>
-                <p className="text-sm font-medium">{method.type}</p>
+                <p className="text-sm font-medium">{(method.type == 'MASTERCARD' || method.type == 'VISA' || method.type == 'AMEX') ? 'CARD' : method.type}</p>
                 <p className="text-xs text-muted-foreground">
                   {method.last4 ? `****${method.last4}` : ""} {method.expiry || method.account || ""}
                 </p>

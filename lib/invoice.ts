@@ -18,10 +18,10 @@ function normalisedEzypayInvoice(invoices, customerName = null) {
         return `${paymentMethodData.card?.type} **** ${paymentMethodData.card?.last4}`
         break
       case "bank":
-        return `**** ${paymentMethodData.bank?.last4}`
+        return `BANK **** ${paymentMethodData.bank?.last4}`
         break
       case "payto":
-        return paymentMethodData.payto.bbanAccountNo ?? paymentMethodData.payto.aliasId
+        return `PayTo ${paymentMethodData.payto.bbanAccountNo ?? paymentMethodData.payto.aliasId}`
     }
   }
 
@@ -60,6 +60,7 @@ function normalisedEzypayInvoice(invoices, customerName = null) {
     paymentProviderResponse: invoice.paymentProviderResponse,
     payNowUrl: invoice.payNowUrl,
     accountingCode: invoice.items?.[0]?.accountingCode || null,
+    paymentMethodInvalid: invoice.paymentMethodInvalid
   }))
 
   return normalisedInvoice

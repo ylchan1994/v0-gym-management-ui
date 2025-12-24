@@ -12,8 +12,9 @@ import { InvoiceDetailDialog } from "./invoice-detail-dialog"
 import { CreateInvoiceDialog } from "./create-invoice-dialog"
 import { getStatusBadgeVariant } from "@/app/members/[id]/page"
 import { PaymentMethodIcon } from "@/components/ui/payment-method-icon"
+import { Spinner } from '../ui/spinner'
 
-export function InvoicesTable({ variant = "billing", invoices, customerData = null }) {
+export function InvoicesTable({ variant = "billing", invoices, customerData = null, isLoading = true }) {
   const [statusFilter, setStatusFilter] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedInvoice, setSelectedInvoice] = useState<(typeof invoices)[0] | null>(null)
@@ -29,7 +30,7 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
     const matchesSearch =
       variant == "billing"
         ? invoice.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          invoice.member.toLowerCase().includes(searchQuery.toLowerCase())
+        invoice.member.toLowerCase().includes(searchQuery.toLowerCase())
         : invoice.id.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesStatus && matchesSearch
   })
@@ -43,8 +44,9 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
     setIsDetailOpen(true)
   }
 
-  const formatCellValue = (val: any) => {
-    if (val === null || val === undefined) return ""
+  const formatCellValue = (value: any) => {
+    if (value === null || value === undefined) return ""
+    const val = value?.replaceAll(/MASTERCARD|VISA|AMEX/gi, 'CARD')
     if (typeof val === "object") {
       if (val.code || val.description) {
         return `${val.code ?? ""}${val.description ? ` - ${val.description}` : ""}`.trim()
@@ -117,35 +119,46 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredInvoices?.map((invoice) => (
-                  <TableRow
-                    key={invoice.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => handleInvoiceClick(invoice)}
-                  >
-                    <TableCell className="font-medium text-sm">
-                      {formatCellValue(invoice.number ?? invoice.id)}
-                    </TableCell>
-                    {variant == "billing" ? (
-                      <TableCell className="text-sm">{formatCellValue(invoice.member)}</TableCell>
-                    ) : (
-                      ""
-                    )}
-                    <TableCell className="font-medium text-sm">{formatCellValue(invoice.amount)}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <PaymentMethodIcon type={invoice.paymentMethod} className="h-4 w-4 flex-shrink-0" />
-                        <span className="truncate">{formatCellValue(invoice.paymentMethod)}</span>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                      <div className="flex items-center justify-center">
+                        <Spinner className="h-6 w-6 mr-2" />
+                        <span>Loading Invoices...</span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(String(invoice.status))} className="text-xs">
-                        {formatCellValue(invoice.status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">{formatCellValue(invoice.date)}</TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredInvoices?.map((invoice) => (
+                    <TableRow
+                      key={invoice.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleInvoiceClick(invoice)}
+                    >
+                      <TableCell className="font-medium text-sm">
+                        {formatCellValue(invoice.number ?? invoice.id)}
+                      </TableCell>
+                      {variant == "billing" ? (
+                        <TableCell className="text-sm">{formatCellValue(invoice.member)}</TableCell>
+                      ) : (
+                        ""
+                      )}
+                      <TableCell className="font-medium text-sm">{formatCellValue(invoice.amount)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <PaymentMethodIcon type={invoice.paymentMethod} className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">{formatCellValue(invoice.paymentMethod)}</span>
+                          {invoice.paymentMethodInvalid && <Badge variant='destructive'>invalid</Badge>}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(String(invoice.status))} className="text-xs">
+                          {formatCellValue(invoice.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm">{formatCellValue(invoice.date)}</TableCell>
+                    </TableRow>
+                  )))}
               </TableBody>
             </Table>
           </div>

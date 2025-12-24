@@ -116,13 +116,7 @@ export default function BillingPage() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="invoices">
-              {isLoading ? (
-                <div className="flex justify-center items-center w-full h-60">
-                  <Spinner className="w-20 h-20" />
-                </div>
-              ) : (
-                <InvoicesTable invoices={invoices} />
-              )}
+              <InvoicesTable invoices={invoices} isLoading={isLoading} />
             </TabsContent>
             <TabsContent value="upcoming">
               <UpcomingInvoicesTable />

@@ -312,7 +312,7 @@ export default function MemberProfilePage() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="invoices">
-              <InvoicesTable variant="customer" invoices={memberDataState.invoices} customerData={memberDataState} />
+              <InvoicesTable variant="customer" invoices={memberDataState.invoices} customerData={memberDataState} isLoading={isLoading}/>
             </TabsContent>
             <TabsContent value="upcoming">
               <Card>

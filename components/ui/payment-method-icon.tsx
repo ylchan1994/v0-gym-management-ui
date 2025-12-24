@@ -1,12 +1,15 @@
 import Image from "next/image"
 import { CreditCard, Building2 } from "lucide-react"
+import { useTheme } from "next-themes"
 
 interface PaymentMethodIconProps {
   type: string
   className?: string
+  style?: {}
 }
 
-export function PaymentMethodIcon({ type, className = "h-5 w-5" }: PaymentMethodIconProps) {
+export function PaymentMethodIcon({ type, className = "h-5 w-5", style= {} }: PaymentMethodIconProps) {
+  const { theme } = useTheme()
   const normalizedType = type?.toLowerCase() || ""
 
   // VISA
@@ -18,6 +21,7 @@ export function PaymentMethodIcon({ type, className = "h-5 w-5" }: PaymentMethod
         width={32}
         height={32}
         className={className}
+        style={style}
       />
     )
   }
@@ -31,6 +35,7 @@ export function PaymentMethodIcon({ type, className = "h-5 w-5" }: PaymentMethod
         width={32}
         height={32}
         className={className}
+        style={style}
       />
     )
   }
@@ -44,19 +49,24 @@ export function PaymentMethodIcon({ type, className = "h-5 w-5" }: PaymentMethod
         width={32}
         height={32}
         className={className}
+        style={style}
       />
     )
   }
 
   // PayTo
   if (normalizedType.includes("payto")) {
+    const payToSrc = theme === "dark" 
+      ? "/PayTo_symbol-White-WEB.png" 
+      : "/PayTo_symbol-Black-WEB.png"
     return (
       <Image
-        src="https://payto.com.au/wp-content/uploads/2023/08/PayTo-Logo.svg"
+        src={payToSrc}
         alt="PayTo"
         width={48}
         height={32}
         className={className}
+        style={style}
       />
     )
   }

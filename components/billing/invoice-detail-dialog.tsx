@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { CheckCircle, XCircle, DollarSign, RefreshCw } from "lucide-react"
+import { CheckCircle, XCircle, DollarSign, RefreshCw, MailIcon } from "lucide-react"
 import { toast } from "sonner"
 import { RefundDialog } from "./refund-dialog"
 import { getStatusBadgeVariant } from "@/app/members/[id]/page"
@@ -50,7 +50,8 @@ export interface Invoice {
   failedPaymentReason?: any
   paymentProviderResponse?: any
   payNowUrl?: string
-  accountingCode?: string | null
+  accountingCode?: string | null,
+  paymentMethodInvalid?: Boolean
 }
 
 interface InvoiceDetailDialogProps {
@@ -202,6 +203,17 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
     }
   }
 
+  const handleEmail = async () => {
+    try {
+      const emailPreviewLink = `${window.location.origin}/email-preview?id=${invoice.customerId ?? null}&name=${invoice.member}&paymentMethod=${invoice.paymentMethod}&paymentMethodInvalid=${invoice.paymentMethodInvalid}&reason=${invoice.failedPaymentReason.code + ': ' + invoice.paymentProviderResponse.description}`
+      window.open(emailPreviewLink, "_blank")
+      toast.success("Email draft opened in new tab")
+    } catch (err) {
+      console.error("[v0] Failed to open email URL", err, invoice.payNowUrl)
+      toast.error("Failed to open email URL")
+    }
+  }
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -336,6 +348,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
               <div className="flex items-center gap-3 rounded-lg border border-border p-3">
                 <PaymentMethodIcon type={invoice.paymentMethod} className="h-5 w-5" />
                 <span className="font-medium">{invoice.paymentMethod}</span>
+                {invoice.paymentMethodInvalid && <Badge variant='destructive'>invalid</Badge>}
               </div>
             </div>
 
@@ -345,23 +358,32 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
             <div>
               <p className="text-sm font-medium mb-3">Payment History</p>
 
-              {isTransactionLoading ? (
+              {/* {isTransactionLoading ? (
                 <div className="relative flex justify-center items-center">
                   <Spinner className="w-10 h-10" />
                 </div>
-              ) : (
-                <Table>
-                  <TableHeader>
+              ) : ( */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Method</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Details</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isTransactionLoading ? (
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Method</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Details</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {invoice.paymentAttempts.map((attempt) => (
+                      <TableCell colSpan={7} className="pt-2 text-center">
+                        <div className="flex items-center justify-center">
+                          <Spinner className="h-6 w-6 mr-2" />
+                          <span>Loading History...</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>) : (
+                    invoice.paymentAttempts.map((attempt) => (
                       <TableRow key={attempt.id}>
                         <TableCell>{attempt.date}</TableCell>
                         <TableCell className="font-medium">{attempt.amount}</TableCell>
@@ -387,10 +409,10 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
                           )}
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
+                    )))}
+                </TableBody>
+              </Table>
+              {/* )} */}
             </div>
 
             {showRetryPaymentSelection && invoice.customerId && (
@@ -460,6 +482,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
                   Refund Invoice
                 </Button>
               )}
+
               {(invoice.status === "failed" || invoice.status === "past_due" || invoice.status === "unpaid") && (
                 <>
                   <Button variant="secondary" onClick={handleRetry} disabled={isProcessing}>
@@ -471,6 +494,13 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
                     <Button variant="secondary" onClick={handlePayNow} disabled={isProcessing}>
                       <RefreshCw className="mr-2 h-4 w-4" />
                       Pay Now
+                    </Button>
+                  )}
+
+                  {invoice.paymentMethodInvalid && (
+                    <Button variant="secondary" onClick={handleEmail} disabled={isProcessing}>
+                      <MailIcon className="mr-2 h-4 w-4" />
+                      Email Customer
                     </Button>
                   )}
 
@@ -490,7 +520,7 @@ export function InvoiceDetailDialog({ invoiceProp, open, onOpenChange, onUpdate 
             </div>
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog >
 
       <RefundDialog
         open={showRefundDialog}

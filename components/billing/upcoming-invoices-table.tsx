@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { InvoiceDetailDialog } from "./invoice-detail-dialog"
+import { PaymentMethodIcon } from '../ui/payment-method-icon'
 
 const upcomingInvoicesData = [
   {
@@ -90,7 +91,12 @@ export function UpcomingInvoicesTable() {
                   <TableCell>{invoice.member}</TableCell>
                   <TableCell>{invoice.dueDate}</TableCell>
                   <TableCell className="font-medium">{invoice.amount}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{invoice.paymentMethod}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <PaymentMethodIcon type={invoice.paymentMethod} className="h-4 w-4 flex-shrink-0" />
+                      {invoice.paymentMethod}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Badge variant="secondary">{invoice.status}</Badge>
                   </TableCell>
