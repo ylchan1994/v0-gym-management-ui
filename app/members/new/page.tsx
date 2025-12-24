@@ -76,7 +76,7 @@ export default function NewMemberPage() {
 
       const pcpUrl = `${pcpEndpoint}/paymentmethod/embed?token=${token}&feepricing=true&submitbutton=true${customerId ? "&customerId=" + customerId : ""}`
       setIframeUrl(pcpUrl)
-      await logApiCall("GET", pcpUrl, "truncated response", 200)
+      await logApiCall("GET", pcpUrl.replace(/token=[^&]*&/i, `token={truncated}&`), "Payment capture page UI", 200)
 
       try {
         // Record origin from the iframe URL so we can validate messages
