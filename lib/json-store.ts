@@ -1,15 +1,33 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-const BLOB_STORE_NAME = 'gym-management-store.json';
-
-// Local development paths
+const IS_PROD = process.env.NODE_ENV === 'production';
 const DATA_DIR = path.resolve(process.cwd(), 'data');
 const STORE_PATH = path.join(DATA_DIR, 'store.json');
 const TMP_PATH = STORE_PATH + '.tmp';
+const KV_STORE_KEY = 'gym-store';
+
+let kvClient: any = null;
+
+// Initialize KV client only in production
+async function getKvClient() {
+  if (!IS_PROD) return null;
+  
+  if (!kvClient) {
+    try {
+      const { kv } = await import('@vercel/kv');
+      kvClient = kv;
+    } catch (err) {
+      console.warn('Vercel KV not available, falling back to memory store');
+      return null;
+    }
+  }
+  return kvClient;
+}
 
 async function ensureDir() {
+  if (IS_PROD) return; // Skip directory creation in production
+  
   try {
     await fs.mkdir(DATA_DIR, { recursive: true });
   } catch (err: any) {
@@ -19,59 +37,24 @@ async function ensureDir() {
 }
 
 /**
- * Read from Vercel Blob Storage
- */
-async function readFromBlob<T = any>(): Promise<T | null> {
-  try {
-    const { list, download } = await import('@vercel/blob');
-    
-    // Check if the blob exists
-    const blobs = await list();
-    const blobExists = blobs.blobs.some(b => b.pathname === BLOB_STORE_NAME);
-    
-    if (!blobExists) {
-      return null;
-    }
-
-    const blob = await download(BLOB_STORE_NAME);
-    const raw = await blob.text();
-    return JSON.parse(raw) as T;
-  } catch (err: any) {
-    console.error('Error reading from Vercel Blob:', err);
-    // Return null if blob doesn't exist
-    if (err.message?.includes('not found')) {
-      return null;
-    }
-    throw err;
-  }
-}
-
-/**
- * Write to Vercel Blob Storage
- */
-async function writeToBlob<T = any>(data: T): Promise<void> {
-  try {
-    const { put } = await import('@vercel/blob');
-    const payload = JSON.stringify(data, null, 2);
-    await put(BLOB_STORE_NAME, payload, {
-      contentType: 'application/json',
-      access: 'private',
-    });
-  } catch (err: any) {
-    console.error('Error writing to Vercel Blob:', err);
-    throw err;
-  }
-}
-
-/**
- * Read entire store from JSON file (local) or Vercel Blob (production)
+ * Read entire store from JSON file (dev) or KV (prod)
  */
 export async function readStore<T = any>(): Promise<T | null> {
-  if (IS_PRODUCTION) {
-    return readFromBlob<T>();
+  if (IS_PROD) {
+    const kv = await getKvClient();
+    if (kv) {
+      try {
+        const data = await kv.get(KV_STORE_KEY);
+        return data as T;
+      } catch (err) {
+        console.error('Failed to read from KV:', err);
+        return null;
+      }
+    }
+    return null;
   }
-
-  // Local development
+  
+  // Development: use file storage
   try {
     const raw = await fs.readFile(STORE_PATH, 'utf8');
     return JSON.parse(raw) as T;
@@ -82,14 +65,24 @@ export async function readStore<T = any>(): Promise<T | null> {
 }
 
 /**
- * Write entire store to JSON file (local) or Vercel Blob (production)
+ * Write entire store to JSON file (dev) or KV (prod)
  */
 export async function writeStore<T = any>(data: T): Promise<void> {
-  if (IS_PRODUCTION) {
-    return writeToBlob(data);
+  if (IS_PROD) {
+    const kv = await getKvClient();
+    if (kv) {
+      try {
+        await kv.set(KV_STORE_KEY, data);
+        return;
+      } catch (err) {
+        console.error('Failed to write to KV:', err);
+        throw err;
+      }
+    }
+    throw new Error('Vercel KV not configured in production');
   }
-
-  // Local development
+  
+  // Development: use file storage
   await ensureDir();
   const payload = JSON.stringify(data, null, 2);
   // write to temp file first, then rename for atomicity
@@ -118,5 +111,20 @@ export async function setItem(key: string, value: string): Promise<void> {
  * Clear all data from store
  */
 export async function clearStore(): Promise<void> {
+  if (IS_PROD) {
+    const kv = await getKvClient();
+    if (kv) {
+      try {
+        await kv.del(KV_STORE_KEY);
+        return;
+      } catch (err) {
+        console.error('Failed to clear KV:', err);
+        throw err;
+      }
+    }
+    throw new Error('Vercel KV not configured in production');
+  }
+  
+  // Development: use file storage
   await writeStore({});
 }
