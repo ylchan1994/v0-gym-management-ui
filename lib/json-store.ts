@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { put, head, del } from '@vercel/blob';
 
-const IS_PROD = process.env.NODE_ENV === 'production';
+const IS_PROD = process.env.NODE_ENV !== 'production';
 const DATA_DIR = path.resolve(process.cwd(), 'data');
 const STORE_PATH = path.join(DATA_DIR, 'store.json');
 const TMP_PATH = STORE_PATH + '.tmp';
