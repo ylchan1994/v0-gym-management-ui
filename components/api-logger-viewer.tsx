@@ -15,6 +15,7 @@ export function ApiLoggerViewer() {
 
   const refreshLogs = async () => {
     const apiLogs = await getApiLogs()
+    console.log(JSON.stringify(apiLogs))
     setLogs(apiLogs)
   }
 
@@ -98,7 +99,7 @@ export function ApiLoggerViewer() {
             {logs.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">No API calls logged yet</p>
             ) : (
-              <Accordion type="single" collapsible value={openAccordion} onValueChange={setOpenAccordion}>
+              <Accordion type="single" collapsible value={openAccordion} onValueChange={setOpenAccordion} className='w-full'>
                 {logs.map((log) => (
                   <AccordionItem key={log.id} value={log.id} className="border rounded-lg mb-2">
                     <AccordionTrigger className="px-3 py-2 hover:no-underline">

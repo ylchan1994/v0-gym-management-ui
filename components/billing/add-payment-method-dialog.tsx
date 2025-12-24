@@ -75,7 +75,7 @@ export function AddPaymentMethodDialog({
 
       const pcpUrl = `${process.env.NEXT_PUBLIC_PCP_ENDPOINT}/paymentmethod/embed?token=${token}&feepricing=true&submitbutton=true&customerId=${customerId}`
       setIframeUrl(pcpUrl)
-      await logApiCall("GET", pcpUrl, "Payment Capture Page UI", 200)
+      await logApiCall("GET", pcpUrl.replace(/token=[^&]*&/i, `token={truncated}&`), "Payment Capture Page UI", 200)
 
       try {
         const url = new URL(pcpUrl)
