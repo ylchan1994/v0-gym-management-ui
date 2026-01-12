@@ -33,9 +33,9 @@ export function ApiLoggerViewer() {
     }
   }, [isOpen])
 
-  useEffect(() =>{
-    getApiLogFromLocal()
-  }, [])
+  // useEffect(() =>{
+  //   getApiLogFromLocal()
+  // }, [])
 
   const getStatusColor = (status: number) => {
     if (status >= 200 && status < 300) return "bg-green-500/10 text-green-600 dark:text-green-400"

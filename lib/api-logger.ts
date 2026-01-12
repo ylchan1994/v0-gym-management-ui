@@ -29,7 +29,7 @@ export async function logApiCall(method: string, url: string, response: any, sta
   if (apiLogs.length > 100) {
     apiLogs.shift()
   }
-  await setItem('apiLog', JSON.stringify(apiLogs))
+  //await setItem('apiLog', JSON.stringify(apiLogs))
 }
 
 export async function getApiLogFromLocal() {
@@ -44,5 +44,5 @@ export async function getApiLogs(): Promise<ApiLog[]> {
 
 export async function clearApiLogs() {
   apiLogs.length = 0
-  await clearStore()
+  //await clearStore()
 }
