@@ -1,30 +1,49 @@
-"use client"
+"use client";
 
-import { TopBar } from "@/components/top-bar"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Plus, MoreHorizontal } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import Link from "next/link"
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { listCustomer } from "@/lib/passer-functions"
-import { Spinner } from "@/components/ui/spinner"
+import { TopBar } from "@/components/top-bar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, Plus, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { listCustomer } from "@/lib/passer-functions";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function MembersPage() {
-  const router = useRouter()
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [members, setMembers] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter();
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [members, setMembers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const branch = localStorage.getItem("selectedBranch") || "main";
 
   useEffect(() => {
-    const member: any[] = []
-    listCustomer().then((e) => {
-      const customers = e.data
+    const member: any[] = [];
+    listCustomer(branch).then((e) => {
+      const customers = e.data;
 
       customers?.forEach((customer) => {
         member.push({
@@ -34,24 +53,30 @@ export default function MembersPage() {
           phone: customer.mobilePhone,
           status: customer.metadata?.status ?? "trial",
           plan: customer.metadata?.plan ?? "Trial",
-          joinDate: customer.metadata?.joinDate ?? new Date(Date.now()).toISOString().split("T")[0],
+          joinDate:
+            customer.metadata?.joinDate ??
+            new Date(Date.now()).toISOString().split("T")[0],
           expiryDate:
-            customer.metadata?.expiryDate ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-        })
-      })
+            customer.metadata?.expiryDate ??
+            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .split("T")[0],
+        });
+      });
 
-      setMembers(member)
-      setIsLoading(false)
-    })
-  }, [])
+      setMembers(member);
+      setIsLoading(false);
+    });
+  }, []);
 
   const filteredMembers = members.filter((member) => {
-    const matchesStatus = statusFilter === "all" || member.status === statusFilter
+    const matchesStatus =
+      statusFilter === "all" || member.status === statusFilter;
     const matchesSearch =
       member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesStatus && matchesSearch
-  })
+      member.email.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
 
   return (
     <div className="flex flex-col h-full">
@@ -60,12 +85,17 @@ export default function MembersPage() {
         <div className="space-y-4 md:space-y-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-balance">Members</h1>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-balance">
+                Members
+              </h1>
               <p className="text-sm md:text-base text-muted-foreground">
                 Manage your gym members and their memberships
               </p>
             </div>
-            <Button className="w-full sm:w-auto" onClick={() => router.push("/members/new")}>
+            <Button
+              className="w-full sm:w-auto"
+              onClick={() => router.push("/members/new")}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add Member
             </Button>
@@ -129,16 +159,20 @@ export default function MembersPage() {
                       onClick={() => router.push(`/members/${member.id}`)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault()
-                          router.push(`/members/${member.id}`)
+                          e.preventDefault();
+                          router.push(`/members/${member.id}`);
                         }
                       }}
                     >
-                      <TableCell className="font-medium">{member.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {member.name}
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           <span className="text-sm">{member.email}</span>
-                          <span className="text-sm text-muted-foreground">{member.phone}</span>
+                          <span className="text-sm text-muted-foreground">
+                            {member.phone}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -147,8 +181,8 @@ export default function MembersPage() {
                             member.status === "active"
                               ? "default"
                               : member.status === "trial"
-                                ? "secondary"
-                                : "destructive"
+                              ? "secondary"
+                              : "destructive"
                           }
                         >
                           {member.status}
@@ -171,12 +205,18 @@ export default function MembersPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/members/${member.id}`}>View Profile</Link>
+                              <Link href={`/members/${member.id}`}>
+                                View Profile
+                              </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link href={`/members/${member.id}/edit`}>Edit Member</Link>
+                              <Link href={`/members/${member.id}/edit`}>
+                                Edit Member
+                              </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">Delete Member</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              Delete Member
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -189,5 +229,5 @@ export default function MembersPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

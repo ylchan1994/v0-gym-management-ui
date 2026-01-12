@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,27 +11,42 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { useToast } from "@/hooks/use-toast"
-import { TapToPayAnimation } from "./tap-to-pay-animation"
-import { createCheckout, listCustomer, createInvoice } from "@/lib/passer-functions"
-import { Spinner } from "@/components/ui/spinner"
-import { PaymentMethodsList } from "./payment-methods-list"
-import Link from "next/link"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { logApiCall } from "@/lib/api-logger"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useToast } from "@/hooks/use-toast";
+import { TapToPayAnimation } from "./tap-to-pay-animation";
+import {
+  createCheckout,
+  listCustomer,
+  createInvoice,
+} from "@/lib/passer-functions";
+import { Spinner } from "@/components/ui/spinner";
+import { PaymentMethodsList } from "./payment-methods-list";
+import Link from "next/link";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { logApiCall } from "@/lib/api-logger";
 
 interface CreateInvoiceDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSuccess?: () => void
-  customerId?: string
-  customerName?: string
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
+  customerId?: string;
+  customerName?: string;
 }
 
 export function CreateInvoiceDialog({
@@ -41,11 +56,11 @@ export function CreateInvoiceDialog({
   customerId,
   customerName,
 }: CreateInvoiceDialogProps) {
-  const [loading, setLoading] = useState(false)
-  const [loadingCustomers, setLoadingCustomers] = useState(false)
-  const [showTapAnimation, setShowTapAnimation] = useState(false)
-  const { toast } = useToast()
-  const [customers, setCustomers] = useState<any[]>([])
+  const [loading, setLoading] = useState(false);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [showTapAnimation, setShowTapAnimation] = useState(false);
+  const { toast } = useToast();
+  const [customers, setCustomers] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     memberId: "",
     amount: "",
@@ -54,31 +69,35 @@ export function CreateInvoiceDialog({
     terminalId: "",
     paymentMethodId: "",
     accountingCode: "",
-  })
+  });
+  const branch = localStorage.getItem("selectedBranch") || "main";
 
   useEffect(() => {
     if (open && !customerId) {
-      setLoadingCustomers(true)
-      listCustomer()
+      setLoadingCustomers(true);
+      listCustomer(branch)
         .then((response) => {
-          const customerList = response?.data || []
-          setCustomers(customerList)
-          sessionStorage.setItem("defaultCustomerList", JSON.stringify(customerList))
-          setLoadingCustomers(false)
+          const customerList = response?.data || [];
+          setCustomers(customerList);
+          sessionStorage.setItem(
+            "defaultCustomerList",
+            JSON.stringify(customerList)
+          );
+          setLoadingCustomers(false);
         })
         .catch((err) => {
-          console.error("Failed to load customers:", err)
+          console.error("Failed to load customers:", err);
           toast({
             title: "Error",
             description: "Failed to load customer list.",
             variant: "destructive",
-          })
-          setLoadingCustomers(false)
-        })
+          });
+          setLoadingCustomers(false);
+        });
     } else if (open && customerId) {
-      setFormData((prev) => ({ ...prev, memberId: customerId }))
+      setFormData((prev) => ({ ...prev, memberId: customerId }));
     }
-  }, [open, customerId, toast])
+  }, [open, customerId, toast]);
 
   const terminalDevices = [
     {
@@ -93,18 +112,18 @@ export function CreateInvoiceDialog({
       deviceId: "TERM-002",
       status: "active",
     },
-  ]
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (formData.paymentMethod === "tap-to-pay" && !formData.terminalId) {
       toast({
         title: "Terminal Required",
         description: "Please select a terminal device for tap-to-pay.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (formData.paymentMethod === "ondemand" && !formData.paymentMethodId) {
@@ -112,40 +131,50 @@ export function CreateInvoiceDialog({
         title: "Payment Method Required",
         description: "Please select a payment method for on-demand payment.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
-      let selectedMemberName = customerName
+      let selectedMemberName = customerName;
       if (!selectedMemberName) {
-        const selectedCustomer = customers.find((c) => c.id === formData.memberId)
-        selectedMemberName = selectedCustomer ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}` : "Unknown"
+        const selectedCustomer = customers.find(
+          (c) => c.id === formData.memberId
+        );
+        selectedMemberName = selectedCustomer
+          ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}`
+          : "Unknown";
       }
 
-      const selectedTerminal = terminalDevices.find((t) => t.id === formData.terminalId)
+      const selectedTerminal = terminalDevices.find(
+        (t) => t.id === formData.terminalId
+      );
 
-      let invoiceStatus: "pending" | "paid" = "pending"
+      let invoiceStatus: "pending" | "paid" = "pending";
 
       if (formData.paymentMethod === "tap-to-pay") {
-        console.log("[v0] Initiating tap-to-pay with terminal:", selectedTerminal?.name)
+        console.log(
+          "[v0] Initiating tap-to-pay with terminal:",
+          selectedTerminal?.name
+        );
 
         // Show tap-to-pay animation
-        setShowTapAnimation(true)
+        setShowTapAnimation(true);
 
         // Wait 5 seconds
-        await new Promise((resolve) => setTimeout(resolve, 5000))
+        await new Promise((resolve) => setTimeout(resolve, 5000));
 
         // Hide animation
-        setShowTapAnimation(false)
+        setShowTapAnimation(false);
 
         // Set status to paid for tap-to-pay
-        invoiceStatus = "paid"
+        invoiceStatus = "paid";
 
-        console.log("[v0] Tap-to-pay completed successfully")
-        const url = "https://api-sandbox.ezypay.com/v2/billing/terminal/invoices"
+        console.log("[v0] Tap-to-pay completed successfully");
+        const url =
+          "https://api-sandbox.ezypay.com/v2/billing/terminal/invoices";
         const requestBody = {
           items: [
             {
@@ -157,8 +186,8 @@ export function CreateInvoiceDialog({
             },
           ],
           customerId: formData.memberId,
-        }
-        const todayDate = new Date(Date.now()).toISOString().split("T")[0]
+        };
+        const todayDate = new Date(Date.now()).toISOString().split("T")[0];
         const responseBody = {
           id: "c911a6ca-8318-45b7-a165-a955c053448a",
           creditNoteId: null,
@@ -253,57 +282,66 @@ export function CreateInvoiceDialog({
           terminalId: "0dea8104-02cd-4931-bca0-ea34bb7eac8b",
           invoiceCategory: "ONE_OFF",
           invoiceSubCategory: "TERMINAL",
-        }
-        logApiCall("POST", url, requestBody, 200, responseBody)
-        console.log("POST", url, requestBody, 200, responseBody)
+        };
+        logApiCall("POST", url, requestBody, 200, responseBody);
+        console.log("POST", url, requestBody, 200, responseBody);
       }
 
       if (formData.paymentMethod === "ondemand") {
-        await createInvoice({
-          memberId: formData.memberId,
-          amount: formData.amount,
-          description: formData.description,
-          paymentMethodId: formData.paymentMethodId,
-          ...(formData.accountingCode && { accountingCode: formData.accountingCode }),
-        })
+        await createInvoice(
+          {
+            memberId: formData.memberId,
+            amount: formData.amount,
+            description: formData.description,
+            paymentMethodId: formData.paymentMethodId,
+            ...(formData.accountingCode && {
+              accountingCode: formData.accountingCode,
+            }),
+          },
+          branch
+        );
 
         toast({
           title: "Invoice Created",
           description: "Invoice created successfully with on-demand payment.",
-        })
+        });
       }
 
       if (formData.paymentMethod === "checkout") {
-        const response = await createCheckout({
-          memberId: formData.memberId,
-          amount: formData.amount,
-          description: formData.description,
-        })
-        const checkoutUrl = response?.data
+        const response = await createCheckout(
+          {
+            memberId: formData.memberId,
+            amount: formData.amount,
+            description: formData.description,
+          },
+          branch
+        );
+        const checkoutUrl = response?.data;
 
         // Validate checkoutUrl is a proper URL and open it in a new tab
         try {
-          if (typeof checkoutUrl !== "string") throw new Error("checkoutUrl is not a string")
+          if (typeof checkoutUrl !== "string")
+            throw new Error("checkoutUrl is not a string");
           // This will throw if the URL is invalid
           // eslint-disable-next-line no-new
-          new URL(checkoutUrl)
+          new URL(checkoutUrl);
 
           toast({
             title: "Invoice Created",
             description: "Opening checkout page...",
-          })
+          });
 
           // Open in a new tab/window; use noopener and noreferrer for security
           if (typeof window !== "undefined") {
-            window.open(checkoutUrl, "_blank", "noopener,noreferrer")
+            window.open(checkoutUrl, "_blank", "noopener,noreferrer");
           }
         } catch (err) {
-          console.error("[v0] Invalid checkout URL:", err, checkoutUrl)
+          console.error("[v0] Invalid checkout URL:", err, checkoutUrl);
           toast({
             title: "Checkout Error",
             description: "Failed to open checkout URL.",
             variant: "destructive",
-          })
+          });
         }
       }
 
@@ -315,21 +353,21 @@ export function CreateInvoiceDialog({
         terminalId: "",
         paymentMethodId: "",
         accountingCode: "",
-      })
-      onOpenChange(false)
-      onSuccess?.()
+      });
+      onOpenChange(false);
+      onSuccess?.();
     } catch (error) {
-      console.error("[v0] Error creating invoice:", error)
+      console.error("[v0] Error creating invoice:", error);
       toast({
         title: "Error",
         description: "Failed to create invoice. Please try again.",
         variant: "destructive",
-      })
-      setShowTapAnimation(false)
+      });
+      setShowTapAnimation(false);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <>
@@ -338,26 +376,42 @@ export function CreateInvoiceDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="w-[95vw] max-w-[1000px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg md:text-xl">Create New Invoice</DialogTitle>
-            <DialogDescription className="text-sm">Create a new invoice with pending status</DialogDescription>
+            <DialogTitle className="text-lg md:text-xl">
+              Create New Invoice
+            </DialogTitle>
+            <DialogDescription className="text-sm">
+              Create a new invoice with pending status
+            </DialogDescription>
             <DialogDescription className="italic text-xs md:text-sm">
-              You would create invoice in Ezypay with this also and depends on whether is&nbsp;
-              <Link href={"https://developer.ezypay.com/docs/on-demand#/"} target="_blank" className="underline">
+              You would create invoice in Ezypay with this also and depends on
+              whether is&nbsp;
+              <Link
+                href={"https://developer.ezypay.com/docs/on-demand#/"}
+                target="_blank"
+                className="underline"
+              >
                 on-demand invoice,
               </Link>
               &nbsp;
-              <Link href={"https://developer.ezypay.com/docs/checkout#/"} target="_blank" className="underline">
+              <Link
+                href={"https://developer.ezypay.com/docs/checkout#/"}
+                target="_blank"
+                className="underline"
+              >
                 tap to pay invoice,
               </Link>
               &nbsp;
               <Link
-                href={"https://developer.ezypay.com/docs/terminal-integration#/"}
+                href={
+                  "https://developer.ezypay.com/docs/terminal-integration#/"
+                }
                 target="_blank"
                 className="underline"
               >
                 checkout session,
               </Link>
-              &nbsp;you would need to use different APIs to create the relevant session with Ezypay
+              &nbsp;you would need to use different APIs to create the relevant
+              session with Ezypay
             </DialogDescription>
           </DialogHeader>
           <form className="mt-4 md:mt-9" onSubmit={handleSubmit}>
@@ -367,16 +421,29 @@ export function CreateInvoiceDialog({
                   Member
                 </Label>
                 {customerId ? (
-                  <Input id="member" value={customerName || ""} disabled className="bg-muted" />
+                  <Input
+                    id="member"
+                    value={customerName || ""}
+                    disabled
+                    className="bg-muted"
+                  />
                 ) : (
                   <Select
                     value={formData.memberId}
-                    onValueChange={(value) => setFormData((prev) => ({ ...prev, memberId: value }))}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, memberId: value }))
+                    }
                     required
                     disabled={loadingCustomers}
                   >
                     <SelectTrigger id="member">
-                      <SelectValue placeholder={loadingCustomers ? "Loading customers..." : "Select a member"} />
+                      <SelectValue
+                        placeholder={
+                          loadingCustomers
+                            ? "Loading customers..."
+                            : "Select a member"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent className="max-h-[300px]">
                       {loadingCustomers ? (
@@ -384,7 +451,9 @@ export function CreateInvoiceDialog({
                           <Spinner className="h-6 w-6" />
                         </div>
                       ) : customers.length === 0 ? (
-                        <div className="py-4 text-center text-sm text-muted-foreground">No customers found</div>
+                        <div className="py-4 text-center text-sm text-muted-foreground">
+                          No customers found
+                        </div>
                       ) : (
                         customers.map((customer) => (
                           <SelectItem key={customer.id} value={customer.id}>
@@ -407,7 +476,9 @@ export function CreateInvoiceDialog({
                   step="0.01"
                   placeholder="99.00"
                   value={formData.amount}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, amount: e.target.value }))
+                  }
                   required
                 />
               </div>
@@ -435,24 +506,38 @@ export function CreateInvoiceDialog({
                 <RadioGroup
                   value={formData.paymentMethod}
                   onValueChange={(value: any) =>
-                    setFormData((prev) => ({ ...prev, paymentMethod: value, terminalId: "", paymentMethodId: "" }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      paymentMethod: value,
+                      terminalId: "",
+                      paymentMethodId: "",
+                    }))
                   }
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="ondemand" id="ondemand" />
-                    <Label htmlFor="ondemand" className="font-normal cursor-pointer">
+                    <Label
+                      htmlFor="ondemand"
+                      className="font-normal cursor-pointer"
+                    >
                       On Demand
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="tap-to-pay" id="tap-to-pay" />
-                    <Label htmlFor="tap-to-pay" className="font-normal cursor-pointer">
+                    <Label
+                      htmlFor="tap-to-pay"
+                      className="font-normal cursor-pointer"
+                    >
                       Tap to Pay
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="checkout" id="checkout" />
-                    <Label htmlFor="checkout" className="font-normal cursor-pointer">
+                    <Label
+                      htmlFor="checkout"
+                      className="font-normal cursor-pointer"
+                    >
                       Checkout
                     </Label>
                   </div>
@@ -467,7 +552,12 @@ export function CreateInvoiceDialog({
                       customerId={formData.memberId}
                       variant="selection"
                       selectedMethodId={formData.paymentMethodId}
-                      onMethodSelect={(methodId) => setFormData((prev) => ({ ...prev, paymentMethodId: methodId }))}
+                      onMethodSelect={(methodId) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          paymentMethodId: methodId,
+                        }))
+                      }
                     />
                   </div>
 
@@ -479,10 +569,16 @@ export function CreateInvoiceDialog({
                       id="accountingCode"
                       placeholder="Enter accounting code"
                       value={formData.accountingCode}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, accountingCode: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          accountingCode: e.target.value,
+                        }))
+                      }
                     />
                     <p className="text-xs text-muted-foreground">
-                      Used for tracking and reconciliation in your accounting system
+                      Used for tracking and reconciliation in your accounting
+                      system
                     </p>
                   </div>
                 </>
@@ -493,7 +589,9 @@ export function CreateInvoiceDialog({
                   <Label htmlFor="terminal">Select Terminal Device</Label>
                   <Select
                     value={formData.terminalId}
-                    onValueChange={(value) => setFormData((prev) => ({ ...prev, terminalId: value }))}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, terminalId: value }))
+                    }
                     required
                   >
                     <SelectTrigger id="terminal">
@@ -507,7 +605,9 @@ export function CreateInvoiceDialog({
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-muted-foreground">Only active terminals are available for selection</p>
+                  <p className="text-xs text-muted-foreground">
+                    Only active terminals are available for selection
+                  </p>
                 </div>
               )}
             </div>
@@ -525,12 +625,18 @@ export function CreateInvoiceDialog({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button type="submit" disabled={loading || loadingCustomers} className="w-full sm:w-auto">
+                    <Button
+                      type="submit"
+                      disabled={loading || loadingCustomers}
+                      className="w-full sm:w-auto"
+                    >
                       {loading ? "Creating..." : "Create"}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="text-sm">Each payment channel will trigger different Ezypay API</p>
+                    <p className="text-sm">
+                      Each payment channel will trigger different Ezypay API
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -539,5 +645,5 @@ export function CreateInvoiceDialog({
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }

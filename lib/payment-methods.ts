@@ -1,26 +1,33 @@
-"use server"
+"use server";
 
-import { getEzypayToken } from "./ezypay-token"
-import { logApiCall } from "./api-logger"
+import { getEzypayToken } from "./ezypay-token";
+import { logApiCall } from "./api-logger";
 
-const apiEndpoint = `${process.env.API_ENDPOINT}/v2/billing/customers`
-const merchantId = process.env.EZYPAY_MERCHANT_ID
+const apiEndpoint = `${process.env.API_ENDPOINT}/v2/billing/customers`;
+const merchantId = process.env.EZYPAY_MERCHANT_ID;
 
-export async function replacePaymentMethod(customerId, paymentMethod, newPaymentMethod) {
+export async function replacePaymentMethod(
+  customerId,
+  paymentMethod,
+  newPaymentMethod,
+  branch
+) {
   try {
     if (!customerId || !paymentMethod || !newPaymentMethod) {
-      throw new Error("Not enough information")
+      throw new Error("Not enough information");
     }
 
     // Get token directly from utility function instead of HTTP request
-    const tokenData = await getEzypayToken()
-    const token = tokenData.access_token
+    const tokenData = await getEzypayToken(branch);
+    const token = tokenData.access_token;
     if (!token) {
-      console.error("No access_token from token utility", tokenData)
-      throw new Error(`Replace Payment Method failed: No access_token from token utility`)
+      console.error("No access_token from token utility", tokenData);
+      throw new Error(
+        `Replace Payment Method failed: No access_token from token utility`
+      );
     }
 
-    const url = `${apiEndpoint}/${customerId}/paymentmethods/${paymentMethod}/new`
+    const url = `${apiEndpoint}/${customerId}/paymentmethods/${paymentMethod}/new`;
     const response = await fetch(url, {
       method: "PUT",
       headers: {
@@ -29,16 +36,18 @@ export async function replacePaymentMethod(customerId, paymentMethod, newPayment
         "Content-type": "application/json",
       },
       body: `{"newPaymentMethodToken":"${newPaymentMethod}"}`,
-    })
+    });
 
-    const data = response.ok ? await response.json() : await response.text()
-    await logApiCall("PUT", url, data, response.status, {newPaymentMethodToken: newPaymentMethod})
+    const data = response.ok ? await response.json() : await response.text();
+    await logApiCall("PUT", url, data, response.status, {
+      newPaymentMethodToken: newPaymentMethod,
+    });
 
     if (!response.ok) {
-      console.error("Replace Payment Method failed:", response.status, data)
+      console.error("Replace Payment Method failed:", response.status, data);
 
       try {
-        const errorData = typeof data === "string" ? JSON.parse(data) : data
+        const errorData = typeof data === "string" ? JSON.parse(data) : data;
         return {
           success: false,
           error: {
@@ -46,63 +55,65 @@ export async function replacePaymentMethod(customerId, paymentMethod, newPayment
             code: errorData.code,
             message: errorData.message,
           },
-        }
+        };
       } catch (parseError) {
         return {
           success: false,
           error: {
             message: `Replace Payment Method failed: ${response.status}`,
           },
-        }
+        };
       }
     }
 
     return {
       success: true,
       data: data,
-    }
+    };
   } catch (err) {
-    console.error("Replace Payment Method failed error:", err)
+    console.error("Replace Payment Method failed error:", err);
     return {
       success: false,
       error: {
         message: err.message || "An unexpected error occurred",
       },
-    }
+    };
   }
 }
 
-export async function deletePaymentMethod(customerId, paymentMethod) {
+export async function deletePaymentMethod(customerId, paymentMethod, branch) {
   try {
     if (!customerId || !paymentMethod) {
-      throw new Error("Not enough information")
+      throw new Error("Not enough information");
     }
 
     // Get token directly from utility function instead of HTTP request
-    const tokenData = await getEzypayToken()
-    const token = tokenData.access_token
+    const tokenData = await getEzypayToken(branch);
+    const token = tokenData.access_token;
     if (!token) {
-      console.error("No access_token from token utility", tokenData)
-      throw new Error(`Delete Payment Method failed: No access_token from token utility`)
+      console.error("No access_token from token utility", tokenData);
+      throw new Error(
+        `Delete Payment Method failed: No access_token from token utility`
+      );
     }
 
-    const url = `${apiEndpoint}/${customerId}/paymentmethods/${paymentMethod}`
+    const url = `${apiEndpoint}/${customerId}/paymentmethods/${paymentMethod}`;
     const response = await fetch(url, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
         merchant: merchantId,
       },
-    })
+    });
 
-    const data = response.ok ? await response.json() : await response.text()
-    await logApiCall("DELETE", url, data, response.status)
+    const data = response.ok ? await response.json() : await response.text();
+    await logApiCall("DELETE", url, data, response.status);
 
     if (!response.ok) {
-      console.error("Delete Payment Method failed:", response.status, data)
+      console.error("Delete Payment Method failed:", response.status, data);
 
       try {
-        const errorData = typeof data === "string" ? JSON.parse(data) : data
+        const errorData = typeof data === "string" ? JSON.parse(data) : data;
         return {
           success: false,
           error: {
@@ -110,28 +121,28 @@ export async function deletePaymentMethod(customerId, paymentMethod) {
             code: errorData.code,
             message: errorData.message,
           },
-        }
+        };
       } catch (parseError) {
         return {
           success: false,
           error: {
             message: `Delete Payment Method failed: ${response.status}`,
           },
-        }
+        };
       }
     }
 
     return {
       success: true,
       data: data,
-    }
+    };
   } catch (err) {
-    console.error("Delete Payment Method failed error:", err)
+    console.error("Delete Payment Method failed error:", err);
     return {
       success: false,
       error: {
         message: err.message || "An unexpected error occurred",
       },
-    }
+    };
   }
 }

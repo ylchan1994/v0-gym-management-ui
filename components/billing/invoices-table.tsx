@@ -1,68 +1,97 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Plus } from "lucide-react"
-import { useState } from "react"
-import { InvoiceDetailDialog } from "./invoice-detail-dialog"
-import { CreateInvoiceDialog } from "./create-invoice-dialog"
-import { getStatusBadgeVariant } from "@/app/members/[id]/page"
-import { PaymentMethodIcon } from "@/components/ui/payment-method-icon"
-import { Spinner } from '../ui/spinner'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, Plus } from "lucide-react";
+import { useState } from "react";
+import { InvoiceDetailDialog } from "./invoice-detail-dialog";
+import { CreateInvoiceDialog } from "./create-invoice-dialog";
+import { getStatusBadgeVariant } from "@/app/members/[id]/page";
+import { PaymentMethodIcon } from "@/components/ui/payment-method-icon";
+import { Spinner } from "../ui/spinner";
 
-export function InvoicesTable({ variant = "billing", invoices, customerData = null, isLoading = true }) {
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedInvoice, setSelectedInvoice] = useState<(typeof invoices)[0] | null>(null)
-  const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
+export function InvoicesTable({
+  variant = "billing",
+  invoices,
+  customerData = null,
+  isLoading = true,
+}) {
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedInvoice, setSelectedInvoice] = useState<
+    (typeof invoices)[0] | null
+  >(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   if (!invoices) {
-    return ""
+    return "";
   }
 
   const filteredInvoices = invoices?.filter((invoice) => {
-    const matchesStatus = statusFilter === "all" || invoice.status === statusFilter
+    const matchesStatus =
+      statusFilter === "all" || invoice.status === statusFilter;
     const matchesSearch =
       variant == "billing"
         ? invoice.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        invoice.member.toLowerCase().includes(searchQuery.toLowerCase())
-        : invoice.id.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesStatus && matchesSearch
-  })
+          invoice.member.toLowerCase().includes(searchQuery.toLowerCase())
+        : invoice.id.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
 
   const handleInvoiceClick = (invoice: (typeof invoices)[0]) => {
     if (!invoice.id) {
-      console.error("Invalid invoice data (missing id):", invoice)
-      return
+      console.error("Invalid invoice data (missing id):", invoice);
+      return;
     }
-    setSelectedInvoice(invoice)
-    setIsDetailOpen(true)
-  }
+    setSelectedInvoice(invoice);
+    setIsDetailOpen(true);
+  };
 
   const formatCellValue = (value: any) => {
-    if (value === null || value === undefined) return ""
-    const val = value?.replaceAll(/MASTERCARD|VISA|AMEX/gi, 'CARD')
+    if (value === null || value === undefined) return "";
+    const val = value?.replaceAll(/MASTERCARD|VISA|AMEX/gi, "CARD");
     if (typeof val === "object") {
       if (val.code || val.description) {
-        return `${val.code ?? ""}${val.description ? ` - ${val.description}` : ""}`.trim()
+        return `${val.code ?? ""}${
+          val.description ? ` - ${val.description}` : ""
+        }`.trim();
       }
       try {
-        return JSON.stringify(val)
+        return JSON.stringify(val);
       } catch (e) {
-        return String(val)
+        return String(val);
       }
     }
-    return String(val)
-  }
+    return String(val);
+  };
 
   const handleInvoiceCreated = () => {
-    console.log("[v0] Invoice created successfully")
-  }
+    console.log("[v0] Invoice created successfully");
+  };
 
   return (
     <>
@@ -71,9 +100,14 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle className="text-base md:text-lg">Invoices</CardTitle>
-              <CardDescription className="text-sm">Generate, send, and manage member invoices</CardDescription>
+              <CardDescription className="text-sm">
+                Generate, send, and manage member invoices
+              </CardDescription>
             </div>
-            <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto">
+            <Button
+              onClick={() => setIsCreateOpen(true)}
+              className="w-full sm:w-auto"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Create Invoice
             </Button>
@@ -111,9 +145,15 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
               <TableHeader>
                 <TableRow>
                   <TableHead className="min-w-[120px]">Invoice ID</TableHead>
-                  {variant == "billing" ? <TableHead className="min-w-[150px]">Member</TableHead> : ""}
+                  {variant == "billing" ? (
+                    <TableHead className="min-w-[150px]">Member</TableHead>
+                  ) : (
+                    ""
+                  )}
                   <TableHead className="min-w-[100px]">Amount</TableHead>
-                  <TableHead className="min-w-[150px]">Payment Method</TableHead>
+                  <TableHead className="min-w-[150px]">
+                    Payment Method
+                  </TableHead>
                   <TableHead className="min-w-[100px]">Status</TableHead>
                   <TableHead className="min-w-[110px]">Date</TableHead>
                 </TableRow>
@@ -139,26 +179,45 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
                         {formatCellValue(invoice.number ?? invoice.id)}
                       </TableCell>
                       {variant == "billing" ? (
-                        <TableCell className="text-sm">{formatCellValue(invoice.member)}</TableCell>
+                        <TableCell className="text-sm">
+                          {formatCellValue(invoice.member)}
+                        </TableCell>
                       ) : (
                         ""
                       )}
-                      <TableCell className="font-medium text-sm">{formatCellValue(invoice.amount)}</TableCell>
+                      <TableCell className="font-medium text-sm">
+                        {formatCellValue(invoice.amount)}
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
-                          <PaymentMethodIcon type={invoice.paymentMethod} className="h-4 w-4 flex-shrink-0" />
-                          <span className="truncate">{formatCellValue(invoice.paymentMethod)}</span>
-                          {invoice.paymentMethodInvalid && <Badge variant='destructive'>invalid</Badge>}
+                          <PaymentMethodIcon
+                            type={invoice.paymentMethod}
+                            className="h-4 w-4 flex-shrink-0"
+                          />
+                          <span className="truncate">
+                            {formatCellValue(invoice.paymentMethod)}
+                          </span>
+                          {invoice.paymentMethodInvalid && (
+                            <Badge variant="destructive">invalid</Badge>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getStatusBadgeVariant(String(invoice.status))} className="text-xs">
+                        <Badge
+                          variant={getStatusBadgeVariant(
+                            String(invoice.status)
+                          )}
+                          className="text-xs"
+                        >
                           {formatCellValue(invoice.status)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm">{formatCellValue(invoice.date)}</TableCell>
+                      <TableCell className="text-sm">
+                        {formatCellValue(invoice.date)}
+                      </TableCell>
                     </TableRow>
-                  )))}
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
@@ -171,7 +230,7 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
           open={isDetailOpen}
           onOpenChange={setIsDetailOpen}
           onUpdate={() => {
-            console.log("[v0] Invoice updated, refreshing list")
+            console.log("[v0] Invoice updated, refreshing list");
           }}
         />
       )}
@@ -184,5 +243,5 @@ export function InvoicesTable({ variant = "billing", invoices, customerData = nu
         customerName={customerData?.name ? customerData.name : null}
       />
     </>
-  )
+  );
 }

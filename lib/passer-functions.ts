@@ -1,12 +1,12 @@
-'use server'
+"use server";
 
 import {
   createCustomer as createEzypayCustomer,
   listCustomer as listEzypayCustomer,
   getCustomer as getEzypayCustomer,
-  getCustomerPaymentMethods as getEzypayCustomerPaymentMethods
-} from '@/lib/customer'
-import { 
+  getCustomerPaymentMethods as getEzypayCustomerPaymentMethods,
+} from "@/lib/customer";
+import {
   listInvoiceByCustomer as listEzypayInvoiceByCustomer,
   listInvoice as listEzypayInvoice,
   listTransactionByInvoice as listEzypayTransactionByInvoice,
@@ -16,85 +16,99 @@ import {
   refundInvoice as refundEzypayInvoice,
   createInvoice as createEzypayInvoice,
   createCheckout as createEzypayCheckout,
- } from "@/lib/invoice"
-import { getEzypayToken as innerGetEzypayToken } from './ezypay-token' 
-import { 
+} from "@/lib/invoice";
+import { getEzypayToken as innerGetEzypayToken } from "./ezypay-token";
+import {
   replacePaymentMethod as replaceEzypayPaymentMethod,
-  deletePaymentMethod as deleteEzypayPaymentMethod
- } from "@/lib/payment-methods"
- import { 
+  deletePaymentMethod as deleteEzypayPaymentMethod,
+} from "@/lib/payment-methods";
+import {
   listSettlements as listEzypaySettlements,
-  downloadDocument as downloadEzypayDocument
- } from "@/lib/settlements"
+  downloadDocument as downloadEzypayDocument,
+} from "@/lib/settlements";
 
-export async function createCustomer(customer) {
-  return await createEzypayCustomer(customer)
+export async function createCustomer(customer, branch) {
+  return await createEzypayCustomer(customer, branch);
 }
 
-export async function listCustomer() {
-  return await listEzypayCustomer()
+export async function listCustomer(branch) {
+  return await listEzypayCustomer(branch);
 }
 
-export async function getCustomer(customer) {
-  return await getEzypayCustomer(customer)
+export async function getCustomer(customer, branch) {
+  return await getEzypayCustomer(customer, branch);
 }
 
-export async function listInvoiceByCustomer(customerId, customerName) {
-  return await listEzypayInvoiceByCustomer(customerId, customerName)
+export async function listInvoiceByCustomer(customerId, customerName, branch) {
+  return await listEzypayInvoiceByCustomer(customerId, customerName, branch);
 }
 
-export async function getEzypayToken() {
-  return await innerGetEzypayToken()
+export async function getEzypayToken(branch) {
+  return await innerGetEzypayToken(branch);
 }
 
-export async function getCustomerPaymentMethods(customer) {
-  return await getEzypayCustomerPaymentMethods(customer)
+export async function getCustomerPaymentMethods(customer, branch) {
+  return await getEzypayCustomerPaymentMethods(customer, branch);
 }
 
-export async function listInvoice() {
-  return await listEzypayInvoice()
+export async function listInvoice(branch) {
+  return await listEzypayInvoice(branch);
 }
 
-export async function listTransactionByInvoice(invoiceId, paymentMethod) {
-  return await listEzypayTransactionByInvoice(invoiceId, paymentMethod)
+export async function listTransactionByInvoice(
+  invoiceId,
+  paymentMethod,
+  branch
+) {
+  return await listEzypayTransactionByInvoice(invoiceId, paymentMethod, branch);
 }
 
-export async function retryInvoice(invoiceId, paymentMethodId) {
-  return await retryEzypayInvoice(invoiceId, paymentMethodId)
+export async function retryInvoice(invoiceId, paymentMethodId, branch) {
+  return await retryEzypayInvoice(invoiceId, paymentMethodId, branch);
 }
 
-export async function writeOffInvoice(invoiceId) {
-  return await writeOffEzypayInvoice(invoiceId)
+export async function writeOffInvoice(invoiceId, branch) {
+  return await writeOffEzypayInvoice(invoiceId, branch);
 }
 
-export async function recordExternalInvoice(invoiceId, method) {
-  return await recordEzypayExternalInvoice(invoiceId, method)
+export async function recordExternalInvoice(invoiceId, method, branch) {
+  return await recordEzypayExternalInvoice(invoiceId, method, branch);
 }
 
-export async function refundInvoice(invoiceId, amount) {
-  return await refundEzypayInvoice(invoiceId, amount)
+export async function refundInvoice(invoiceId, amount, branch) {
+  return await refundEzypayInvoice(invoiceId, amount, branch);
 }
 
-export async function createInvoice(invoiceData) {
-  return await createEzypayInvoice(invoiceData)
+export async function createInvoice(invoiceData, branch) {
+  return await createEzypayInvoice(invoiceData, branch);
 }
 
-export async function replacePaymentMethod(customerId, paymentMethod, newPaymentMethod) {
-  return await replaceEzypayPaymentMethod(customerId, paymentMethod, newPaymentMethod)
+export async function replacePaymentMethod(
+  customerId,
+  paymentMethod,
+  newPaymentMethod,
+  branch
+) {
+  return await replaceEzypayPaymentMethod(
+    customerId,
+    paymentMethod,
+    newPaymentMethod,
+    branch
+  );
 }
 
-export async function deletePaymentMethod(customerId, paymentMethod ) {
-  return await deleteEzypayPaymentMethod(customerId, paymentMethod)
+export async function deletePaymentMethod(customerId, paymentMethod, branch) {
+  return await deleteEzypayPaymentMethod(customerId, paymentMethod, branch);
 }
 
-export async function createCheckout(invoiceData) {
-  return await createEzypayCheckout(invoiceData)
+export async function createCheckout(invoiceData, branch) {
+  return await createEzypayCheckout(invoiceData, branch);
 }
 
-export async function listSettlements() {
-  return await listEzypaySettlements()
+export async function listSettlements(branch) {
+  return await listEzypaySettlements(branch);
 }
 
-export async function downloadDocument(settlementId, documentType) {
-  return await downloadEzypayDocument(settlementId, documentType)
+export async function downloadDocument(settlementId, documentType, branch) {
+  return await downloadEzypayDocument(settlementId, documentType, branch);
 }

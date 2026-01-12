@@ -1,88 +1,114 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Download, Search, Loader2 } from 'lucide-react'
-import { useState, useEffect } from "react"
-import { useToast } from "@/hooks/use-toast"
-import { listSettlements, downloadDocument } from "@/lib/passer-functions"
-import Link from 'next/link'
+} from "@/components/ui/dropdown-menu";
+import { Download, Search, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { listSettlements, downloadDocument } from "@/lib/passer-functions";
+import Link from "next/link";
 
 export function SettlementTable() {
-  const [settlements, setSettlements] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isDownloading, setIsDownloading] = useState<string | null>(null)
-  const { toast } = useToast()
+  const [settlements, setSettlements] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDownloading, setIsDownloading] = useState<string | null>(null);
+  const { toast } = useToast();
+  const branch = localStorage.getItem("selectedBranch") || "main";
 
   useEffect(() => {
-    setIsLoading(true)
-    listSettlements().then(settlements => {
-      setSettlements(settlements)
-      setIsLoading(false)
-    })
-  }, [])
+    setIsLoading(true);
+    listSettlements(branch).then((settlements) => {
+      setSettlements(settlements);
+      setIsLoading(false);
+    });
+  }, []);
 
   const filteredSettlements = settlements.filter((settlement) => {
     const matchesSearch =
       settlement.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      settlement.period.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesSearch
-  })
+      settlement.period.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
+  });
 
   const formatAmount = (amount: string | number) => {
-    const numAmount = typeof amount === 'string' ? parseFloat(amount.replace(/[^0-9.-]+/g, '')) : amount
-    return new Intl.NumberFormat('en-AU', {
-      style: 'currency',
-      currency: 'AUD',
-    }).format(numAmount)
-  }
+    const numAmount =
+      typeof amount === "string"
+        ? parseFloat(amount.replace(/[^0-9.-]+/g, ""))
+        : amount;
+    return new Intl.NumberFormat("en-AU", {
+      style: "currency",
+      currency: "AUD",
+    }).format(numAmount);
+  };
 
-  const handleDownloadDocument = async (settlementId: string, docType: documentType) => {
-    setIsDownloading(settlementId)
+  const handleDownloadDocument = async (settlementId: string, docType) => {
+    setIsDownloading(settlementId);
     try {
-      const downloadUrl = await downloadDocument(settlementId, docType)
+      const downloadUrl = await downloadDocument(settlementId, docType, branch);
 
-      window.open(downloadUrl, '_blank')
+      window.open(downloadUrl, "_blank");
 
       const typeLabels = {
-        'tax_invoice': 'Tax Invoice',
-        'detail_report': 'Detail Report',
-        'summary_report': 'Summary Report'
-      }
+        tax_invoice: "Tax Invoice",
+        detail_report: "Detail Report",
+        summary_report: "Summary Report",
+      };
 
       toast({
         title: "Report Downloaded",
         description: `${typeLabels[docType]} for settlement ${settlementId} is ready.`,
-      })
+      });
     } catch (error) {
       toast({
         title: "Download Failed",
-        description: "Failed to download the settlement document. Please try again.",
+        description:
+          "Failed to download the settlement document. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsDownloading(null)
+      setIsDownloading(null);
     }
-  }
+  };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Settlement History</CardTitle>
-        <CardDescription>View and download past settlement reports</CardDescription>
+        <CardDescription>
+          View and download past settlement reports
+        </CardDescription>
         <CardDescription className="italic">
           This page allows merchant to quickly check their&nbsp;
-          <Link href={"https://developer.ezypay.com/docs/reports-1#retrieve-settlement-reports"} target="_blank" className="underline">
+          <Link
+            href={
+              "https://developer.ezypay.com/docs/reports-1#retrieve-settlement-reports"
+            }
+            target="_blank"
+            className="underline"
+          >
             settlement summary
           </Link>
           &nbsp;and allows them to download the settlement report.
@@ -133,7 +159,9 @@ export function SettlementTable() {
                 <TableRow key={settlement.id}>
                   <TableCell className="font-medium">{settlement.id}</TableCell>
                   <TableCell>{settlement.date}</TableCell>
-                  <TableCell className="font-medium">{formatAmount(settlement.amount)}</TableCell>
+                  <TableCell className="font-medium">
+                    {formatAmount(settlement.amount)}
+                  </TableCell>
                   <TableCell>
                     <Badge variant="default">{settlement.status}</Badge>
                   </TableCell>
@@ -147,22 +175,36 @@ export function SettlementTable() {
                           disabled={isDownloading === settlement.id}
                         >
                           <Download className="h-4 w-4" />
-                          {isDownloading === settlement.id ? "Downloading..." : "Download Report"}
+                          {isDownloading === settlement.id
+                            ? "Downloading..."
+                            : "Download Report"}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => handleDownloadDocument(settlement.id, 'tax_invoice')}
+                          onClick={() =>
+                            handleDownloadDocument(settlement.id, "tax_invoice")
+                          }
                         >
                           Tax Invoice
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDownloadDocument(settlement.id, 'detail_report')}
+                          onClick={() =>
+                            handleDownloadDocument(
+                              settlement.id,
+                              "detail_report"
+                            )
+                          }
                         >
                           Detail Report
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDownloadDocument(settlement.id, 'summary_report')}
+                          onClick={() =>
+                            handleDownloadDocument(
+                              settlement.id,
+                              "summary_report"
+                            )
+                          }
                         >
                           Summary Report
                         </DropdownMenuItem>
@@ -176,5 +218,5 @@ export function SettlementTable() {
         </Table>
       </CardContent>
     </Card>
-  )
+  );
 }

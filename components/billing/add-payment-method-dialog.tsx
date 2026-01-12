@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,23 +11,23 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Mail } from "lucide-react"
-import { Spinner } from "@/components/ui/spinner"
-import { toast } from "sonner"
-import { getEzypayToken } from "@/lib/ezypay-token"
-import Link from "next/link"
-import { logApiCall } from "@/lib/api-logger"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog";
+import { Mail } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
+import { getEzypayToken } from "@/lib/ezypay-token";
+import Link from "next/link";
+import { logApiCall } from "@/lib/api-logger";
+import { Button } from "@/components/ui/button";
 
 interface AddPaymentMethodDialogProps {
-  customerId: string
-  onSuccess?: () => void
-  children?: React.ReactNode
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  customerEmail?: string
-  customerName?: string
+  customerId: string;
+  onSuccess?: () => void;
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  customerEmail?: string;
+  customerName?: string;
 }
 
 export function AddPaymentMethodDialog({
@@ -39,87 +39,98 @@ export function AddPaymentMethodDialog({
   customerEmail,
   customerName,
 }: AddPaymentMethodDialogProps) {
-  const [internalOpen, setInternalOpen] = useState(false)
-  const [iframeUrl, setIframeUrl] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const iframeRef = useRef<HTMLIFrameElement | null>(null)
-  const iframeOriginRef = useRef<string | null>(null)
+  const [internalOpen, setInternalOpen] = useState(false);
+  const [iframeUrl, setIframeUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const iframeOriginRef = useRef<string | null>(null);
+  const branch = localStorage.getItem("selectedBranch") || "main";
 
-  const isControlled = controlledOpen !== undefined
-  const open = isControlled ? controlledOpen : internalOpen
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
 
   const setOpen = (newOpen: boolean) => {
     if (isControlled) {
-      controlledOnOpenChange?.(newOpen)
+      controlledOnOpenChange?.(newOpen);
     } else {
-      setInternalOpen(newOpen)
-      controlledOnOpenChange?.(newOpen)
+      setInternalOpen(newOpen);
+      controlledOnOpenChange?.(newOpen);
     }
-  }
+  };
 
   useEffect(() => {
     if (open && !iframeUrl) {
-      loadIframeUrl()
+      loadIframeUrl();
     }
-  }, [open])
+  }, [open]);
 
   const loadIframeUrl = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const tokenRes = await getEzypayToken()
-      const token = tokenRes.access_token
+      const tokenRes = await getEzypayToken(branch);
+      const token = tokenRes.access_token;
 
       if (!token) {
-        throw new Error(`Token endpoint failed`)
+        throw new Error(`Token endpoint failed`);
       }
 
-      const pcpUrl = `${process.env.NEXT_PUBLIC_PCP_ENDPOINT}/paymentmethod/embed?token=${token}&feepricing=true&submitbutton=true&customerId=${customerId}`
-      setIframeUrl(pcpUrl)
-      await logApiCall("GET", pcpUrl.replace(/token=[^&]*&/i, `token={truncated}&`), "Payment Capture Page UI", 200)
+      const pcpUrl = `${process.env.NEXT_PUBLIC_PCP_ENDPOINT}/paymentmethod/embed?token=${token}&feepricing=true&submitbutton=true&customerId=${customerId}`;
+      setIframeUrl(pcpUrl);
+      await logApiCall(
+        "GET",
+        pcpUrl.replace(/token=[^&]*&/i, `token={truncated}&`),
+        "Payment Capture Page UI",
+        200
+      );
 
       try {
-        const url = new URL(pcpUrl)
-        iframeOriginRef.current = url.origin
+        const url = new URL(pcpUrl);
+        iframeOriginRef.current = url.origin;
       } catch (e) {
-        iframeOriginRef.current = null
+        iframeOriginRef.current = null;
       }
     } catch (error) {
-      console.error("[v0] Error loading iframe URL:", error)
-      toast.error("Failed to load payment form")
-      setOpen(false)
+      console.error("[v0] Error loading iframe URL:", error);
+      toast.error("Failed to load payment form");
+      setOpen(false);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleEmailCustomer = () => {
+    const emailPreviewLink = `${window.location.origin}/email-preview?id=${customerId}&name=${customerName}`;
 
-    const emailPreviewLink = `${window.location.origin}/email-preview?id=${customerId}&name=${customerName}`
-
-    window.open(emailPreviewLink, "_blank")
-    toast.success("Email draft opened in new tab")
-  }
+    window.open(emailPreviewLink, "_blank");
+    toast.success("Email draft opened in new tab");
+  };
 
   const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen)
+    setOpen(newOpen);
     if (!newOpen) {
-      setIframeUrl(null)
-      onSuccess?.()
+      setIframeUrl(null);
+      onSuccess?.();
     }
-  }
+  };
 
   const content = (
     <DialogContent className="min-w-[50vw] h-[90vh]">
       <DialogHeader className="p-2 pb-0">
         <DialogTitle>Add Payment Method</DialogTitle>
-        <DialogDescription>Add a new payment method for automatic billing</DialogDescription>
+        <DialogDescription>
+          Add a new payment method for automatic billing
+        </DialogDescription>
         <DialogDescription className="italic">
           Host&nbsp;
-          <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} target="_blank" className="underline">
+          <Link
+            href={"https://developer.ezypay.com/docs/payment-capture-page#/"}
+            target="_blank"
+            className="underline"
+          >
             Ezypay's Payment capture page
           </Link>
-          &nbsp;here and allow customer to update their payment method. This should be on the customer portal if
-          available.
+          &nbsp;here and allow customer to update their payment method. This
+          should be on the customer portal if available.
         </DialogDescription>
       </DialogHeader>
       <div className="flex-1 p-4 mt-10">
@@ -143,13 +154,17 @@ export function AddPaymentMethodDialog({
       </div>
       {/* Moved email button to dialog footer */}
       <DialogFooter>
-        <Button variant="outline" onClick={handleEmailCustomer} className="gap-2 bg-transparent">
+        <Button
+          variant="outline"
+          onClick={handleEmailCustomer}
+          className="gap-2 bg-transparent"
+        >
           <Mail className="h-4 w-4" />
           Email Customer
         </Button>
       </DialogFooter>
     </DialogContent>
-  )
+  );
 
   if (children) {
     return (
@@ -157,12 +172,12 @@ export function AddPaymentMethodDialog({
         <DialogTrigger asChild>{children}</DialogTrigger>
         {content}
       </Dialog>
-    )
+    );
   }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {content}
     </Dialog>
-  )
+  );
 }
