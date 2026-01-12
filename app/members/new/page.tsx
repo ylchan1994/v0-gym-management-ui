@@ -28,6 +28,7 @@ const defaultformData = {
   startDate: Date.now(),
   plan: "Trial",
   status: "trial",
+  existingCustomerNumber: "", // Added optional existing customer number field
 }
 
 export default function NewMemberPage() {
@@ -35,7 +36,7 @@ export default function NewMemberPage() {
   const [isLoadingIframe, setIsLoadingIframe] = useState(false)
   const [isCustomerCreated, setIsCustomerCreated] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [emailPreviewLink, setEmailPreviewLink] = useState('')
+  const [emailPreviewLink, setEmailPreviewLink] = useState("")
   const [formData, setFormData] = useState(defaultformData)
 
   // Track selected values from Select components separately for easier UI updates
@@ -132,7 +133,9 @@ export default function NewMemberPage() {
       setIsSubmitting(false)
     }
 
-    setEmailPreviewLink(`${window.location.origin}/email-preview?id=${customerId}&name=${formData.firstName} ${formData.lastName}`)
+    setEmailPreviewLink(
+      `${window.location.origin}/email-preview?id=${customerId}&name=${formData.firstName} ${formData.lastName}`,
+    )
     await loadIframeUrl(customerId)
     setIsSubmitting(false)
     setIsCustomerCreated(true)
@@ -166,7 +169,11 @@ export default function NewMemberPage() {
                   <br></br>
                   <p className="text-sm text-muted-foreground italic">
                     You would want to&nbsp;
-                    <Link href={"https://developer.ezypay.com/docs/customer-creation#/"} target="_blank" className="underline">
+                    <Link
+                      href={"https://developer.ezypay.com/docs/customer-creation#/"}
+                      target="_blank"
+                      className="underline"
+                    >
                       create customer with Ezypay
                     </Link>
                     &nbsp;also at this step. The next step will be collecting payment methods from customer and an
@@ -180,10 +187,15 @@ export default function NewMemberPage() {
                   <br></br>
                   <p className="text-sm text-muted-foreground italic">
                     After you get the Ezypay customer ID, you could collect the payment method from customer by&nbsp;
-                    <Link href={"https://developer.ezypay.com/docs/payment-capture-page#/"} target="_blank" className="underline">
+                    <Link
+                      href={"https://developer.ezypay.com/docs/payment-capture-page#/"}
+                      target="_blank"
+                      className="underline"
+                    >
                       hosting Ezypay's Payment capture page
                     </Link>
-                    &nbsp;as an iframe in your page. You could also email this page to customer for them to fill in their payment method.
+                    &nbsp;as an iframe in your page. You could also email this page to customer for them to fill in
+                    their payment method.
                   </p>
                 </>
               )}
@@ -249,6 +261,10 @@ export default function NewMemberPage() {
                       placeholder="Jane Doe - +61 498 765 432"
                       onChange={handleInputChange}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="existingCustomerNumber">Existing Customer Number (Optional)</Label>
+                    <Input id="existingCustomerNumber" placeholder="e.g., CUST-12345" onChange={handleInputChange} />
                   </div>
                 </CardContent>
               </Card>
