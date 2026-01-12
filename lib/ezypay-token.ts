@@ -1,27 +1,27 @@
-'use server'
+"use server"
 
-// Shared utility to fetch Ezypay access token
+import { getBranchCredentials } from "./branch-config"
+
 export async function getEzypayToken(): Promise<{ access_token: string; error?: string }> {
   try {
-    const {
-      EZYPAY_CLIENT_SECRET = 'eGiBZQZ2P7rkBFavu8xa89MINPsgaCgfWVeMupIhspyg9vY6pM8uD2Vl8pn-5Wxc',
-      EZYPAY_CLIENT_ID = '0oa1yspeszvuG97wq0h8',
-      EZYPAY_USERNAME = 'EzypayFitnessCenter',
-      EZYPAY_PASSWORD = 'Password1234!'
-    } = process.env
+    // Get selected branch from client-side storage via header or default to main
+    const selectedBranch = "main" // Will be overridden by branch selection in passer-functions
+    const credentials = getBranchCredentials(selectedBranch as "main" | "branch2")
 
-    if (!EZYPAY_CLIENT_ID || !EZYPAY_CLIENT_SECRET || !EZYPAY_USERNAME || !EZYPAY_PASSWORD) {
-      throw new Error("Missing EZYPAY_* environment variables")
+    const { clientId, clientSecret, username, password } = credentials
+
+    if (!clientId || !clientSecret || !username || !password) {
+      throw new Error(`Missing EZYPAY_* environment variables for branch ${selectedBranch}`)
     }
 
     const tokenUrl = "https://identity-sandbox.ezypay.com/token"
 
     const body = new URLSearchParams()
     body.append("grant_type", "password")
-    body.append("client_id", EZYPAY_CLIENT_ID)
-    body.append("client_secret", EZYPAY_CLIENT_SECRET)
-    body.append("username", EZYPAY_USERNAME)
-    body.append("password", EZYPAY_PASSWORD)
+    body.append("client_id", clientId)
+    body.append("client_secret", clientSecret)
+    body.append("username", username)
+    body.append("password", password)
     body.append("scope", "integrator billing_profile create_payment_method offline_access")
 
     const response = await fetch(tokenUrl, {

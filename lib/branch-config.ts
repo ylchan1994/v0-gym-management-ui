@@ -23,20 +23,14 @@ export const BRANCHES: Record<BranchId, BranchConfig> = {
 
 // Helper function to get branch credentials from environment variables
 export function getBranchCredentials(branchId: BranchId) {
-  const branchPrefix = branchId === "main" ? "" : "BRANCH2_"
-
-  const clientIdVar = branchPrefix ? `${branchPrefix}EZYPAY_CLIENT_ID` : "EZYPAY_CLIENT_ID"
-  const clientSecretVar = branchPrefix ? `${branchPrefix}EZYPAY_CLIENT_SECRET` : "EZYPAY_CLIENT_SECRET"
-  const usernameVar = branchPrefix ? `${branchPrefix}EZYPAY_USERNAME` : "EZYPAY_USERNAME"
-  const passwordVar = branchPrefix ? `${branchPrefix}EZYPAY_PASSWORD` : "EZYPAY_PASSWORD"
-  const merchantIdVar = branchPrefix ? `${branchPrefix}EZYPAY_MERCHANT_ID` : "EZYPAY_MERCHANT_ID"
+  const isMainBranch = branchId === "main"
 
   return {
-    clientId: process.env[clientIdVar] || "",
-    clientSecret: process.env[clientSecretVar] || "",
-    username: process.env[usernameVar] || "",
-    password: process.env[passwordVar] || "",
-    merchantId: process.env[merchantIdVar] || "",
+    clientId: process.env[isMainBranch ? "EZYPAY_CLIENT_ID" : "BRANCH2_EZYPAY_CLIENT_ID"] || "",
+    clientSecret: process.env[isMainBranch ? "EZYPAY_CLIENT_SECRET" : "BRANCH2_EZYPAY_CLIENT_SECRET"] || "",
+    username: process.env[isMainBranch ? "EZYPAY_USERNAME" : "BRANCH2_EZYPAY_USERNAME"] || "",
+    password: process.env[isMainBranch ? "EZYPAY_PASSWORD" : "BRANCH2_EZYPAY_PASSWORD"] || "",
+    merchantId: process.env[isMainBranch ? "EZYPAY_MERCHANT_ID" : "BRANCH2_EZYPAY_MERCHANT_ID"] || "",
   }
 }
 

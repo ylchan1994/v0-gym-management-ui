@@ -13,11 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
 
-// Mock branch data - in production, this would come from an API
 const BRANCHES = [
-  { id: "main", name: "Main Branch", username: "main_user", password: "main_pass", merchantId: "MAIN001" },
-  { id: "branch2", name: "Branch 2", username: "branch2_user", password: "branch2_pass", merchantId: "BRANCH002" },
-  { id: "branch3", name: "Branch 3", username: "branch3_user", password: "branch3_pass", merchantId: "BRANCH003" },
+  { id: "main", name: "Main Branch" },
+  { id: "branch2", name: "Branch 2" },
 ]
 
 export function BranchSwitcher() {
@@ -39,10 +37,6 @@ export function BranchSwitcher() {
   const handleBranchSwitch = (branch: (typeof BRANCHES)[0]) => {
     setCurrentBranch(branch)
     localStorage.setItem("selectedBranch", branch.id)
-    // Store credentials for API usage
-    localStorage.setItem("merchantUsername", branch.username)
-    localStorage.setItem("merchantPassword", branch.password)
-    localStorage.setItem("merchantId", branch.merchantId)
     toast.success(`Switched to ${branch.name}`)
   }
 
