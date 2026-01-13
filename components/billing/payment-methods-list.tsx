@@ -73,10 +73,10 @@ export function PaymentMethodsList({
   const [branch, setBranch] = useState("");
 
   useEffect(() => {
-    if (customerId) {
+    if (customerId && branch) {
       fetchPaymentMethods();
     }
-  }, [customerId, refreshTrigger]);
+  }, [customerId, refreshTrigger, branch]);
 
   useEffect(() => {
     const selectedBranch = localStorage.getItem("selectedBranch") || "main";

@@ -48,8 +48,6 @@ export async function createCustomer(customer, branch: string): Promise<any> {
     if (customer.existingCustomerNumber)
       body.customerNumber = customer.existingCustomerNumber;
 
-    console.log(body);
-
     const response = await fetch(apiEndpoint, {
       method: "POST",
       headers: {

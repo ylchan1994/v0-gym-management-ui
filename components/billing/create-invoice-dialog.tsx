@@ -506,7 +506,7 @@ export function CreateInvoiceDialog({
               </div>
 
               <div className="space-y-3">
-                <Label className="text-sm">Payment Method</Label>
+                <Label className="text-sm">Payment Channel</Label>
                 <RadioGroup
                   value={formData.paymentMethod}
                   onValueChange={(value: any) =>
@@ -551,7 +551,7 @@ export function CreateInvoiceDialog({
               {formData.paymentMethod === "ondemand" && formData.memberId && (
                 <>
                   <div className="space-y-2 pt-2 border-t">
-                    <Label>Select Payment Channel</Label>
+                    <Label>Select Payment Method</Label>
                     <PaymentMethodsList
                       customerId={formData.memberId}
                       variant="selection"
