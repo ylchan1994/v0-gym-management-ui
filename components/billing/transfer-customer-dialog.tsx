@@ -13,19 +13,15 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { BRANCHES } from "@/lib/branches"
 
 interface TransferCustomerDialogProps {
   customerId: string
   currentBranch: string
   customerName: string
 }
-
-const BRANCHES = [
-  { id: "main", name: "Main Branch" },
-  { id: "branch2", name: "Branch 2" },
-]
 
 export function TransferCustomerDialog({ customerId, currentBranch, customerName }: TransferCustomerDialogProps) {
   const [open, setOpen] = useState(false)
@@ -82,20 +78,22 @@ export function TransferCustomerDialog({ customerId, currentBranch, customerName
         </DialogHeader>
 
         <div className="space-y-6">
-          <div>
-            <Label className="text-base font-semibold mb-3 block">Select Branch</Label>
-            <RadioGroup value={selectedBranch} onValueChange={setSelectedBranch}>
-              <div className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="branch-select" className="text-base font-semibold">
+              Select Branch
+            </Label>
+            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+              <SelectTrigger id="branch-select">
+                <SelectValue placeholder="Choose a branch" />
+              </SelectTrigger>
+              <SelectContent>
                 {availableBranches.map((branch) => (
-                  <div key={branch.id} className="flex items-center gap-3 rounded-md border p-3">
-                    <RadioGroupItem value={branch.id} id={branch.id} />
-                    <Label htmlFor={branch.id} className="flex-1 cursor-pointer">
-                      {branch.name}
-                    </Label>
-                  </div>
+                  <SelectItem key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </SelectItem>
                 ))}
-              </div>
-            </RadioGroup>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center gap-3 rounded-md border p-3">

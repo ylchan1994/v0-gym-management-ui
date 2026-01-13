@@ -12,11 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
-
-const BRANCHES = [
-  { id: "main", name: "Main Branch" },
-  { id: "branch2", name: "Branch 2" },
-]
+import { BRANCHES } from "@/lib/branches"
 
 export function BranchSwitcher() {
   const [currentBranch, setCurrentBranch] = useState(BRANCHES[0])
