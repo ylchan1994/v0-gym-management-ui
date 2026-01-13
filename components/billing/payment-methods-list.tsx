@@ -70,13 +70,18 @@ export function PaymentMethodsList({
     useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const branch = localStorage.getItem("selectedBranch") || "main";
+  const [branch, setBranch] = useState("main");
 
   useEffect(() => {
     if (customerId) {
       fetchPaymentMethods();
     }
   }, [customerId, refreshTrigger]);
+
+  useEffect(() => {
+    const selectedBranch = localStorage.getItem("selectedBranch") || "main";
+    setBranch(selectedBranch);
+  }, []);
 
   async function fetchPaymentMethods() {
     setIsLoading(true);

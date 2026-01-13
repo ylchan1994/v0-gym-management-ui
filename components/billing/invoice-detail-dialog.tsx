@@ -106,13 +106,15 @@ export function InvoiceDetailDialog({
   const [externalPaymentMethod, setExternalPaymentMethod] =
     useState<string>("");
   const [refundError, setRefundError] = useState<string | null>(null);
-  const branch = localStorage.getItem("selectedBranch") || "main";
+  const [branch, setBranch] = useState("main");
 
   useEffect(() => {
     setInvoice(invoiceProp);
   }, [invoiceProp]);
 
   useEffect(() => {
+    const selectedBranch = localStorage.getItem("selectedBranch") || "main";
+    setBranch(selectedBranch);
     listTransactionByInvoice(
       invoiceProp?.id,
       invoiceProp?.paymentMethod,

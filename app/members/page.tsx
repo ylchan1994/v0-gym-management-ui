@@ -38,9 +38,11 @@ export default function MembersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [members, setMembers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const branch = localStorage.getItem("selectedBranch") || "main";
+  const [branch, setBranch] = useState("main");
 
   useEffect(() => {
+    const selectedBranch = localStorage.getItem("selectedBranch") || "main";
+    setBranch(selectedBranch);
     const member: any[] = [];
     listCustomer(branch).then((e) => {
       const customers = e.data;

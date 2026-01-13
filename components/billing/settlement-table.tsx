@@ -36,9 +36,11 @@ export function SettlementTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
   const { toast } = useToast();
-  const branch = localStorage.getItem("selectedBranch") || "main";
+  const [branch, setBranch] = useState("main");
 
   useEffect(() => {
+    const selectedBranch = localStorage.getItem("selectedBranch") || "main";
+    setBranch(selectedBranch);
     setIsLoading(true);
     listSettlements(branch).then((settlements) => {
       setSettlements(settlements);

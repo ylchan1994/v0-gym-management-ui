@@ -59,13 +59,15 @@ export default function NewMemberPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailPreviewLink, setEmailPreviewLink] = useState("");
   const [formData, setFormData] = useState(defaultformData);
-  const branch = localStorage.getItem("selectedBranch") || "main";
+  const [branch, setBranch] = useState("main");
 
   // Track selected values from Select components separately for easier UI updates
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const iframeOriginRef = useRef<string | null>(null);
 
   useEffect(() => {
+    const selectedBranch = localStorage.getItem("selectedBranch") || "main";
+    setBranch(selectedBranch);
     const handleMessage = (event: MessageEvent) => {
       // Validate origin if we have it
       // if (iframeOriginRef.current && event.origin !== iframeOriginRef.current) {

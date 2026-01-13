@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn, normalisedEzypayCustomer } from "@/lib/utils";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { listCustomer } from "@/lib/passer-functions";
 import {
   Sidebar,
@@ -37,9 +37,11 @@ const navigation = [
 
 export function AppSidebar() {
   const { setOpenMobile, isMobile } = useSidebar();
-  const branch = localStorage.getItem("selectedBranch") || "main";
+  const [branch, setBranch] = useState("main");
 
   useEffect(() => {
+    const selectedBranch = localStorage.getItem("selectedBranch") || "main";
+    setBranch(selectedBranch);
     let mounted = true;
     listCustomer(branch)
       .then((res) => {

@@ -70,7 +70,7 @@ export function CreateInvoiceDialog({
     paymentMethodId: "",
     accountingCode: "",
   });
-  const branch = localStorage.getItem("selectedBranch") || "main";
+  const [branch, setBranch] = useState("main");
 
   useEffect(() => {
     if (open && !customerId) {
@@ -98,6 +98,11 @@ export function CreateInvoiceDialog({
       setFormData((prev) => ({ ...prev, memberId: customerId }));
     }
   }, [open, customerId, toast]);
+
+  useEffect(() => {
+    const selectedBranch = localStorage.getItem("selectedBranch") || "main";
+    setBranch(selectedBranch);
+  }, []);
 
   const terminalDevices = [
     {
