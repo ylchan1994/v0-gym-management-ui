@@ -47,6 +47,7 @@ export function normalisedEzypayCustomer(customer) {
       name: customerName,
       email: customer.email,
       phone: customer.mobilePhone,
+      number: customer.number,
       address: Object.values(customer.address).join(" "),
       dateOfBirth: customer.dateofBirth,
       emergencyContact: customer.homePhone,

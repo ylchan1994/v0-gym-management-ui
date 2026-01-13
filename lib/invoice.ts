@@ -495,7 +495,6 @@ export async function createInvoice(invoiceData, branch) {
       requestBody.paymentMethodToken = invoiceData.paymentMethodId;
     }
 
-    console.log(JSON.stringify(requestBody));
     const response = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
@@ -508,7 +507,6 @@ export async function createInvoice(invoiceData, branch) {
 
     const data = response.ok ? await response.json() : await response.text();
     await logApiCall("POST", apiEndpoint, data, response.status, requestBody);
-    console.log(data);
     if (!response.ok) {
       console.error("Create Invoice failed:", response.status, data);
       throw new Error(`Create invoice failed: ${response.status}`);

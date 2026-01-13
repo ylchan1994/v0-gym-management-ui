@@ -284,7 +284,6 @@ export function CreateInvoiceDialog({
           invoiceSubCategory: "TERMINAL",
         };
         logApiCall("POST", url, requestBody, 200, responseBody);
-        console.log("POST", url, requestBody, 200, responseBody);
       }
 
       if (formData.paymentMethod === "ondemand") {

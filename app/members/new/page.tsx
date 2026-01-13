@@ -31,7 +31,11 @@ import { ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { getEzypayToken, createCustomer } from "@/lib/passer-functions";
+import {
+  getEzypayToken,
+  createCustomer,
+  getCustomerPaymentMethods,
+} from "@/lib/passer-functions";
 import { logApiCall } from "@/lib/api-logger";
 
 const pcpEndpoint = process.env.NEXT_PUBLIC_PCP_ENDPOINT;
@@ -321,16 +325,6 @@ export default function NewMemberPage() {
                     <Input
                       id="emergencyContact"
                       placeholder="Jane Doe - +61 498 765 432"
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="existingCustomerNumber">
-                      Existing Customer Number (Optional)
-                    </Label>
-                    <Input
-                      id="existingCustomerNumber"
-                      placeholder="e.g., CUST-12345"
                       onChange={handleInputChange}
                     />
                   </div>

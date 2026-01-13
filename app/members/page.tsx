@@ -49,6 +49,7 @@ export default function MembersPage() {
         member.push({
           id: customer.id,
           name: `${customer.firstName} ${customer.lastName}`,
+          number: customer.number,
           email: customer.email,
           phone: customer.mobilePhone,
           status: customer.metadata?.status ?? "trial",
@@ -74,7 +75,8 @@ export default function MembersPage() {
       statusFilter === "all" || member.status === statusFilter;
     const matchesSearch =
       member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase());
+      member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.number.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -129,6 +131,7 @@ export default function MembersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="min-w-[150px]">Customer No.</TableHead>
                   <TableHead className="min-w-[150px]">Name</TableHead>
                   <TableHead className="min-w-[200px]">Contact</TableHead>
                   <TableHead className="min-w-[100px]">Status</TableHead>
@@ -164,6 +167,9 @@ export default function MembersPage() {
                         }
                       }}
                     >
+                      <TableCell className="font-medium">
+                        {member.number}
+                      </TableCell>
                       <TableCell className="font-medium">
                         {member.name}
                       </TableCell>

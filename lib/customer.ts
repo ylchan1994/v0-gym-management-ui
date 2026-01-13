@@ -48,6 +48,9 @@ export async function createCustomer(customer, branch: string): Promise<any> {
       },
     };
 
+    if (customer.existingCustomerNumber)
+      body.customerNumber = customer.existingCustomerNumber;
+
     const response = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
@@ -73,7 +76,10 @@ export async function createCustomer(customer, branch: string): Promise<any> {
   }
 }
 
-export async function listCustomer(branch): Promise<any> {
+export async function listCustomer(
+  branch,
+  customerNumber = null
+): Promise<any> {
   const { merchantId } = await getBranchCredentials(
     branch as "main" | "branch2"
   );
@@ -88,7 +94,9 @@ export async function listCustomer(branch): Promise<any> {
       );
     }
 
-    const url = `${apiEndpoint}?limit=30`;
+    const url = customerNumber
+      ? `${apiEndpoint}?customerNumber=${customerNumber}&limit=30`
+      : `${apiEndpoint}?limit=30`;
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -173,9 +181,6 @@ export async function getCustomerPaymentMethods(
       console.error("No access_token from token utility", tokenData);
       throw new Error("Unable to get access token");
     }
-
-    const merchantId =
-      process.env.EZYPAY_MERCHANT_ID || "5ee1dffe-70ab-43a9-bc1c-d8b7bd66586d";
 
     const url = `${apiEndpoint}/${customerId}/paymentmethods`;
     const res = await fetch(url, {

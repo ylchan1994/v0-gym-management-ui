@@ -31,8 +31,8 @@ export async function createCustomer(customer, branch) {
   return await createEzypayCustomer(customer, branch);
 }
 
-export async function listCustomer(branch) {
-  return await listEzypayCustomer(branch);
+export async function listCustomer(branch, customerNumber = null) {
+  return await listEzypayCustomer(branch, customerNumber);
 }
 
 export async function getCustomer(customer, branch) {

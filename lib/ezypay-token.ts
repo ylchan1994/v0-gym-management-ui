@@ -8,7 +8,6 @@ export async function getEzypayToken(branch: "main" | "branch2"): Promise<{
 }> {
   try {
     // Get selected branch from client-side storage via header or default to main
-    console.log(branch);
     const credentials = await getBranchCredentials(branch);
 
     const { clientId, clientSecret, username, password } = credentials;
