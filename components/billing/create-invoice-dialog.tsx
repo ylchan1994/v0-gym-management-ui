@@ -70,7 +70,7 @@ export function CreateInvoiceDialog({
     paymentMethodId: "",
     accountingCode: "",
   });
-  const [branch, setBranch] = useState("main");
+  const [branch, setBranch] = useState("");
 
   useEffect(() => {
     if (open && !customerId) {

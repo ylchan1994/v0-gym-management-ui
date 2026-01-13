@@ -8,9 +8,7 @@ const apiEndpoint = `${process.env.API_ENDPOINT}/v2/billing/customers`;
 //   process.env.EZYPAY_MERCHANT_ID || "5ee1dffe-70ab-43a9-bc1c-d8b7bd66586d";
 
 export async function createCustomer(customer, branch: string): Promise<any> {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     // Get token directly from utility function instead of HTTP request
     const tokenData = await getEzypayToken(branch);
@@ -31,7 +29,6 @@ export async function createCustomer(customer, branch: string): Promise<any> {
       },
       mobilePhone: customer.mobilePhone ?? null,
       dateOfBirth: customer.dateOfBirth ?? null,
-      //homePhone: customer.emergencyContact ?? null,
       metadata: {
         plan: customer.plan ?? "Trial",
         status: customer.status ?? "trial",
@@ -51,6 +48,8 @@ export async function createCustomer(customer, branch: string): Promise<any> {
     if (customer.existingCustomerNumber)
       body.customerNumber = customer.existingCustomerNumber;
 
+    console.log(body);
+
     const response = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
@@ -62,6 +61,7 @@ export async function createCustomer(customer, branch: string): Promise<any> {
     });
 
     const data = response.ok ? await response.json() : await response.text();
+    console.log(data);
     await logApiCall("POST", apiEndpoint, data, response.status, body);
 
     if (!response.ok) {
@@ -80,9 +80,7 @@ export async function listCustomer(
   branch,
   customerNumber = null
 ): Promise<any> {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     // Get token directly from utility function instead of HTTP request
     const tokenData = await getEzypayToken(branch);
@@ -122,9 +120,7 @@ export async function getCustomer(
   customerId: string | null,
   branch: string
 ): Promise<any> {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     if (!customerId) {
       throw new Error("No customer ID");
@@ -166,9 +162,7 @@ export async function getCustomerPaymentMethods(
   customerId: string,
   branch: string
 ): Promise<any> {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     if (!customerId) {
       throw new Error("No customer ID provided");

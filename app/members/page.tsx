@@ -38,11 +38,15 @@ export default function MembersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [members, setMembers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [branch, setBranch] = useState("main");
+  const [branch, setBranch] = useState("");
 
   useEffect(() => {
     const selectedBranch = localStorage.getItem("selectedBranch") || "main";
     setBranch(selectedBranch);
+  }, []);
+
+  useEffect(() => {
+    if (!branch) return;
     const member: any[] = [];
     listCustomer(branch).then((e) => {
       const customers = e.data;
@@ -70,7 +74,7 @@ export default function MembersPage() {
       setMembers(member);
       setIsLoading(false);
     });
-  }, []);
+  }, [branch]);
 
   const filteredMembers = members.filter((member) => {
     const matchesStatus =

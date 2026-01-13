@@ -1,16 +1,16 @@
 // Global branches configuration shared across frontend and backend
-export type BranchId = "main" | "branch2"
-
 export interface Branch {
-  id: BranchId
-  name: string
+  id: string;
+  name: string;
+  country: string;
 }
 
 export const BRANCHES: Branch[] = [
-  { id: "main", name: "Main Branch" },
-  { id: "branch2", name: "Branch 2" },
-]
+  { id: "main", name: "Main Branch", country: "AU" },
+  { id: "branch2", name: "Branch 2", country: "AU" },
+  { id: "ph", name: "PH Branch", country: "PH" },
+];
 
-export function getBranchName(branchId: BranchId): string {
-  return BRANCHES.find((b) => b.id === branchId)?.name || branchId
+export function getBranchName(branchId: string): string {
+  return BRANCHES.find((b) => b.id === branchId)?.name || branchId;
 }

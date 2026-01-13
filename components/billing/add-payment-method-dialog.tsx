@@ -44,7 +44,7 @@ export function AddPaymentMethodDialog({
   const [isLoading, setIsLoading] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const iframeOriginRef = useRef<string | null>(null);
-  const [branch, setBranch] = useState("main");
+  const [branch, setBranch] = useState("");
 
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;

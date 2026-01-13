@@ -70,7 +70,7 @@ export function PaymentMethodsList({
     useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [branch, setBranch] = useState("main");
+  const [branch, setBranch] = useState("");
 
   useEffect(() => {
     if (customerId) {

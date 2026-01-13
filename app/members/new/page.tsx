@@ -59,7 +59,7 @@ export default function NewMemberPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailPreviewLink, setEmailPreviewLink] = useState("");
   const [formData, setFormData] = useState(defaultformData);
-  const [branch, setBranch] = useState("main");
+  const [branch, setBranch] = useState("");
 
   // Track selected values from Select components separately for easier UI updates
   const iframeRef = useRef<HTMLIFrameElement | null>(null);

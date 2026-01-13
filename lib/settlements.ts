@@ -37,9 +37,7 @@ export async function downloadDocument(
   documentType,
   branch
 ): Promise<any> {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     // Get token directly from utility function instead of HTTP request
     const tokenData = await getEzypayToken(branch);
@@ -111,9 +109,7 @@ export async function downloadDocument(
 }
 
 export async function listSettlements(branch): Promise<any> {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     // Get token directly from utility function instead of HTTP request
     const tokenData = await getEzypayToken(branch);

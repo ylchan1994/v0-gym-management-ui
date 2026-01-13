@@ -36,17 +36,21 @@ export function SettlementTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
   const { toast } = useToast();
-  const [branch, setBranch] = useState("main");
+  const [branch, setBranch] = useState("");
 
   useEffect(() => {
     const selectedBranch = localStorage.getItem("selectedBranch") || "main";
     setBranch(selectedBranch);
     setIsLoading(true);
+  }, []);
+
+  useEffect(() => {
+    if (!branch) return;
     listSettlements(branch).then((settlements) => {
       setSettlements(settlements);
       setIsLoading(false);
     });
-  }, []);
+  }, [branch]);
 
   const filteredSettlements = settlements.filter((settlement) => {
     const matchesSearch =

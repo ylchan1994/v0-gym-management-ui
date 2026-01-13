@@ -37,11 +37,15 @@ const navigation = [
 
 export function AppSidebar() {
   const { setOpenMobile, isMobile } = useSidebar();
-  const [branch, setBranch] = useState("main");
+  const [branch, setBranch] = useState("");
 
   useEffect(() => {
     const selectedBranch = localStorage.getItem("selectedBranch") || "main";
     setBranch(selectedBranch);
+  }, []);
+
+  useEffect(() => {
+    if (!branch) return;
     let mounted = true;
     listCustomer(branch)
       .then((res) => {
@@ -61,7 +65,7 @@ export function AppSidebar() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [branch]);
 
   const pathname = usePathname();
 

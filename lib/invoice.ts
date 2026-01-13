@@ -71,9 +71,7 @@ function normalisedEzypayInvoice(invoices, customerName = null) {
 }
 
 export async function listInvoice(branch): Promise<any> {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     if (!process.env.API_ENDPOINT) {
       console.error("API_ENDPOINT environment variable is not configured");
@@ -129,9 +127,7 @@ export async function listInvoiceByCustomer(
   customerName,
   branch
 ): Promise<any> {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     if (!customerId) {
       throw new Error("No customer ID");
@@ -187,9 +183,7 @@ export async function listTransactionByInvoice(
   paymentMethod,
   branch
 ): Promise<any> {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     if (!invoiceId) {
       throw new Error("No invoice ID");
@@ -245,9 +239,7 @@ export async function listTransactionByInvoice(
 }
 
 export async function retryInvoice(invoiceId, paymentMethodId, branch) {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     if (!invoiceId) {
       throw new Error("No invoice ID");
@@ -295,9 +287,7 @@ export async function retryInvoice(invoiceId, paymentMethodId, branch) {
 }
 
 export async function writeOffInvoice(invoiceId, branch) {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     if (!invoiceId) {
       throw new Error("No invoice ID");
@@ -338,9 +328,7 @@ export async function writeOffInvoice(invoiceId, branch) {
 }
 
 export async function recordExternalInvoice(invoiceId, method, branch) {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     if (!invoiceId) {
       throw new Error("No invoice ID");
@@ -385,9 +373,7 @@ export async function recordExternalInvoice(invoiceId, method, branch) {
 }
 
 export async function refundInvoice(invoiceId, amount = null, branch) {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     if (!invoiceId) {
       throw new Error("No invoice ID");
@@ -456,9 +442,7 @@ export async function refundInvoice(invoiceId, amount = null, branch) {
 }
 
 export async function createInvoice(invoiceData, branch) {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     if (!invoiceData) {
       throw new Error("No invoice Data");
@@ -520,9 +504,7 @@ export async function createInvoice(invoiceData, branch) {
 }
 
 export async function createCheckout(invoiceData, branch) {
-  const { merchantId } = await getBranchCredentials(
-    branch as "main" | "branch2"
-  );
+  const { merchantId } = await getBranchCredentials(branch);
   try {
     if (!invoiceData) {
       throw new Error("No invoice data for checkout session");

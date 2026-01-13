@@ -21,6 +21,7 @@ import { getEzypayToken as innerGetEzypayToken } from "./ezypay-token";
 import {
   replacePaymentMethod as replaceEzypayPaymentMethod,
   deletePaymentMethod as deleteEzypayPaymentMethod,
+  linkPaymentMethod as linkEzypayPaymentMethod,
 } from "@/lib/payment-methods";
 import {
   listSettlements as listEzypaySettlements,
@@ -111,4 +112,8 @@ export async function listSettlements(branch) {
 
 export async function downloadDocument(settlementId, documentType, branch) {
   return await downloadEzypayDocument(settlementId, documentType, branch);
+}
+
+export async function linkPaymentMethod(customerId, paymentMethod, branch) {
+  return await linkEzypayPaymentMethod(customerId, paymentMethod, branch);
 }
